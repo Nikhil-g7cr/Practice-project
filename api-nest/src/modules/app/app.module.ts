@@ -1,0 +1,26 @@
+import { Module } from '@nestjs/common';
+import { AppService } from './app.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+
+import dotenv from 'dotenv';
+import { UserModule } from '../user/user.module';
+import { AuthModule } from '../auth/auth.module';
+import { PhonesModule } from '../phones/phones.module';
+import { AppController } from './app.controller';
+
+dotenv.config();
+const mongodb = process.env.MONGODB_URI;
+
+@Module({
+  imports: [
+    PhonesModule,
+    ConfigModule.forRoot(),
+    MongooseModule.forRoot(`${mongodb}`),
+    UserModule,
+    AuthModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
