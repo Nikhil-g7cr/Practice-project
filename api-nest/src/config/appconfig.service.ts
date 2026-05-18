@@ -31,6 +31,7 @@ export class AppConfigService {
         environment: process.env.NODE_ENV || 'development',
         debug: process.env.DEBUG === 'true',
       },
+      
       database: {
         mongoose: {
           dialect: 'mongodb',
