@@ -18,6 +18,12 @@ export interface IAppConfig {
     secret: string;
     expiresIn: string;
   };
+  blobStorage: {
+    blobAccountName: string|undefined;
+    blobStorageString:string|undefined;
+  };
+
+
 }
 
 @Injectable()
@@ -44,6 +50,10 @@ export class AppConfigService {
         secret: process.env.JWT_SECRET || 'your-secret-key',
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
       },
+      blobStorage: {
+        blobAccountName:process.env.BLOB_AC_NAME,
+        blobStorageString:process.env.BLOB_STORAGE_CONNECTION_STRING
+      }
     };
   }
 

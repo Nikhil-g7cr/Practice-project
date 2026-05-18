@@ -21,6 +21,9 @@ export class User {
     default: 'user',
   })
   role: string;
+
+  @Prop({ required: false })
+  image_url?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
