@@ -15,7 +15,9 @@ const mongodb = process.env.MONGODB_URI;
 @Module({
   imports: [
     PhonesModule,
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     MongooseModule.forRoot(`${mongodb}`),
     UserModule,
     AuthModule,

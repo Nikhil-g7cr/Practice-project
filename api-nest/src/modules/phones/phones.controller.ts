@@ -12,10 +12,12 @@ import {
   HttpStatus,
   InternalServerErrorException,
   NotFoundException,
+  UseGuards,
 } from '@nestjs/common';
 import { PhonesService } from './phones.service';
 import { CreatePhoneDto } from './dto/create-phone.dto';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
+import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
 
 @Controller('/api/phones')
 export class PhonesController {
@@ -74,6 +76,7 @@ export class PhonesController {
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try {
