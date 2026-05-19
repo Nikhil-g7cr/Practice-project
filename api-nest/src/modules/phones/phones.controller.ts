@@ -18,11 +18,15 @@ import { PhonesService } from './phones.service';
 import { CreatePhoneDto } from './dto/create-phone.dto';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
+@ApiTags('Phones')
 @Controller('/api/phones')
 export class PhonesController {
   constructor(private readonly phonesService: PhonesService) {}
 
+  @ApiOperation({ summary: 'Create a new phone' })
+  @ApiResponse({ status: 201, description: 'Phone created successfully' })
   @Post()
   async create(@Body(new ValidationPipe()) createPhoneDto: CreatePhoneDto) {
     try {
@@ -36,6 +40,8 @@ export class PhonesController {
     }
   }
 
+  @ApiOperation({ summary: 'Get all phones' })
+  @ApiResponse({ status: 200, description: 'Phones retrieved successfully' })
   @Get()
   async findAll() {
     try {
@@ -47,6 +53,8 @@ export class PhonesController {
     }
   }
 
+  @ApiOperation({ summary: 'Get phone by ID' })
+  @ApiResponse({ status: 200, description: 'Phone found' })
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
@@ -56,6 +64,8 @@ export class PhonesController {
     }
   }
 
+  @ApiOperation({ summary: 'Update phone' })
+  @ApiResponse({ status: 200, description: 'Phone updated successfully' })
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -75,6 +85,9 @@ export class PhonesController {
       throw new InternalServerErrorException('Failed to update phone');
     }
   }
+  @ApiOperation({ summary: 'Delete phone' })
+  @ApiResponse({ status: 200, description: 'Phone deleted successfully' })
+  
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')

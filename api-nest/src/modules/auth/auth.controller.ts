@@ -12,7 +12,7 @@ import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
 import { RolesGuard } from '../../core/guards/auth/roles.gaurd';
 import { Roles } from '../../core/decorators/roles.decorator';
@@ -22,11 +22,15 @@ import { Roles } from '../../core/decorators/roles.decorator';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'User signup' })
+  @ApiResponse({ status: 201, description: 'User created successfully' })
   @Post('signup')
   signUp(@Body() signupDto: SignUpDto) {
     return this.authService.signup(signupDto);
   }
 
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
   @Post('login')
   async signin(
     @Body() loginDto: LoginDto,
@@ -53,6 +57,8 @@ export class AuthController {
     };
   }
 
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
   @Post('refresh')
   async refresh(@Request() req, @Response({ passthrough: true }) res) {
     const refreshToken = req.cookies?.refreshToken;
@@ -85,6 +91,8 @@ export class AuthController {
     };
   }
 
+  @ApiOperation({ summary: 'User logout' })
+  @ApiResponse({ status: 200, description: 'Logout successful' })
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Request() req, @Response({ passthrough: true }) res) {
@@ -97,6 +105,8 @@ export class AuthController {
     return result;
   }
 
+  @ApiOperation({ summary: 'Logout from all devices' })
+  @ApiResponse({ status: 200, description: 'Logged out from all devices' })
   @UseGuards(JwtAuthGuard)
   @Post('logout-all')
   async logoutAll(@Request() req, @Response({ passthrough: true }) res) {
@@ -107,12 +117,18 @@ export class AuthController {
 
     return result;
   }
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiResponse({ status: 200, description: 'User profile retrieved' })
+  
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   profile(@Request() req) {
     return req.user;
   }
+  @ApiOperation({ summary: 'Admin only route' })
+  @ApiResponse({ status: 200, description: 'Admin access granted' })
+  
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
