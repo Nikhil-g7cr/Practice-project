@@ -19,11 +19,9 @@ export interface IAppConfig {
     expiresIn: string;
   };
   blobStorage: {
-    blobAccountName: string|undefined;
-    blobStorageString:string|undefined;
+    blobAccountConnectionString: string | undefined;
+    blobUploadContainer: string | undefined;
   };
-
-
 }
 
 @Injectable()
@@ -37,7 +35,7 @@ export class AppConfigService {
         environment: process.env.NODE_ENV || 'development',
         debug: process.env.DEBUG === 'true',
       },
-      
+
       database: {
         mongoose: {
           dialect: 'mongodb',
@@ -47,13 +45,17 @@ export class AppConfigService {
         },
       },
       jwt: {
-        secret: process.env.JWT_SECRET || 'your-secret-key',
+        secret: process.env.JWT_SECRET || 'secret-key',
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
       },
       blobStorage: {
-        blobAccountName:process.env.BLOB_AC_NAME,
-        blobStorageString:process.env.BLOB_STORAGE_CONNECTION_STRING
-      }
+        blobAccountConnectionString:
+          process.env.AZURE_STORAGE_CONNECTION_STRING,
+        blobUploadContainer:
+          process.env.AZURE_STORAGE_CONTAINER_NAME ||
+          process.env.BLOB_UPLOAD_CONTAINER ||
+          'uploads',
+      },
     };
   }
 

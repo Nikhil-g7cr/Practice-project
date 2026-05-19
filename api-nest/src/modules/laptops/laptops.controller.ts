@@ -3,13 +3,13 @@ import { LaptopsService } from './laptops.service';
 import { CreateLaptopDto } from './dto/create-laptop.dto';
 import { UpdateLaptopDto } from './dto/update-laptop.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { FilesAzureService } from '../files/files.service';
+// import { FilesAzureService } from '../files/files.service';
 
 @Controller('laptops')
 export class LaptopsController {
   constructor(
     private readonly laptopsService: LaptopsService,
-    private readonly fileService:FilesAzureService
+    // private readonly fileService:FilesAzureService
   ) {}
 
   // @Post()

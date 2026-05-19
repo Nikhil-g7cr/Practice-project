@@ -1,14 +1,6 @@
-// upload.service.ts
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
-import {
-  Injectable,
-  OnModuleInit,
-} from '@nestjs/common';
-
-import {
-  BlobServiceClient,
-  ContainerClient,
-} from '@azure/storage-blob';
+import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 
 import { AppConfigService } from '../../config/appconfig.service';
 
@@ -16,21 +8,28 @@ import { AppConfigService } from '../../config/appconfig.service';
 export class UploadService implements OnModuleInit {
   private containerClient: ContainerClient;
 
-  constructor(
-    private readonly appConfigService: AppConfigService,
-  ) {
-    const blobConfig =
-      this.appConfigService.get('blobStorage');
+  constructor(private readonly appConfigService: AppConfigService) {
+    const blobConfig = this.appConfigService.get('blobStorage');
 
-    const blobServiceClient =
-      BlobServiceClient.fromConnectionString(
-        blobConfig.blobAccountConnectionString,
+    if (!blobConfig?.blobAccountConnectionString) {
+      throw new Error(
+        'Azure Storage connection string is not configured. Please set AZURE_STORAGE_CONNECTION_STRING in environment variables.',
       );
+    }
 
-    this.containerClient =
-      blobServiceClient.getContainerClient(
-        blobConfig.blobUploadContainer,
+    if (!blobConfig?.blobUploadContainer) {
+      throw new Error(
+        'Azure Storage container name is not configured. Please set AZURE_STORAGE_CONTAINER_NAME or BLOB_UPLOAD_CONTAINER in environment variables.',
       );
+    }
+
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+      blobConfig.blobAccountConnectionString,
+    );
+
+    this.containerClient = blobServiceClient.getContainerClient(
+      blobConfig.blobUploadContainer,
+    );
   }
 
   // Runs automatically when module starts
@@ -47,13 +46,9 @@ export class UploadService implements OnModuleInit {
       throw new Error('File not found');
     }
 
-    const fileName =
-      `${Date.now()}-${file.originalname}`;
+    const fileName = `${Date.now()}-${file.originalname}`;
 
-    const blockBlobClient =
-      this.containerClient.getBlockBlobClient(
-        fileName,
-      );
+    const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
 
     await blockBlobClient.uploadData(file.buffer, {
       blobHTTPHeaders: {
@@ -69,10 +64,7 @@ export class UploadService implements OnModuleInit {
   }
 
   async deleteFile(fileName: string) {
-    const blockBlobClient =
-      this.containerClient.getBlockBlobClient(
-        fileName,
-      );
+    const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
 
     await blockBlobClient.deleteIfExists();
 
