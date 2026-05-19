@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './modules/app/app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
-import { SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { swaggerConfig, swaggerOptions } from './core/swagger/doc.swagger';
 import { corsConfig } from './core/cors.config';
 import cookieParser from 'cookie-parser';

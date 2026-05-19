@@ -42,6 +42,16 @@ export class SessionService {
     return session;
   }
 
+  async findActiveSessionByRefreshToken(refreshToken: string) {
+    const session = await this.sessionModel.findOne({
+      refreshToken,
+      isActive: true,
+      expiresAt: { $gt: new Date() },
+    });
+
+    return session;
+  }
+
   async findActiveSessionByUserId(userId: string) {
     const sessions = await this.sessionModel.find({
       userId: new Types.ObjectId(userId),

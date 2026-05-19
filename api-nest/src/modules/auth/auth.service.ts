@@ -125,7 +125,9 @@ export class AuthService {
       });
 
       // Check if session exists and is active
-      const session = await this.sessionService.findActiveSession(refreshToken);
+      const session = await this.sessionService.findActiveSessionByRefreshToken(
+        refreshToken,
+      );
       if (!session) {
         throw new UnauthorizedException('Session expired or revoked');
       }
