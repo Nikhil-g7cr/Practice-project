@@ -12,7 +12,7 @@ import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
 import { RolesGuard } from '../../core/guards/auth/roles.gaurd';
 import { Roles } from '../../core/decorators/roles.decorator';
@@ -41,7 +41,7 @@ export class AuthController {
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: this.parseTimeToMs(result.refreshTokenExpiresIn),
       path: '/api/auth',
     });
@@ -73,7 +73,7 @@ export class AuthController {
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: this.parseTimeToMs(result.refreshTokenExpiresIn),
       path: '/api/auth',
     });

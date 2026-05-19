@@ -113,6 +113,10 @@ export class AuthService {
     ipAddress?: string,
   ) {
     try {
+      if (!refreshToken) {
+        throw new UnauthorizedException('Refresh token is missing');
+      }
+
       // Validate refresh token
       const payload = this.jwtService.verify(refreshToken, {
         secret:
@@ -177,8 +181,13 @@ export class AuthService {
           role: user.role,
         },
       };
-    } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
+    } catch (error: any) {
+      console.error('🔴 Refresh Token Error:', {
+        error: error.message,
+        hasToken: !!refreshToken,
+        tokenPreview: refreshToken ? refreshToken.substring(0, 20) + '...' : 'NONE',
+      });
+      throw new UnauthorizedException(error.message || 'Invalid refresh token');
     }
   }
 

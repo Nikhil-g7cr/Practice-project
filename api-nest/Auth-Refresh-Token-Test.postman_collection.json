@@ -1,0 +1,193 @@
+{
+  "info": {
+    "_postman_id": "auth-refresh-test",
+    "name": "Auth Refresh Token Test",
+    "description": "Complete collection to test authentication and refresh token flow",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Sign Up",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Test User {{$timestamp}}\",\n  \"email\": \"test{{$timestamp}}@example.com\",\n  \"password\": \"Test@123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/signup",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "signup"]
+        },
+        "description": "Create a new user account"
+      }
+    },
+    {
+      "name": "2. Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('accessToken', jsonData.accessToken);",
+              "    pm.environment.set('userId', jsonData.user.id);",
+              "    console.log('✅ Access Token saved:', jsonData.accessToken.substring(0, 30) + '...');",
+              "    console.log('✅ User ID saved:', jsonData.user.id);",
+              "    var refreshCookie = pm.cookies.get('refreshToken');",
+              "    console.log('✅ Refresh Cookie received:', refreshCookie ? 'YES' : 'NO');",
+              "} else {",
+              "    console.error('❌ Login failed:', pm.response.json());",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"test{{$timestamp}}@example.com\",\n  \"password\": \"Test@123456\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        },
+        "description": "Login user and receive access token (refresh token stored as HttpOnly cookie automatically by Postman)"
+      }
+    },
+    {
+      "name": "3. Refresh Token ⭐",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "console.log('Response Status:', pm.response.code);",
+              "var refreshCookie = pm.cookies.get('refreshToken');",
+              "console.log('Refresh Cookie in jar:', refreshCookie ? 'YES ✅' : 'NO ❌');",
+              "",
+              "if (pm.response.code === 200 || pm.response.code === 201) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.environment.set('accessToken', jsonData.accessToken);",
+              "    console.log('✅ NEW Access Token received:', jsonData.accessToken.substring(0, 30) + '...');",
+              "    console.log('✅ User:', jsonData.user.name);",
+              "    console.log('✅ Refresh token successfully works!');",
+              "} else {",
+              "    console.error('❌ Refresh failed with status', pm.response.code);",
+              "    try {",
+              "        console.error('Error details:', pm.response.json());",
+              "    } catch(e) {",
+              "        console.error('Response text:', pm.response.text());",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/refresh",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "refresh"]
+        },
+        "description": "Refresh the access token using the refresh token stored in cookies. This tests if refresh token is working!"
+      }
+    },
+    {
+      "name": "4. Get Current User Profile (Test Access Token)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/profile",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "profile"]
+        },
+        "description": "Get current user profile. Use this to verify access token works after refresh."
+      }
+    },
+    {
+      "name": "5. Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/logout",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "logout"]
+        },
+        "description": "Logout and revoke refresh token"
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [""]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:6000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
