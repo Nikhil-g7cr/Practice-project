@@ -1,0 +1,431 @@
+/* Font Imports */
+@import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&family=Nunito+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+/* Custom Tailwind Config Colors */
+:root {
+  --color-on-surface-variant: #4a4e4a;
+  --color-surface-container-low: #f5f1ea;
+  --color-error-container: #ffdad8;
+  --color-primary-fixed: #c8e8d0;
+  --color-on-error-container: #690005;
+  --color-inverse-on-surface: #f5f0e8;
+  --color-on-surface: #2e3230;
+  --color-tertiary-container: #c4a66a;
+  --color-on-tertiary: #ffffff;
+  --color-primary-fixed-dim: #8ecf9e;
+  --color-tertiary-fixed: #f8e0a8;
+  --color-surface-container-high: #eae6de;
+  --color-secondary: #6b6358;
+  --color-on-secondary-fixed: #1e1a13;
+  --color-on-primary: #ffffff;
+  --color-on-secondary: #ffffff;
+  --color-outline: #74796e;
+  --color-error: #b83230;
+  --color-surface-tint: #4a7c59;
+  --color-primary-container: #78a886;
+  --color-on-primary-fixed: #002110;
+  --color-surface-container: #f0ece4;
+  --color-background: #faf6f0;
+  --color-surface-bright: #faf6f0;
+  --color-on-secondary-fixed-variant: #4a4538;
+  --color-surface-dim: #dbd7cf;
+  --color-surface-container-highest: #e4e0d8;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-tertiary-fixed-variant: #554020;
+  --color-on-background: #2e3230;
+  --color-primary: #4a7c59;
+  --color-on-error: #ffffff;
+  --color-inverse-surface: #2e3230;
+  --color-tertiary: #705c30;
+  --color-on-tertiary-fixed: #221a05;
+  --color-outline-variant: #c4c8bc;
+  --color-on-tertiary-container: #554020;
+  --color-secondary-container: #f0e8db;
+  --color-on-secondary-container: #5e5548;
+  --color-tertiary-fixed-dim: #dcc48e;
+  --color-surface-variant: #e4e0d8;
+  --color-surface: #faf6f0;
+  --color-secondary-fixed: #f0e8db;
+  --color-secondary-fixed-dim: #d4ccbf;
+  --color-inverse-primary: #8ecf9e;
+  --color-on-primary-fixed-variant: #2a6038;
+  --color-on-primary-container: #d8f0de;
+  /* new css for auth */
+    --color-on-surface-variant: #4a4e4a;
+    --color-surface-container-low: #f5f1ea;
+    --color-error-container: #ffdad8;
+    --color-primary-fixed: #c8e8d0;
+    --color-on-error-container: #690005;
+    --color-inverse-on-surface: #f5f0e8;
+    --color-on-surface: #2e3230;
+    --color-tertiary-container: #c4a66a;
+    --color-on-tertiary: #ffffff;
+    --color-primary-fixed-dim: #8ecf9e;
+    --color-tertiary-fixed: #f8e0a8;
+    --color-surface-container-high: #eae6de;
+    --color-secondary: #6b6358;
+    --color-on-secondary-fixed: #1e1a13;
+    --color-on-primary: #ffffff;
+    --color-on-secondary: #ffffff;
+    --color-outline: #74796e;
+    --color-error: #b83230;
+    --color-surface-tint: #4a7c59;
+    --color-primary-container: #78a886;
+    --color-on-primary-fixed: #002110;
+    --color-surface-container: #f0ece4;
+    --color-background: #faf6f0;
+    --color-surface-bright: #faf6f0;
+    --color-on-secondary-fixed-variant: #4a4538;
+    --color-surface-dim: #dbd7cf;
+    --color-surface-container-highest: #e4e0d8;
+    --color-surface-container-lowest: #ffffff;
+    --color-on-tertiary-fixed-variant: #554020;
+    --color-on-background: #2e3230;
+    --color-primary: #4a7c59;
+    --color-on-error: #ffffff;
+    --color-inverse-surface: #2e3230;
+    --color-tertiary: #705c30;
+    --color-on-tertiary-fixed: #221a05;
+    --color-outline-variant: #c4c8bc;
+    --color-on-tertiary-container: #554020;
+    --color-secondary-container: #f0e8db;
+    --color-on-secondary-container: #5e5548;
+    --color-tertiary-fixed-dim: #dcc48e;
+    --color-surface-variant: #e4e0d8;
+    --color-surface: #faf6f0;
+    --color-secondary-fixed: #f0e8db;
+    --color-secondary-fixed-dim: #d4ccbf;
+    --color-inverse-primary: #8ecf9e;
+    --color-on-primary-fixed-variant: #2a6038;
+    --color-on-primary-container: #d8f0de;
+  
+}
+
+/* Base Styles */
+body {
+  margin: 0;
+  font-family: 'Nunito Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-on-surface);
+}
+
+/* Glass Card Effect - Used for glass morphism */
+.glass-card,
+.glass-panel {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-panel {
+  border: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+/* Ambient Shadow Effect */
+.ambient-shadow {
+  box-shadow: 0px 10px 25px -3px rgba(74, 124, 89, 0.05);
+}
+
+/* Background Pattern */
+.bg-pattern {
+  background-color: var(--color-background);
+  background-image: radial-gradient(
+    var(--color-surface-variant) 1px,
+    transparent 1px
+  );
+  background-size: 24px 24px;
+}
+
+/* Auth Container */
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Auth Card */
+.auth-card {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.auth-card-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.auth-brand-logo {
+  display: inline-block;
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  letter-spacing: -0.05em;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-brand-logo:hover {
+  color: var(--color-primary-container);
+}
+
+.auth-form-wrapper {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 2rem;
+  box-shadow: 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(196, 200, 188, 0.3);
+  padding: 1.5rem;
+}
+
+.auth-form-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.auth-form-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin-bottom: 0.25rem;
+}
+
+.auth-form-subtitle {
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  color: var(--color-on-surface-variant);
+  margin-bottom: 0.25rem;
+}
+
+.form-input-wrapper {
+  position: relative;
+}
+
+.form-input-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-outline);
+  font-size: 1.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding-left: 2.5rem;
+  padding-right: 0.75rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  background-color: var(--color-surface-container-lowest);
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-family: "Nunito Sans", sans-serif;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.2);
+}
+
+.form-input::placeholder {
+  color: var(--color-on-surface-variant);
+}
+
+.form-checkbox-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.form-checkbox {
+  height: 1rem;
+  width: 1rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 0.25rem;
+  background-color: var(--color-surface-container-lowest);
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  transition: all 0.2s ease;
+}
+
+.form-checkbox:focus {
+  box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.2);
+}
+
+.checkbox-label {
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  cursor: pointer;
+  font-family: "Nunito Sans", sans-serif;
+}
+
+.forgot-password-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  color: var(--color-primary-container);
+}
+
+.submit-btn {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  box-shadow: 0px 4px 6px -1px rgba(0, 0, 0, 0.1);
+  font-size: 1rem;
+  font-family: "Literata", serif;
+  font-weight: 600;
+  color: var(--color-on-primary);
+  background-color: var(--color-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.submit-btn:hover {
+  background-color: var(--color-primary-container);
+}
+
+.submit-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 124, 89, 0.5);
+}
+
+.submit-btn:active {
+  box-shadow: none;
+  transform: translateY(1px);
+}
+
+.divider-section {
+  margin-top: 3rem;
+}
+
+.divider-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.divider-line {
+  flex: 1;
+  border-top: 1px solid rgba(196, 200, 188, 0.5);
+}
+
+.divider-text {
+  padding: 0 0.5rem;
+  background-color: white;
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  font-family: "Nunito Sans", sans-serif;
+}
+
+.social-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-outline-variant);
+  border-radius: 0.75rem;
+  background-color: var(--color-surface-container-lowest);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.social-btn:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+.social-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+.signup-link-section {
+  margin-top: 3rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-on-surface-variant);
+  font-family: "Nunito Sans", sans-serif;
+}
+
+.signup-link {
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.signup-link:hover {
+  color: var(--color-primary-container);
+}
+
+@media (min-width: 768px) {
+  .auth-container {
+    padding: 4rem;
+  }
+
+  .auth-card-header {
+    margin-bottom: 3rem;
+  }
+
+  .auth-brand-logo {
+    font-size: 2.5rem;
+  }
+
+  .auth-form-wrapper {
+    padding: 3rem;
+  }
+}

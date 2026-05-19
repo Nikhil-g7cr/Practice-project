@@ -1,5 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Topbar from "../containers/Topbar/Topbar";
+import Signup from "../components/features/Auth/Signup";
+import Login from "../components/features/Auth/Login";
 
 const Approutes = ()=>{
     return(
@@ -9,6 +11,8 @@ const Approutes = ()=>{
                 <Route path="/" element={<h1>Home Page</h1>} />
                 <Route path="/smartphones" element={<h1>smartphones</h1>} />
                 <Route path="/laptops" element={<h1>laptops</h1>} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/about" element={<h1>About</h1>} />
                 <Route path="/profile" element={<h1>Profile</h1>} />
             </Routes>
