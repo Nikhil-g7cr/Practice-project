@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Auth.css";
+import { useDispatch } from "react-redux";
 
 interface LoginFormData {
   email: string;
@@ -14,12 +15,20 @@ interface LoginError {
 }
 
 const Login = () => {
+
+  // dispatch initialization 
+  const dispatch = useDispatch();
+  
+
   const navigate = useNavigate();
+
+  // use state for login form 
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
     rememberMe: false,
   });
+
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<LoginError | null>(null);
