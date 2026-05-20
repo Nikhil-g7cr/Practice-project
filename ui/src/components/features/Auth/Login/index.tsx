@@ -104,20 +104,12 @@ const Login = () => {
       // -------Adding the dispatcher here for user ---------------
       dispatch(login({user:data.user, token:data.accessToken}))
 
-      // Store token if provided
-      if (data.accessToken) {
-        localStorage.setItem("accessToken", data.accessToken);
-      }
-
-      // Store user data
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
 
       // Store remember me preference
-      if (formData.rememberMe) {
-        localStorage.setItem("rememberEmail", formData.email);
-      }
+      // if (formData.rememberMe) {
+        // localStorage.setItem("rememberEmail", formData.email);
+        // dispatch(login({}))
+      // }
 
       // Redirect to dashboard or home
       navigate("/");
@@ -172,16 +164,13 @@ const Login = () => {
               </p>
             </div>
 
-            {/* Error Message */}
             {error && (
               <div className="mb-4 p-3 bg-error-container border border-error rounded-lg text-error-container text-sm">
                 {error.message}
               </div>
             )}
 
-            {/* Login Form */}
             <form onSubmit={handleSubmit} className="auth-form">
-              {/* Email Field */}
               <div className="form-group">
                 <label htmlFor="email" className="form-label">
                   Email Address
@@ -249,13 +238,11 @@ const Login = () => {
                 </button>
               </div>
 
-              {/* Submit Button */}
               <button type="submit" disabled={loading} className="submit-btn">
                 {loading ? "Signing in..." : "Sign In"}
               </button>
             </form>
 
-            {/* Divider */}
             <div className="divider-section">
               <div className="divider-wrapper">
                 <div className="divider-line"></div>
@@ -263,7 +250,6 @@ const Login = () => {
                 <div className="divider-line"></div>
               </div>
 
-              {/* Social Login Buttons */}
               <div className="social-buttons-grid">
                 <button
                   type="button"
