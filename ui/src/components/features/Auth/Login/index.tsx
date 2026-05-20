@@ -85,6 +85,8 @@ const Login = () => {
       // Replace with your actual API endpoint
       const response = await fetch("http://localhost:3000/api/auth/login", {
         method: "POST",
+        credentials: "include", // Include cookies for session management,
+
         headers: {
           "Content-Type": "application/json",
         },
@@ -106,10 +108,13 @@ const Login = () => {
 
 
       // Store remember me preference
-      // if (formData.rememberMe) {
-        // localStorage.setItem("rememberEmail", formData.email);
-        // dispatch(login({}))
-      // }
+      if(data.accessToken){
+        sessionStorage.setItem("accessToken", data.accessToken);
+      }
+
+      if(data.user){
+        sessionStorage.setItem("user", JSON.stringify(data.user));
+      }
 
       // Redirect to dashboard or home
       navigate("/");

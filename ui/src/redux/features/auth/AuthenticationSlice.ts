@@ -12,11 +12,24 @@ interface AuthState{
     isAuthenticated:boolean
 }
 
-const initialState: AuthState={
-    user:null,
-    token:null,
-    isAuthenticated:false,
+// 1. Helper to safely read user data
+const loadUserFromStorage = () => {
+    try {
+        const storedUser = sessionStorage.getItem('user');
+        return storedUser ? JSON.parse(storedUser) : null;
+    } catch (error) {
+        return null;
+    }
+};
+
+// 2. This is the magic part! It checks storage BEFORE Redux starts.
+const initialState: AuthState = {
+    user: loadUserFromStorage(),
+    token: sessionStorage.getItem('accessToken') || null,
+    // If an access token exists in storage, start the app as logged in!
+    isAuthenticated: !!sessionStorage.getItem('accessToken'),
 }
+
 
 const authSlice = createSlice({
     name:'auth',
@@ -32,6 +45,9 @@ const authSlice = createSlice({
             state.user =null;
             state.token=null;
             state.isAuthenticated = false;
+
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('accessToken');
         },
     }
 })
