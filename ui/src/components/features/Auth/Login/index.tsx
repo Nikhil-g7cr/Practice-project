@@ -95,13 +95,18 @@ const Login = () => {
         localStorage.setItem("accessToken", data.accessToken);
       }
 
+      // Store user data
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
       // Store remember me preference
       if (formData.rememberMe) {
         localStorage.setItem("rememberEmail", formData.email);
       }
 
       // Redirect to dashboard or home
-      navigate("/dashboard");
+      navigate("/");
     } catch (err) {
       setError({
         message:

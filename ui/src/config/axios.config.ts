@@ -3,6 +3,8 @@ import { environment } from "../environment/environment";
 import {notification} from 'antd'
 import { encryptInput } from "../shared/shared-function";
 import { API_ENDPOINTS } from "../shared/api-endpoints";
+import { decodeToken } from "react-jwt";
+import { differenceInSeconds } from "date-fns";
 const API=axios.create({
     baseURL:environment.APP_API_URL
 });
@@ -62,4 +64,55 @@ const refreshToken = async():Promise<string>=>{
     return refreshTokenPromise;
 }
 
-export default refreshToken;
+const getBearerToken = async()=>{
+    try{
+        let token = sessionStorage.getItem('accessToken');
+        let decodedToken:any = token ? decodeToken(token!): '';
+        if(differenceInSeconds(new Date(decodedToken.exp*1000),new Date())<=0){
+            return refreshToken();
+            
+        }else{
+            return token;
+        }
+    }catch(error){
+        return error;
+    }
+}
+
+API.interceptors.request.use(
+    async(config:any)=>{
+        const token =await getBearerToken()
+        if(token){
+            return{
+                ...config,
+                headers:{
+                    ...config.headers,
+                    Authorization:`Bearer ${token}`,
+
+                }
+            }
+        }
+        return config;
+    },
+
+    (error:any)=>{
+        return Promise.reject(error);
+    }
+)
+
+API.interceptors.response.use(
+    (response)=>{
+        return response;
+    },
+
+    async(error:any)=>{
+        if(error.response?.status ===401){
+            window.location.href='/401';
+        }else if(error.response?.status ===403){
+            window.location.href='/403';
+        }
+        return Promise.reject(error);
+    }
+)
+
+export default API;

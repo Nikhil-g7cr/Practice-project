@@ -1,7 +1,7 @@
 /* Font Imports */
-@import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&family=Nunito+Sans:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-
+@import url("https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&family=Nunito+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
+@import "tailwindcss";
 /* Custom Tailwind Config Colors */
 :root {
   --color-on-surface-variant: #4a4e4a;
@@ -51,61 +51,12 @@
   --color-inverse-primary: #8ecf9e;
   --color-on-primary-fixed-variant: #2a6038;
   --color-on-primary-container: #d8f0de;
-  /* new css for auth */
-    --color-on-surface-variant: #4a4e4a;
-    --color-surface-container-low: #f5f1ea;
-    --color-error-container: #ffdad8;
-    --color-primary-fixed: #c8e8d0;
-    --color-on-error-container: #690005;
-    --color-inverse-on-surface: #f5f0e8;
-    --color-on-surface: #2e3230;
-    --color-tertiary-container: #c4a66a;
-    --color-on-tertiary: #ffffff;
-    --color-primary-fixed-dim: #8ecf9e;
-    --color-tertiary-fixed: #f8e0a8;
-    --color-surface-container-high: #eae6de;
-    --color-secondary: #6b6358;
-    --color-on-secondary-fixed: #1e1a13;
-    --color-on-primary: #ffffff;
-    --color-on-secondary: #ffffff;
-    --color-outline: #74796e;
-    --color-error: #b83230;
-    --color-surface-tint: #4a7c59;
-    --color-primary-container: #78a886;
-    --color-on-primary-fixed: #002110;
-    --color-surface-container: #f0ece4;
-    --color-background: #faf6f0;
-    --color-surface-bright: #faf6f0;
-    --color-on-secondary-fixed-variant: #4a4538;
-    --color-surface-dim: #dbd7cf;
-    --color-surface-container-highest: #e4e0d8;
-    --color-surface-container-lowest: #ffffff;
-    --color-on-tertiary-fixed-variant: #554020;
-    --color-on-background: #2e3230;
-    --color-primary: #4a7c59;
-    --color-on-error: #ffffff;
-    --color-inverse-surface: #2e3230;
-    --color-tertiary: #705c30;
-    --color-on-tertiary-fixed: #221a05;
-    --color-outline-variant: #c4c8bc;
-    --color-on-tertiary-container: #554020;
-    --color-secondary-container: #f0e8db;
-    --color-on-secondary-container: #5e5548;
-    --color-tertiary-fixed-dim: #dcc48e;
-    --color-surface-variant: #e4e0d8;
-    --color-surface: #faf6f0;
-    --color-secondary-fixed: #f0e8db;
-    --color-secondary-fixed-dim: #d4ccbf;
-    --color-inverse-primary: #8ecf9e;
-    --color-on-primary-fixed-variant: #2a6038;
-    --color-on-primary-container: #d8f0de;
-  
 }
 
 /* Base Styles */
 body {
   margin: 0;
-  font-family: 'Nunito Sans', sans-serif;
+  font-family: "Nunito Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-background);
@@ -428,4 +379,99 @@ body {
   .auth-form-wrapper {
     padding: 3rem;
   }
+}
+
+
+/* =========================================================
+   CUSTOM DESIGN TOKEN UTILITY CLASSES
+   ========================================================= */
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+.bg-primary-container {
+  background-color: var(--color-primary-container);
+}
+
+.bg-surface-container-low {
+  background-color: var(--color-surface-container-low);
+}
+
+.bg-surface-container-lowest {
+  background-color: var(--color-surface-container-lowest);
+}
+
+.bg-surface-container {
+  background-color: var(--color-surface-container);
+}
+
+.bg-error-container {
+  background-color: var(--color-error-container);
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-on-primary {
+  color: var(--color-on-primary);
+}
+
+.text-on-surface {
+  color: var(--color-on-surface);
+}
+
+.text-on-surface-variant {
+  color: var(--color-on-surface-variant);
+}
+
+.text-error {
+  color: var(--color-error);
+}
+
+.border-outline-variant {
+  border-color: var(--color-outline-variant);
+}
+
+.border-error {
+  border-color: var(--color-error);
+}
+
+.border-outline {
+  border-color: var(--color-outline);
+}
+
+/* Hover utilities */
+
+.hover\:bg-primary-container:hover {
+  background-color: var(--color-primary-container);
+}
+
+.hover\:bg-surface-container-low:hover {
+  background-color: var(--color-surface-container-low);
+}
+
+.hover\:bg-error-container:hover {
+  background-color: var(--color-error-container);
+}
+
+/* Focus utilities */
+
+.focus\:border-primary:focus {
+  border-color: var(--color-primary);
+}
+
+.focus\:ring-primary\/20:focus {
+  box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.2);
+}
+
+/* Selection */
+
+.selection\:bg-primary-container::selection {
+  background-color: var(--color-primary-container);
+}
+
+.selection\:text-on-primary-container::selection {
+  color: var(--color-on-primary-container);
 }

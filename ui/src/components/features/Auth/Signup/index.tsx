@@ -115,6 +115,11 @@ export default function Signup() {
         localStorage.setItem("accessToken", data.accessToken);
       }
 
+      // Store user data
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+      }
+
       // Redirect to dashboard or login
       navigate("/login");
     } catch (err) {
@@ -178,7 +183,9 @@ export default function Signup() {
                   </span>
                   <input
                     className={`w-full pl-10 pr-3 py-3 bg-surface-container-lowest border rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-base text-on-surface placeholder:text-outline/50 ${
-                      error?.field === "name" ? "border-error" : "border-outline-variant"
+                      error?.field === "name"
+                        ? "border-error"
+                        : "border-outline-variant"
                     }`}
                     id="name"
                     name="name"
@@ -205,7 +212,9 @@ export default function Signup() {
                   </span>
                   <input
                     className={`w-full pl-10 pr-3 py-3 bg-surface-container-lowest border rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-base text-on-surface placeholder:text-outline/50 ${
-                      error?.field === "email" ? "border-error" : "border-outline-variant"
+                      error?.field === "email"
+                        ? "border-error"
+                        : "border-outline-variant"
                     }`}
                     id="email"
                     name="email"
@@ -232,7 +241,9 @@ export default function Signup() {
                   </span>
                   <input
                     className={`w-full pl-10 pr-3 py-3 bg-surface-container-lowest border rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-base text-on-surface placeholder:text-outline/50 ${
-                      error?.field === "password" ? "border-error" : "border-outline-variant"
+                      error?.field === "password"
+                        ? "border-error"
+                        : "border-outline-variant"
                     }`}
                     id="password"
                     name="password"
@@ -374,7 +385,7 @@ export default function Signup() {
             </div>
           </div>
         </div>
-      </main>     
+      </main>
     </div>
   );
 }
