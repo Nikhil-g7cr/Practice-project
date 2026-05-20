@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Auth.css";
 import { useDispatch } from "react-redux";
+import { useAppDispatch } from "../../../../redux/hooks/AuthreduxHooks";
+import { login } from "../../../../redux/features/auth/AuthenticationSlice";
 
 interface LoginFormData {
   email: string;
@@ -17,8 +19,8 @@ interface LoginError {
 const Login = () => {
 
   // dispatch initialization 
-  const dispatch = useDispatch();
-  
+  const dispatch = useAppDispatch();
+
 
   const navigate = useNavigate();
 
@@ -92,12 +94,15 @@ const Login = () => {
         }),
       });
 
+      
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "Login failed");
       }
-
+      
       const data = await response.json();
+      // -------Adding the dispatcher here for user ---------------
+      dispatch(login({user:data.user, token:data.accessToken}))
 
       // Store token if provided
       if (data.accessToken) {

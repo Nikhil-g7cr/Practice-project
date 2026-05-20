@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "../../components/layout/SearchBar";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks/AuthreduxHooks";
+import { logout } from "../../redux/features/auth/AuthenticationSlice";
 
 interface User {
   id: string;
@@ -10,43 +12,15 @@ interface User {
 
 const Topbar = () => {
   const navigate = useNavigate();
+  
+  // 1. Grab isAuthenticated directly from Redux! No need for local state.
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  
+  // Fixed a small typo here (dispach -> dispatch)
+  const dispatch = useAppDispatch(); 
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-
   const profileRef = useRef<HTMLDivElement | null>(null);
-
-  // Check login state
-  useEffect(() => {
-    const checkAuth = () => {
-      const accessToken = localStorage.getItem("accessToken");
-      const userData = localStorage.getItem("user");
-
-      if (accessToken && userData) {
-        try {
-          setUser(JSON.parse(userData));
-          setIsLoggedIn(true);
-        } catch (error) {
-          console.error("Error parsing user data:", error);
-          setUser(null);
-          setIsLoggedIn(false);
-        }
-      } else {
-        setUser(null);
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkAuth();
-
-    // Listen for storage changes
-    window.addEventListener("storage", checkAuth);
-
-    return () => {
-      window.removeEventListener("storage", checkAuth);
-    };
-  }, []);
 
   // Close dropdown when clicked outside
   useEffect(() => {
@@ -67,13 +41,11 @@ const Topbar = () => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
-
-    setIsLoggedIn(false);
-    setUser(null);
+    // Dispatch the logout action to Redux. 
+    // This will instantly set isAuthenticated to false in the store, 
+    // and this Topbar will automatically re-render!
+    dispatch(logout());
     setShowProfileMenu(false);
-
     navigate("/");
   };
 
@@ -113,7 +85,8 @@ const Topbar = () => {
           About
         </Link>
 
-        {isLoggedIn && user ? (
+        {/* 2. Check the Redux isAuthenticated flag directly */}
+        {isAuthenticated && user ? (
           <div className="flex items-center space-x-4">
             <div className="relative" ref={profileRef}>
               <button
