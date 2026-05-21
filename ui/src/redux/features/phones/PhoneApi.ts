@@ -1,28 +1,53 @@
-import axios from "axios";
-
-const BASE_URL = "http://localhost:3000/api/phones";
+import API from "../../../config/axios.config";
+import type { Phone, PhoneResponse, PhonesResponse } from "./PhoneTypes";
 
 export const fetchPhonesApi = async () => {
-  const response = await axios.get(BASE_URL);
+  const response = await API.get<PhonesResponse>("/phones");
 
-  return response.data.data;
+  return response.data;
 };
 
 export const getPhonesApi = async (page: number = 1, limit: number = 8) => {
-  // Pass them as query strings
-  const response = await axios.get(`/api/phones?page=${page}&limit=${limit}`);
-  return response.data; // This will return { status, code, data, meta }
+  const response = await API.get<PhonesResponse>("/phones", {
+    params: { page, limit },
+  });
+
+  return response.data;
 };
 
-export const updatePhoneApi = async (
-  id: string,
-  data: any,
-) => {
+export const getPhoneImages= async(fileName:string)=>{
+  const res = await API.get(`/upload/${fileName}`)
 
-  const response = await axios.patch(
-    `${BASE_URL}/${id}`,
-    data,
-  );
+  return res.data;
+}
+
+export const uploadPhoneImage = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await API.post("/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
+};
+
+
+// ui/src/shared/api-endpoints.ts (or wherever you keep your API calls)
+
+export const getAllUploadedFilesApi = async () => {
+  // Call the new GET endpoint we made in the backend
+  const response = await API.get("/upload");
+  
+  // Return the array of files sitting inside the 'data' property
+  return response.data.data; 
+};
+
+
+export const updatePhoneApi = async (id: string, data: Partial<Phone>) => {
+  const response = await API.patch<PhoneResponse>(`/phones/${id}`, data);
 
   return response.data;
 };

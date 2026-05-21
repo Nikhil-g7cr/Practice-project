@@ -11,6 +11,7 @@ import EditPhone from "../containers/phones/updatePhone";
 
 // IMPORT YOUR SINGLE PHONE COMPONENT HERE
 import Phone from "../containers/phones/Phone"; 
+import ImageGallery from "../containers/phones/ImageGallery";
 
 const Approutes = ()=>{
     return(
@@ -29,6 +30,7 @@ const Approutes = ()=>{
                 <Route path="/phone/:id" element={<Phone />} />
                 
                 <Route path="/phones/update/:id" element={<EditPhone/>}/>
+                <Route path="/gallery" element={<ImageGallery/>}/>
                 
                 {/* Other Routes */}
                 <Route path="/laptops" element={<LaptopDisplayScreen/>} />

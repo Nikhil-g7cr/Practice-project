@@ -84,6 +84,9 @@ const Topbar = () => {
         <Link to="/about" className="text-gray-600 hover:text-gray-800">
           About
         </Link>
+        <Link to='/gallery' className="text-gray-600 hover:text-gray-800">
+          Gallery
+        </Link>
 
         {/* 2. Check the Redux isAuthenticated flag directly */}
         {isAuthenticated && user ? (

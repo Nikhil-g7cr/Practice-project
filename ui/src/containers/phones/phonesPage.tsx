@@ -10,7 +10,7 @@ const PhonesPage = () => {
   const { phones, loading, error } = useAppSelector((state) => state.phones);
 
   useEffect(() => {
-    dispatch(fetchPhones());
+    dispatch(fetchPhones({ page: 1, limit: 4 }));
   }, [dispatch]);
 
   if (loading) {

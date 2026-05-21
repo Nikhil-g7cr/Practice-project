@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { fetchPhones } from "../../redux/features/phones/PhoneSlice";
-import { Link, useNavigate } from "react-router-dom";
+import type { Phone } from "../../redux/features/phones/PhoneTypes";
+import { useNavigate } from "react-router-dom";
 
+const PHONES_PER_PAGE = 8;
 
 const customCSS = `
   @import url('https://fonts.googleapis.com/css2?family=Literata:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&display=swap');
@@ -50,23 +52,16 @@ const customCSS = `
 
 export default function PhoneDisplay() {
   const navigate = useNavigate();
-
-  // ================= REDUX & STATE =================
   const dispatch = useAppDispatch();
-  
-  // Extract meta alongside phones, loading, and error
   const { phones, meta, loading, error } = useAppSelector((state) => state.phones);
 
-  // Local state for pagination
   const [page, setPage] = useState(1);
-  const limit = 8; // Adjust how many items you want to fetch per page
 
-  // ================= FETCH DATA =================
   useEffect(() => {
-    // Pass the page and limit to your fetch function
-    dispatch(fetchPhones({ page, limit }));
+    dispatch(fetchPhones({ page, limit: PHONES_PER_PAGE }));
+  }, [dispatch, page]);
 
-    // Inject CSS
+  useEffect(() => {
     const styleSheet = document.createElement("style");
     styleSheet.innerText = customCSS;
     document.head.appendChild(styleSheet);
@@ -74,15 +69,18 @@ export default function PhoneDisplay() {
     return () => {
       document.head.removeChild(styleSheet);
     };
-  }, [dispatch, page]); // Re-run fetch when the page changes
+  }, []);
 
-  const handleSelectedPhone = (phone: any) => {
-    // Navigate to phone details page
+  const handleSelectedPhone = (phone: Phone) => {
     console.log("Selected phone:", phone);
     navigate(`/phone/${phone._id}`);
   };
 
   const handleLoadMore = () => {
+    if (loading || (meta && meta.currentPage >= meta.totalPages)) {
+      return;
+    }
+
     setPage((prevPage) => prevPage + 1);
   };
 
@@ -90,6 +88,7 @@ export default function PhoneDisplay() {
     <div className="antialiased min-h-screen flex flex-col">
       {/* MAIN LAYOUT */}
       <div className="flex flex-1 w-full max-w-7xl mx-auto px-4 md:px-16 gap-6 py-20">
+        
         {/* SIDEBAR */}
         <aside className="bg-white border-r border-gray-200 h-screen w-64 hidden lg:flex flex-col flex-shrink-0">
           <div className="flex flex-col gap-6 p-6 sticky top-24">
@@ -118,6 +117,7 @@ export default function PhoneDisplay() {
 
         {/* MAIN CONTENT */}
         <main className="flex-1 w-full min-w-0">
+          
           {/* HERO */}
           <section className="w-full bg-white rounded-[2rem] overflow-hidden mb-20 relative shadow-sm">
             <div className="absolute inset-0 z-0">
@@ -133,15 +133,12 @@ export default function PhoneDisplay() {
               <span className="inline-block px-4 py-1 bg-green-100 text-[#4a7c59] text-xs font-semibold uppercase tracking-wider rounded-full w-max mb-3">
                 NEW ARRIVAL
               </span>
-
               <h1 className="text-3xl md:text-5xl font-bold mb-3">
                 The Next-Gen Experience.
               </h1>
-
               <p className="text-lg text-gray-600 mb-6 max-w-lg">
                 Discover the best premium smartphones built for creators and professionals.
               </p>
-
               <button className="btn-primary px-6 py-3 rounded-xl font-semibold w-max">
                 Shop Now
               </button>
@@ -173,9 +170,9 @@ export default function PhoneDisplay() {
           )}
 
           {/* PRODUCT GRID */}
-          {!error && (
+          {!error && phones.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {phones?.map((phone: any) => (
+              {phones.map((phone) => (
                 <article
                   onClick={() => handleSelectedPhone(phone)}
                   key={phone._id}
@@ -220,7 +217,7 @@ export default function PhoneDisplay() {
                     {/* DYNAMIC COLORS */}
                     {phone.colors && phone.colors.length > 0 && (
                       <div className="flex items-center gap-1.5 mb-2">
-                        {phone.colors.map((color: any, index: number) => (
+                        {phone.colors.map((color: Phone["colors"][number], index: number) => (
                           <div
                             key={index}
                             title={color.name}
@@ -243,7 +240,7 @@ export default function PhoneDisplay() {
                     {/* DYNAMIC STORAGE VARIANTS */}
                     {phone.storageVariants && phone.storageVariants.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {phone.storageVariants.map((variant: any, index: number) => (
+                        {phone.storageVariants.map((variant: Phone["storageVariants"][number], index: number) => (
                           <span 
                             key={index} 
                             className="text-[10px] px-2 py-1 bg-gray-100 text-gray-600 rounded-md border border-gray-200"
@@ -267,7 +264,7 @@ export default function PhoneDisplay() {
 
                       <button 
                         onClick={(e) => {
-                           e.stopPropagation(); // Prevents navigating to details page when clicking cart
+                           e.stopPropagation();
                            console.log("Added to cart", phone.name);
                         }}
                         className="p-2 rounded-xl bg-gray-100 hover:bg-[#4a7c59] hover:text-white transition-colors text-[#4a7c59]"
@@ -281,20 +278,28 @@ export default function PhoneDisplay() {
             </div>
           )}
 
-          {/* LOAD MORE BUTTON (Only visible if there are more pages to load) */}
-          {!loading && !error && meta && meta.currentPage < meta.totalPages && (
+          {/* NO RESULTS MESSAGE */}
+          {!loading && !error && phones.length === 0 && (
+             <div className="flex justify-center items-center py-20">
+              <h1 className="text-gray-500 text-xl font-semibold">No phones found.</h1>
+            </div>
+          )}
+
+          {/* LOAD MORE BUTTON */}
+          {!error && meta && meta.currentPage < meta.totalPages && (
             <div className="mt-20 flex justify-center">
               <button 
                 onClick={handleLoadMore}
+                disabled={loading}
                 className="btn-secondary px-6 py-2 rounded-xl font-semibold bg-white"
               >
-                Load More Products
+                {loading ? "Loading more phones..." : "Load More Products"}
               </button>
             </div>
           )}
 
           {/* END OF LIST MESSAGE */}
-          {!loading && meta && meta.currentPage >= meta.totalPages && phones?.length > 0 && (
+          {!loading && meta && meta.currentPage >= meta.totalPages && phones.length > 0 && (
             <div className="mt-20 flex justify-center">
               <p className="text-gray-500 font-semibold">You've reached the end of the list!</p>
             </div>

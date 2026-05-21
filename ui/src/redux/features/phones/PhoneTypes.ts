@@ -45,7 +45,20 @@ export interface PaginationMeta {
 
 export interface PhoneState {
   phones: Phone[];
-  meta: PaginationMeta | null; // 2. Add meta to your state
+  meta: PaginationMeta | null;
   loading: boolean;
   error: string | null;
+}
+
+export interface PhonesResponse {
+  status: string;
+  code: number;
+  data: Phone[];
+  meta: PaginationMeta;
+}
+
+export interface PhoneResponse {
+  status: string;
+  code: number;
+  data: Phone;
 }

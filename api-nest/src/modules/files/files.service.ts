@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
 
@@ -80,6 +81,48 @@ export class UploadService implements OnModuleInit {
       throw new InternalServerErrorException(
         'Failed to upload file to storage',
       );
+    }
+  }
+
+   // api-nest/src/modules/files/files.service.ts
+
+  async getFileStream(blobName: string) {
+    const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
+    
+    if (!(await blockBlobClient.exists())) {
+      throw new NotFoundException('File not found in storage');
+    }
+
+    const downloadResponse = await blockBlobClient.download(0);
+    
+    // Return both the stream and the mime-type (content type)
+    return {
+      stream: downloadResponse.readableStreamBody,
+      contentType: downloadResponse.contentType, 
+    };
+  }
+
+  async getAllFiles() {
+    try {
+      const files:any[] = [];
+      
+      // listBlobsFlat returns an async iterator to loop through all files in the container
+      for await (const blob of this.containerClient.listBlobsFlat()) {
+        const blockBlobClient = this.containerClient.getBlockBlobClient(blob.name);
+        
+        files.push({
+          fileName: blob.name,
+          url: blockBlobClient.url,
+          size: blob.properties.contentLength, // Size in bytes
+          contentType: blob.properties.contentType,
+          createdAt: blob.properties.createdOn,
+        });
+      }
+
+      return files;
+    } catch (error) {
+      console.error('Failed to list files:', error);
+      throw new InternalServerErrorException('Could not retrieve files from storage');
     }
   }
 
