@@ -8,12 +8,26 @@ export interface Phone {
   thumbnail: string;
 
   images: string[];
-  
+
   storageVariants: {
     storage: string;
     price: number;
     stock: number;
   }[];
+
+  colors: {
+    name: string;
+    hexCode: string;
+  }[];
+
+  specifications?: {
+    processor: string;
+    display: string;
+    battery: string;
+    camera: string;
+    ram: string;
+    os: string;
+  };
 
   rating: number;
   reviewsCount: number;

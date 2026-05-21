@@ -292,7 +292,7 @@ const SmartphoneProduct = () => {
               {
                 icon: "memory",
                 label: "Processor",
-                value: "Lumina A1 Pro",
+                value: phone?.specifications?.processor,
                 sub: "Next-gen AI architecture",
               },
               {
@@ -304,13 +304,13 @@ const SmartphoneProduct = () => {
               {
                 icon: "battery_charging_full",
                 label: "Battery",
-                value: "5000mAh",
+                value: phone?.specifications?.battery,
                 sub: "45W Fast Charging, 24hr+ usage",
               },
               {
                 icon: "photo_camera",
                 label: "Camera",
-                value: "Triple 48MP System",
+                value: `${phone?.specifications?.camera}MP System`,
                 sub: "Lidar + AI Neural Engine",
               },
             ].map((spec, index) => (
