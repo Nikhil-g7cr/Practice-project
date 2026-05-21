@@ -8,6 +8,12 @@ export interface Phone {
   thumbnail: string;
 
   images: string[];
+  
+  storageVariants: {
+    storage: string;
+    price: number;
+    stock: number;
+  }[];
 
   rating: number;
   reviewsCount: number;

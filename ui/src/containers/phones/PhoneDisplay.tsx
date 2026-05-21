@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { fetchPhones } from "../../redux/features/phones/PhoneSlice";
+import { Link, useNavigate } from "react-router-dom";
 
 
 const customCSS = `
@@ -49,6 +50,8 @@ const customCSS = `
 `;
 
 export default function PhoneDisplay() {
+
+  const navigate = useNavigate();
   // ================= REDUX =================
 
   const dispatch = useAppDispatch();
@@ -72,6 +75,12 @@ export default function PhoneDisplay() {
       document.head.removeChild(styleSheet);
     };
   }, [dispatch]);
+
+  const handleSelectedPhone = (phone: any) => {
+    // Implement navigation to phone details page or modal here
+    console.log("Selected phone:", phone);
+    navigate(`/phone/${phone._id}`);
+  };
 
   return (
     <div className="antialiased min-h-screen flex flex-col">
@@ -178,6 +187,7 @@ export default function PhoneDisplay() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {phones?.map((phone: any) => (
                 <article
+                  onClick={() => handleSelectedPhone(phone)}
                   key={phone._id}
                   className="bg-white rounded-2xl shadow-sm p-3 flex flex-col product-card relative"
                 >

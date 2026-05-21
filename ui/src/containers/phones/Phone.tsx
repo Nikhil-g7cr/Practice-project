@@ -1,7 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import "./Phone.css";
+import { useParams } from "react-router-dom";
+import { useAppSelector } from "../../redux/hooks/reduxHooks";
 
 const SmartphoneProduct = () => {
+  // get the phones from the reduc store
+  const { id } = useParams();
+  console.log("Phone ID from URL:", id);
+  const { phones } = useAppSelector((state) => state.phones);
+  const phone = phones?.find((p) => p._id === id);
+
+  // const [phone, setPhone] = useState<any>(phone);
   const [selectedColor, setSelectedColor] = useState("Forest Green");
   const [quantity, setQuantity] = useState(1);
   const [cartStatus, setCartStatus] = useState("Add to Cart");
@@ -30,7 +39,7 @@ const SmartphoneProduct = () => {
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     sectionRefs.current.forEach((el) => {
@@ -49,20 +58,18 @@ const SmartphoneProduct = () => {
   return (
     <div className="bg-background text-on-background selection:bg-primary-container/30 min-h-screen font-body">
       <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-16">
-        
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          
           {/* Left Column: Image */}
           <div className="relative group">
             <div className="aspect-square rounded-[2rem] overflow-hidden bg-gradient-to-br from-[#e8f0e9] via-[#faf6f0] to-[#f0ece4] flex items-center justify-center p-8 shadow-[0_4px_20px_rgba(46,50,48,0.06)]">
               <img
-                alt="Nexus X Pro"
+                alt={phone?.name || "Phone Image"}
                 className="w-full h-full object-contain drop-shadow-2xl transform transition-transform duration-500 group-hover:scale-105"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuWBtD70-lxtGYI6IKgaejA1zp19g0iDxMnR3Sd2Kf4Fz1YEnpPeWC-NMU8jUdVn67PKH8qt4j6CLeU9rMQ5wzon5tPGnxUCVEJ83p65_X2twfX5erm-z-iNbfJcTwbHpXDZZq7Xdpu-j0eMCw3An_pek_CdmFTMAgkvJ8-QYzCK-Q_YHIdswDQHmR3BLCT5YXRzsNmWCpmoKdWWHuRrqe8jP5ykheNpJpKZTqAlesH-mLHR991uWIPevTjPeAPjsgq_GqjaAJnkmM"
               />
             </div>
-            
+
             {/* Thumbnail Strip */}
             <div className="flex gap-4 mt-6 justify-center">
               <div className="w-16 h-16 rounded-xl border-2 border-primary bg-surface-container cursor-pointer overflow-hidden">
@@ -83,40 +90,70 @@ const SmartphoneProduct = () => {
           </div>
 
           {/* Right Column: Details */}
-          <div className="flex flex-col gap-6 transition-all duration-700 opacity-0 translate-y-4" ref={addToRefs}>
+          <div
+            className="flex flex-col gap-6 transition-all duration-700 opacity-0 translate-y-4"
+            ref={addToRefs}
+          >
             <div>
               <span className="inline-block px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-full text-xs font-bold font-label tracking-widest uppercase mb-4">
                 New Arrival
               </span>
               <h1 className="text-4xl md:text-5xl font-display font-black text-on-surface mb-2">
-                Nexus X Pro
+                {phone?.name || "Nexus X Pro"}
               </h1>
-              
+
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex text-tertiary">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>star_half</span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    star
+                  </span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    star
+                  </span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    star
+                  </span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    star
+                  </span>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontVariationSettings: "'FILL' 1" }}
+                  >
+                    star_half
+                  </span>
                 </div>
                 <span className="text-on-surface-variant font-body font-semibold">
-                  4.9 (1,248 reviews)
+                  {phone?.rating} ({phone?.reviewsCount} reviews)
                 </span>
               </div>
-              
-              <p className="text-3xl font-display font-bold text-primary">$1,299</p>
+
+              <p className="text-3xl font-display font-bold text-primary">
+                ${phone?.basePrice?.toLocaleString() || "1,299"}
+              </p>
             </div>
-            
+
             <p className="text-on-surface-variant text-lg leading-relaxed max-w-prose">
-              Engineered for the visionaries. The Nexus X Pro features a recycled titanium chassis and our most advanced AI-driven optics yet. Perfectly balanced between rugged durability and refined elegance, it's the ultimate tool for capturing the world in its purest form.
+              {/* Engineered for the visionaries. The Nexus X Pro features a recycled titanium chassis and our most advanced AI-driven optics yet. Perfectly balanced between rugged durability and refined elegance, it's the ultimate tool for capturing the world in its purest form. */}
+              {phone?.description}
             </p>
-            
+
             <hr className="border-outline-variant/30" />
 
             {/* Selection Controls */}
             <div className="flex flex-col gap-6">
-              
               {/* Color Swatches */}
               <div>
                 <p className="font-label font-bold text-xs tracking-widest uppercase mb-3">
@@ -140,13 +177,18 @@ const SmartphoneProduct = () => {
 
               {/* Storage Options */}
               <div>
-                <p className="font-label font-bold text-xs tracking-widest uppercase mb-3">Storage</p>
-                <div className="flex flex-wrap gap-2">
-                  <button className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all">256GB</button>
-                  <button className="px-6 py-2 rounded-lg border border-outline-variant hover:border-primary transition-all">512GB</button>
-                  <button className="px-6 py-2 rounded-lg border border-outline-variant hover:border-primary transition-all">1TB</button>
-                </div>
-              </div>
+                <p className="font-label font-bold text-xs tracking-widest uppercase mb-4">
+                  Storage
+                </p>
+                {phone?.storageVariants && phone.storageVariants.length > 0 && (
+                  <div className="flex flex-wrap gap-2 ml-auto mr-auto">
+                  {phone.storageVariants.map((variant: any, index: number) => (
+                    <button className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all">{variant.storage}</button>
+                  ))}
+                  </div>
+                )}
+                
+              </div> 
 
               {/* Quantity & CTA */}
               <div className="flex items-center gap-4 pt-4">
@@ -171,7 +213,7 @@ const SmartphoneProduct = () => {
                     <span className="material-symbols-outlined">add</span>
                   </button>
                 </div>
-                
+
                 <button
                   onClick={handleAddToCart}
                   className={`flex-1 text-on-primary py-4 px-8 rounded-xl font-bold text-lg shadow-[0_4px_20px_rgba(46,50,48,0.06)] hover:scale-[1.02] active:scale-95 transition-all bg-gradient-to-r ${isAdded ? "from-tertiary to-[#8c743c]" : "from-primary to-[#5b8c6a]"}`}
@@ -186,42 +228,106 @@ const SmartphoneProduct = () => {
         {/* Features Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24">
           {[
-            { icon: "local_shipping", title: "Priority Shipping", desc: "Free express delivery on all Nexus X Pro orders worldwide.", color: "text-primary" },
-            { icon: "verified_user", title: "2-Year Warranty", desc: "Comprehensive coverage including accidental damage protection.", color: "text-tertiary" },
-            { icon: "eco", title: "Eco-Friendly Materials", desc: "Crafted with 100% recycled titanium and ocean-bound plastics.", color: "text-primary" }
+            {
+              icon: "local_shipping",
+              title: "Priority Shipping",
+              desc: "Free express delivery on all Nexus X Pro orders worldwide.",
+              color: "text-primary",
+            },
+            {
+              icon: "verified_user",
+              title: "2-Year Warranty",
+              desc: "Comprehensive coverage including accidental damage protection.",
+              color: "text-tertiary",
+            },
+            {
+              icon: "eco",
+              title: "Eco-Friendly Materials",
+              desc: "Crafted with 100% recycled titanium and ocean-bound plastics.",
+              color: "text-primary",
+            },
           ].map((feature, index) => (
-            <div key={index} className="flex flex-col items-center text-center p-8 bg-surface-container-low rounded-xl border border-outline-variant/10 transition-all duration-700 opacity-0 translate-y-4" ref={addToRefs}>
-              <span className={`material-symbols-outlined text-4xl mb-4 ${feature.color}`}>{feature.icon}</span>
-              <h3 className="font-display font-bold text-xl mb-2">{feature.title}</h3>
+            <div
+              key={index}
+              className="flex flex-col items-center text-center p-8 bg-surface-container-low rounded-xl border border-outline-variant/10 transition-all duration-700 opacity-0 translate-y-4"
+              ref={addToRefs}
+            >
+              <span
+                className={`material-symbols-outlined text-4xl mb-4 ${feature.color}`}
+              >
+                {feature.icon}
+              </span>
+              <h3 className="font-display font-bold text-xl mb-2">
+                {feature.title}
+              </h3>
               <p className="text-on-surface-variant text-sm">{feature.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Detailed Specs Section */}
-        <section className="mt-24 transition-all duration-700 opacity-0 translate-y-4" ref={addToRefs}>
+        <section
+          className="mt-24 transition-all duration-700 opacity-0 translate-y-4"
+          ref={addToRefs}
+        >
           <div className="flex flex-col md:flex-row justify-between items-end gap-4 mb-8">
             <div>
-              <h2 className="text-3xl font-display font-bold text-on-surface">Technical Specs</h2>
-              <p className="text-on-surface-variant">The power behind the experience.</p>
+              <h2 className="text-3xl font-display font-bold text-on-surface">
+                Technical Specs
+              </h2>
+              <p className="text-on-surface-variant">
+                The power behind the experience.
+              </p>
             </div>
             <button className="text-primary font-bold flex items-center gap-1 hover:underline underline-offset-4 transition-all">
-              Download Full PDF <span className="material-symbols-outlined text-sm">download</span>
+              Download Full PDF{" "}
+              <span className="material-symbols-outlined text-sm">
+                download
+              </span>
             </button>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { icon: "memory", label: "Processor", value: "Lumina A1 Pro", sub: "Next-gen AI architecture" },
-              { icon: "smartphone", label: "Display", value: '6.7" OLED', sub: "120Hz Pro-Motion, 2500 nits" },
-              { icon: "battery_charging_full", label: "Battery", value: "5000mAh", sub: "45W Fast Charging, 24hr+ usage" },
-              { icon: "photo_camera", label: "Camera", value: "Triple 48MP System", sub: "Lidar + AI Neural Engine" }
+              {
+                icon: "memory",
+                label: "Processor",
+                value: "Lumina A1 Pro",
+                sub: "Next-gen AI architecture",
+              },
+              {
+                icon: "smartphone",
+                label: "Display",
+                value: '6.7" OLED',
+                sub: "120Hz Pro-Motion, 2500 nits",
+              },
+              {
+                icon: "battery_charging_full",
+                label: "Battery",
+                value: "5000mAh",
+                sub: "45W Fast Charging, 24hr+ usage",
+              },
+              {
+                icon: "photo_camera",
+                label: "Camera",
+                value: "Triple 48MP System",
+                sub: "Lidar + AI Neural Engine",
+              },
             ].map((spec, index) => (
-              <div key={index} className="p-6 bg-surface-container-high rounded-xl border border-outline-variant/20 hover:bg-surface-container-highest transition-colors">
-                <span className="material-symbols-outlined text-primary mb-4">{spec.icon}</span>
-                <p className="text-xs font-label font-black tracking-widest uppercase text-on-surface-variant mb-1">{spec.label}</p>
+              <div
+                key={index}
+                className="p-6 bg-surface-container-high rounded-xl border border-outline-variant/20 hover:bg-surface-container-highest transition-colors"
+              >
+                <span className="material-symbols-outlined text-primary mb-4">
+                  {spec.icon}
+                </span>
+                <p className="text-xs font-label font-black tracking-widest uppercase text-on-surface-variant mb-1">
+                  {spec.label}
+                </p>
                 <p className="font-display font-bold text-lg">{spec.value}</p>
-                <p className="text-xs text-on-surface-variant mt-2">{spec.sub}</p>
+                <p className="text-xs text-on-surface-variant mt-2">
+                  {spec.sub}
+                </p>
               </div>
             ))}
           </div>

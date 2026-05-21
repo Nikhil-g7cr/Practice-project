@@ -7,7 +7,8 @@ import LaptopDisplayScreen from "../containers/laptops/index";
 import AboutPage from "../components/features/About";
 import PhonesPage from "../containers/phones/phonesPage";
 import PhoneDisplay from "../containers/phones/PhoneDisplay";
-import EditPhone from "../containers/phones/updatePhone";
+import UpdatePhone from "../containers/phones/updatePhone";
+import SmartphoneProduct from "../containers/phones/Phone";
 // import Home from "../components/features/Home";
 
 const Approutes = ()=>{
@@ -19,9 +20,9 @@ const Approutes = ()=>{
                 <Route path="/login" element={<Login />} />
                 <Route path="/tablets" element={<h1>tablets</h1>} />
                 <Route path="/phones" element={<PhonesPage/>}/>
-                {/* <Route path="/phones" element={<SmartphoneProduct/>}/> */}
+                <Route path="/phone/:id" element={<SmartphoneProduct/>}/>
                 <Route path="/smartphones" element={<PhoneDisplay/>} />
-                <Route path="/phones/update/:id" element={<EditPhone/>}/>
+                <Route path="/phones/update/:id" element={<UpdatePhone/>}/>
                 <Route path="/laptops" element={<LaptopDisplayScreen/>} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/about" element={<AboutPage/>} />
