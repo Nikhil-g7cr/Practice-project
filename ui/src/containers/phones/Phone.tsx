@@ -157,21 +157,33 @@ const SmartphoneProduct = () => {
               {/* Color Swatches */}
               <div>
                 <p className="font-label font-bold text-xs tracking-widest uppercase mb-3">
-                  Color: <span className="text-primary">{selectedColor}</span>
+                  Color:{" "}
+                  <span className="text-primary">
+                    {selectedColor || "Select a color"}
+                  </span>
                 </p>
+
                 <div className="flex gap-3">
-                  <button
-                    onClick={() => setSelectedColor("Forest Green")}
-                    className={`w-10 h-10 rounded-full bg-[#4a7c59] transition-all ${selectedColor === "Forest Green" ? "ring-2 ring-offset-2 ring-primary" : "hover:ring-2 ring-offset-2 ring-outline"}`}
-                  ></button>
-                  <button
-                    onClick={() => setSelectedColor("Stone Gray")}
-                    className={`w-10 h-10 rounded-full bg-[#6b6358] transition-all ${selectedColor === "Stone Gray" ? "ring-2 ring-offset-2 ring-primary" : "hover:ring-2 ring-offset-2 ring-outline"}`}
-                  ></button>
-                  <button
-                    onClick={() => setSelectedColor("Sand")}
-                    className={`w-10 h-10 rounded-full bg-[#dcc48e] transition-all ${selectedColor === "Sand" ? "ring-2 ring-offset-2 ring-primary" : "hover:ring-2 ring-offset-2 ring-outline"}`}
-                  ></button>
+                  {/* Dynamically map over phone.colors from your database */}
+                  {phone?.colors && phone.colors.length > 0 ? (
+                    phone.colors.map((color: any, index: number) => (
+                      <button
+                        key={index}
+                        title={color.name}
+                        onClick={() => setSelectedColor(color.name)}
+                        className={`w-10 h-10 rounded-full transition-all ${
+                          selectedColor === color.name
+                            ? "ring-2 ring-offset-2 ring-primary"
+                            : "hover:ring-2 ring-offset-2 ring-outline"
+                        }`}
+                        style={{ backgroundColor: color.hexCode }} // Use inline styles for dynamic hex codes
+                      ></button>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500">
+                      No colors available
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -182,13 +194,16 @@ const SmartphoneProduct = () => {
                 </p>
                 {phone?.storageVariants && phone.storageVariants.length > 0 && (
                   <div className="flex flex-wrap gap-2 ml-auto mr-auto">
-                  {phone.storageVariants.map((variant: any, index: number) => (
-                    <button className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all">{variant.storage}</button>
-                  ))}
+                    {phone.storageVariants.map(
+                      (variant: any, index: number) => (
+                        <button className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all">
+                          {variant.storage}
+                        </button>
+                      ),
+                    )}
                   </div>
                 )}
-                
-              </div> 
+              </div>
 
               {/* Quantity & CTA */}
               <div className="flex items-center gap-4 pt-4">
@@ -310,7 +325,7 @@ const SmartphoneProduct = () => {
               {
                 icon: "photo_camera",
                 label: "Camera",
-                value: `${phone?.specifications?.camera}MP System`,
+                value: `${phone?.specifications?.camera} System`,
                 sub: "Lidar + AI Neural Engine",
               },
             ].map((spec, index) => (
