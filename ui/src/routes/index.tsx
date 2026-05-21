@@ -7,9 +7,10 @@ import LaptopDisplayScreen from "../containers/laptops/index";
 import AboutPage from "../components/features/About";
 import PhonesPage from "../containers/phones/phonesPage";
 import PhoneDisplay from "../containers/phones/PhoneDisplay";
-import UpdatePhone from "../containers/phones/updatePhone";
-import SmartphoneProduct from "../containers/phones/Phone";
-// import Home from "../components/features/Home";
+import EditPhone from "../containers/phones/updatePhone";
+
+// IMPORT YOUR SINGLE PHONE COMPONENT HERE
+import Phone from "../containers/phones/Phone"; 
 
 const Approutes = ()=>{
     return(
@@ -19,10 +20,17 @@ const Approutes = ()=>{
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/tablets" element={<h1>tablets</h1>} />
+                
+                {/* Phone Routes */}
                 <Route path="/phones" element={<PhonesPage/>}/>
-                <Route path="/phone/:id" element={<SmartphoneProduct/>}/>
                 <Route path="/smartphones" element={<PhoneDisplay/>} />
-                <Route path="/phones/update/:id" element={<UpdatePhone/>}/>
+                
+                {/* NEW: Dynamic route for individual phone details */}
+                <Route path="/phone/:id" element={<Phone />} />
+                
+                <Route path="/phones/update/:id" element={<EditPhone/>}/>
+                
+                {/* Other Routes */}
                 <Route path="/laptops" element={<LaptopDisplayScreen/>} />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/about" element={<AboutPage/>} />
@@ -30,7 +38,6 @@ const Approutes = ()=>{
             </Routes>
         </div>
     )
-
 }
 
 export default Approutes;

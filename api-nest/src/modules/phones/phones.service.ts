@@ -32,8 +32,28 @@ export class PhonesService {
     }
   }
 
-  findAll() {
-    return this.phoneModel.find();
+  async findAll(page: number = 1, limit: number = 10) {
+    // Calculate how many documents to skip
+    const skip = (page - 1) * limit;
+
+    // Run both queries in parallel for better performance
+    const [data, totalItems] = await Promise.all([
+      this.phoneModel.find().skip(skip).limit(limit).exec(),
+      this.phoneModel.countDocuments().exec()
+    ]);
+
+    // Calculate total pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return {
+      data,
+      meta: {
+        totalItems,
+        itemsPerPage: limit,
+        currentPage: page,
+        totalPages,
+      }
+    };
   }
 
   findOne(id: string) {

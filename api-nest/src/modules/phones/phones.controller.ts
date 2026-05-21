@@ -13,12 +13,13 @@ import {
   InternalServerErrorException,
   NotFoundException,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { PhonesService } from './phones.service';
 import { CreatePhoneDto } from './dto/create-phone.dto';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('Phones')
 @Controller('/api/phones')
@@ -40,14 +41,28 @@ export class PhonesController {
     }
   }
 
-  @ApiOperation({ summary: 'Get all phones' })
+  @ApiOperation({ summary: 'Get all phones with pagination' })
   @ApiResponse({ status: 200, description: 'Phones retrieved successfully' })
+  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
   @Get()
-  async findAll() {
+  async findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
     try {
-      const data = await this.phonesService.findAll();
+      // Convert query string parameters to numbers
+      const pageNumber = parseInt(page, 10) || 1;
+      const limitNumber = parseInt(limit, 10) || 10;
 
-      return { status: 'Success', code: HttpStatus.OK, data: data };
+      const result = await this.phonesService.findAll(pageNumber, limitNumber);
+
+      return { 
+        status: 'Success', 
+        code: HttpStatus.OK, 
+        data: result.data,
+        meta: result.meta // Include pagination metadata in the response
+      };
     } catch (error) {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }

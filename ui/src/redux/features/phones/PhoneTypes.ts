@@ -36,10 +36,16 @@ export interface Phone {
   isFeatured: boolean;
 }
 
+export interface PaginationMeta {
+  totalItems: number;
+  itemsPerPage: number;
+  currentPage: number;
+  totalPages: number;
+}
+
 export interface PhoneState {
   phones: Phone[];
-
+  meta: PaginationMeta | null; // 2. Add meta to your state
   loading: boolean;
-
   error: string | null;
 }
