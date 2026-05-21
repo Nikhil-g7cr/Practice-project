@@ -6,9 +6,9 @@ import { updatePhone } from "../../redux/features/phones/PhoneSlice";
 const EditPhone = () => {
   const navigate = useNavigate();
   // 1. Get the ID from the URL (e.g., /phones/update/:id)
-  const { id } = useParams(); 
+  const { id } = useParams();
   const dispatch = useAppDispatch();
-  
+
   // 2. Pull your phones array from Redux
   const { phones } = useAppSelector((state) => state.phones);
 
@@ -18,12 +18,14 @@ const EditPhone = () => {
   // 4. Initialize state safely (fallback to empty/0 if phone isn't loaded yet)
   const [name, setName] = useState(phone?.name || "");
   const [price, setPrice] = useState(phone?.basePrice || 0);
+  const [image, setImage] = useState(phone?.thumbnail);
 
   // Update local state if the phone data loads after the initial render
   useEffect(() => {
     if (phone) {
       setName(phone.name);
       setPrice(phone.basePrice);
+      setImage(phone.thumbnail)
     }
   }, [phone]);
 
@@ -36,10 +38,11 @@ const EditPhone = () => {
         data: {
           name,
           basePrice: price,
+          thumbnail:image
         },
       }),
     );
-    navigate(`/phones/${phone._id}`); // Navigate back to the phone's detail page after update
+    navigate(`/phone/${phone._id}`); // Navigate back to the phone's detail page after update
   };
 
   // 5. Add a fallback in case the phone data isn't in Redux yet (e.g. if the user refreshed the page)
@@ -65,6 +68,14 @@ const EditPhone = () => {
         onChange={(e) => setPrice(Number(e.target.value))}
         className="border p-2"
       />
+
+      
+        <input
+          type="text"
+          value={image}
+          onChange={(e) => setImage(e.target.value)}
+        />
+     
 
       <button
         onClick={handleUpdate}
