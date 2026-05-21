@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  OnModuleInit,
+} from '@nestjs/common';
 
 import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
 
@@ -34,33 +39,48 @@ export class UploadService implements OnModuleInit {
 
   // Runs automatically when module starts
   async onModuleInit() {
-    await this.containerClient.createIfNotExists({
-      access: 'blob',
-    });
-
-    console.log('Azure Blob Container Ready');
+    try {
+      await this.containerClient.createIfNotExists();
+      // Only set access: 'blob' if you are 100% sure the storage account allows it.
+      console.log('Azure Blob Container Ready');
+    } catch (error: any) {
+      console.error(
+        'Failed to initialize Azure Blob Container:',
+        error.message,
+      );
+    }
   }
 
   async uploadFile(file: Express.Multer.File) {
     if (!file) {
-      throw new Error('File not found');
+      throw new BadRequestException('File not found');
     }
 
-    const fileName = `${Date.now()}-${file.originalname}`;
+    try {
+      // Replace spaces with dashes and remove special characters
+      const sanitizedOriginalName = file.originalname
+        .replace(/\s+/g, '-')
+        .replace(/[^a-zA-Z0-9.\-]/g, '');
+      const fileName = `${Date.now()}-${sanitizedOriginalName}`;
+      const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
 
-    const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
+      await blockBlobClient.uploadData(file.buffer, {
+        blobHTTPHeaders: {
+          blobContentType: file.mimetype,
+        },
+      });
 
-    await blockBlobClient.uploadData(file.buffer, {
-      blobHTTPHeaders: {
-        blobContentType: file.mimetype,
-      },
-    });
-
-    return {
-      message: 'File uploaded successfully',
-      fileName,
-      url: blockBlobClient.url,
-    };
+      return {
+        message: 'File uploaded successfully',
+        fileName,
+        url: blockBlobClient.url,
+      };
+    } catch (error) {
+      console.error('Azure Upload Error:', error);
+      throw new InternalServerErrorException(
+        'Failed to upload file to storage',
+      );
+    }
   }
 
   async deleteFile(fileName: string) {

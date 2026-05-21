@@ -22,7 +22,7 @@ const mongodb = process.env.MONGODB_URI;
     MongooseModule.forRoot(`${mongodb}`),
     UserModule,
     AuthModule,
-    // UploadModule
+    UploadModule
   ],
   controllers: [AppController],
   providers: [AppService],
