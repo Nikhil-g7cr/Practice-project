@@ -68,11 +68,10 @@ const SmartphoneProduct = () => {
           {/* Left Column: Image */}
           <div className="relative group">
             <button onClick={handleUpdate}>Update Phone</button>
-            <div className="aspect-square rounded-[2rem] overflow-hidden bg-gradient-to-br from-[#e8f0e9] via-[#faf6f0] to-[#f0ece4] flex items-center justify-center p-8 shadow-[0_4px_20px_rgba(46,50,48,0.06)]">
+            <div className="aspect-square rounded-[2rem] overflow-hidden bg-white flex items-center justify-center p-8">
               <img
                 alt={phone?.name || "Phone Image"}
-                className="w-full h-full object-contain drop-shadow-2xl transform transition-transform duration-500 group-hover:scale-105"
-                // src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuWBtD70-lxtGYI6IKgaejA1zp19g0iDxMnR3Sd2Kf4Fz1YEnpPeWC-NMU8jUdVn67PKH8qt4j6CLeU9rMQ5wzon5tPGnxUCVEJ83p65_X2twfX5erm-z-iNbfJcTwbHpXDZZq7Xdpu-j0eMCw3An_pek_CdmFTMAgkvJ8-QYzCK-Q_YHIdswDQHmR3BLCT5YXRzsNmWCpmoKdWWHuRrqe8jP5ykheNpJpKZTqAlesH-mLHR991uWIPevTjPeAPjsgq_GqjaAJnkmM"
+                className="w-full h-full object-contain transform transition-transform duration-500 group-hover:scale-105"
                 src={phone?.thumbnail}
               />
             </div>

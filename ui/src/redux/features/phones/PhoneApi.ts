@@ -21,7 +21,7 @@ export const getPhoneImages= async(fileName:string)=>{
   return res.data;
 }
 
-export const uploadPhoneImage = async (file: File) => {
+export const uploadImageToAzureApi = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -49,5 +49,14 @@ export const getAllUploadedFilesApi = async () => {
 export const updatePhoneApi = async (id: string, data: Partial<Phone>) => {
   const response = await API.patch<PhoneResponse>(`/phones/${id}`, data);
 
+  return response.data;
+};
+
+
+// Add this to your existing PhoneApi.ts file
+
+export const deleteImageFromAzureApi = async (fileName: string) => {
+  // Calls the DELETE http://localhost:3000/upload/:blobName endpoint
+  const response = await API.delete(`/upload/${fileName}`);
   return response.data;
 };
