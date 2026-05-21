@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef } from "react";
 import "./Phone.css";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppSelector } from "../../redux/hooks/reduxHooks";
+import { Roles } from "../../routes/Roles";
 
 const SmartphoneProduct = () => {
   // get the phones from the reduc store
   const { id } = useParams();
   console.log("Phone ID from URL:", id);
   const { phones } = useAppSelector((state) => state.phones);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const phone = phones?.find((p) => p._id === id);
+  const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
 
   // const [phone, setPhone] = useState<any>(phone);
   const [selectedColor, setSelectedColor] = useState("Forest Green");
@@ -67,7 +70,7 @@ const SmartphoneProduct = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Left Column: Image */}
           <div className="relative group">
-            <button onClick={handleUpdate}>Update Phone</button>
+            {isAdmin && <button onClick={handleUpdate}>Update Phone</button>}
             <div className="aspect-square rounded-[2rem] overflow-hidden bg-white flex items-center justify-center p-8">
               <img
                 alt={phone?.name || "Phone Image"}
@@ -172,9 +175,9 @@ const SmartphoneProduct = () => {
                 <div className="flex gap-3">
                   {/* Dynamically map over phone.colors from your database */}
                   {phone?.colors && phone.colors.length > 0 ? (
-                    phone.colors.map((color: any, index: number) => (
+                    phone.colors.map((color) => (
                       <button
-                        key={index}
+                        key={color.name}
                         title={color.name}
                         onClick={() => setSelectedColor(color.name)}
                         className={`w-10 h-10 rounded-full transition-all ${
@@ -201,8 +204,11 @@ const SmartphoneProduct = () => {
                 {phone?.storageVariants && phone.storageVariants.length > 0 && (
                   <div className="flex flex-wrap gap-2 ml-auto mr-auto">
                     {phone.storageVariants.map(
-                      (variant: any, index: number) => (
-                        <button className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all">
+                      (variant) => (
+                        <button
+                          key={variant.storage}
+                          className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all"
+                        >
                           {variant.storage}
                         </button>
                       ),

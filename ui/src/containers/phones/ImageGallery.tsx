@@ -4,6 +4,8 @@ import {
   uploadImageToAzureApi, 
   deleteImageFromAzureApi // <-- IMPORT THE NEW FUNCTION
 } from "../../redux/features/phones/PhoneApi";
+import { useAppSelector } from "../../redux/hooks/reduxHooks";
+import { Roles } from "../../routes/Roles";
 
 interface AzureFile {
   fileName: string;
@@ -14,6 +16,9 @@ interface AzureFile {
 }
 
 export default function ImageGallery() {
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
+
   const [files, setFiles] = useState<AzureFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +57,8 @@ export default function ImageGallery() {
   }, []);
 
   useEffect(() => {
+    // Gallery data is loaded from Azure-backed API when this screen mounts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFiles();
   }, [fetchFiles]);
 
@@ -64,6 +71,10 @@ export default function ImageGallery() {
 
   const handleUploadSubmit = async () => {
     if (!selectedFile) return;
+    if (!isAdmin) {
+      setError("Only admins can upload images.");
+      return;
+    }
 
     try {
       setIsUploading(true);
@@ -81,12 +92,21 @@ export default function ImageGallery() {
 
   // --- DELETE HANDLERS ---
   const handleDeleteClick = (fileName: string) => {
+    if (!isAdmin) {
+      setError("Only admins can delete images.");
+      return;
+    }
+
     setFileToDelete(fileName);
     setIsDeleteModalOpen(true); // Open the confirmation popup
   };
 
   const handleConfirmDelete = async () => {
     if (!fileToDelete) return;
+    if (!isAdmin) {
+      setError("Only admins can delete images.");
+      return;
+    }
 
     try {
       setIsDeleting(true);
@@ -113,12 +133,14 @@ export default function ImageGallery() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">My Azure Uploads</h2>
         
-        <button 
-          onClick={() => setIsUploadModalOpen(true)}
-          className="bg-[#4a7c59] hover:bg-[#3c6649] text-white px-5 py-2 rounded-xl font-semibold transition-colors shadow-sm flex items-center gap-2"
-        >
-          <span>+ Upload Image</span>
-        </button>
+        {isAdmin && (
+          <button 
+            onClick={() => setIsUploadModalOpen(true)}
+            className="bg-[#4a7c59] hover:bg-[#3c6649] text-white px-5 py-2 rounded-xl font-semibold transition-colors shadow-sm flex items-center gap-2"
+          >
+            <span>+ Upload Image</span>
+          </button>
+        )}
       </div>
       
       {/* Gallery Grid */}
@@ -141,15 +163,17 @@ export default function ImageGallery() {
               </div>
 
               {/* DELETE BUTTON (Shows on hover) */}
-              <button
-                onClick={() => handleDeleteClick(file.fileName)}
-                className="absolute top-2 right-2 bg-white/80 hover:bg-red-50 text-red-500 p-2 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200"
-                title="Delete Image"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={() => handleDeleteClick(file.fileName)}
+                  className="absolute top-2 right-2 bg-white/80 hover:bg-red-50 text-red-500 p-2 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 transition-all duration-200"
+                  title="Delete Image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              )}
 
               {/* File Details */}
               <div className="p-3 bg-white border-t border-gray-50">

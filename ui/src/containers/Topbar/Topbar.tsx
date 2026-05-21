@@ -3,18 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "../../components/layout/SearchBar";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { logout } from "../../redux/features/auth/AuthenticationSlice";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
+import { Roles } from "../../routes/Roles";
 
 const Topbar = () => {
   const navigate = useNavigate();
 
   // 1. Grab isAuthenticated directly from Redux! No need for local state.
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
 
   // Fixed a small typo here (dispach -> dispatch)
   const dispatch = useAppDispatch();
@@ -84,9 +80,11 @@ const Topbar = () => {
         <Link to="/about" className="text-gray-600 hover:text-gray-800">
           About
         </Link>
-        <Link to='/gallery' className="text-gray-600 hover:text-gray-800">
-          Gallery
-        </Link>
+        {isAdmin && (
+          <Link to="/gallery" className="text-gray-600 hover:text-gray-800">
+            Gallery
+          </Link>
+        )}
 
         {/* 2. Check the Redux isAuthenticated flag directly */}
         {isAuthenticated && user ? (

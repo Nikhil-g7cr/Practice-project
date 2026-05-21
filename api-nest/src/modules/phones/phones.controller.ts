@@ -19,6 +19,8 @@ import { PhonesService } from './phones.service';
 import { CreatePhoneDto } from './dto/create-phone.dto';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
 import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
+import { RolesGuard } from '../../core/guards/auth/roles.gaurd';
+import { Roles } from '../../core/decorators/roles.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('Phones')
@@ -28,23 +30,37 @@ export class PhonesController {
 
   @ApiOperation({ summary: 'Create a new phone' })
   @ApiResponse({ status: 201, description: 'Phone created successfully' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post()
   async create(@Body(new ValidationPipe()) createPhoneDto: CreatePhoneDto) {
     try {
       const phone = await this.phonesService.create(createPhoneDto);
       return { status: 'Success', code: HttpStatus.CREATED, data: phone };
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error instanceof ConflictException) {
-        throw error.message;
+        throw error;
       }
-      throw new ConflictException(error.message);
+      throw new ConflictException(
+        error instanceof Error ? error.message : 'Failed to create phone',
+      );
     }
   }
 
   @ApiOperation({ summary: 'Get all phones with pagination' })
   @ApiResponse({ status: 200, description: 'Phones retrieved successfully' })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number (default: 1)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (default: 10)' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page (default: 10)',
+  })
   @Get()
   async findAll(
     @Query('page') page: string = '1',
@@ -57,13 +73,13 @@ export class PhonesController {
 
       const result = await this.phonesService.findAll(pageNumber, limitNumber);
 
-      return { 
-        status: 'Success', 
-        code: HttpStatus.OK, 
+      return {
+        status: 'Success',
+        code: HttpStatus.OK,
         data: result.data,
-        meta: result.meta // Include pagination metadata in the response
+        meta: result.meta, // Include pagination metadata in the response
       };
-    } catch (error) {
+    } catch {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }
   }
@@ -74,13 +90,15 @@ export class PhonesController {
   async findOne(@Param('id') id: string) {
     try {
       return await this.phonesService.findOne(id);
-    } catch (error) {
+    } catch {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }
   }
 
   @ApiOperation({ summary: 'Update phone' })
   @ApiResponse({ status: 200, description: 'Phone updated successfully' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -102,18 +120,17 @@ export class PhonesController {
   }
   @ApiOperation({ summary: 'Delete phone' })
   @ApiResponse({ status: 200, description: 'Phone deleted successfully' })
-  
-
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try {
-      const phone= await this.phonesService.remove(id);
+      const phone = await this.phonesService.remove(id);
       return {
-        status:"Success",
-        code:HttpStatus.OK,
-        data:phone
-      }
+        status: 'Success',
+        code: HttpStatus.OK,
+        data: phone,
+      };
     } catch (error: any) {
       if (error instanceof NotFoundException) {
         throw error;

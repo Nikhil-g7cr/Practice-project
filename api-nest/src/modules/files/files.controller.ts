@@ -8,21 +8,27 @@ import {
   UploadedFile,
   UseInterceptors,
   Get,
-  Res,
-  Response,
+  Response as NestResponse,
+  UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 
 import { FileInterceptor } from '@nestjs/platform-express';
 
 import { ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 import { UploadService } from './files.service';
+import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
+import { RolesGuard } from '../../core/guards/auth/roles.gaurd';
+import { Roles } from '../../core/decorators/roles.decorator';
 
 @ApiTags('api/Upload')
 @Controller('api/upload')
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -41,11 +47,10 @@ export class UploadController {
     return this.uploadService.uploadFile(file);
   }
 
-
   @Get()
   async getAllFiles() {
     const files = await this.uploadService.getAllFiles();
-    
+
     return {
       status: 'Success',
       count: files.length,
@@ -53,12 +58,11 @@ export class UploadController {
     };
   }
 
-
   @Get(':blobName')
   async getFile(
     @Param('blobName') blobName: string,
-    @Response() res, 
-  ){
+    @NestResponse() res: Response,
+  ) {
     const { stream, contentType } =
       await this.uploadService.getFileStream(blobName);
 
@@ -71,6 +75,8 @@ export class UploadController {
     stream?.pipe(res);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Delete(':fileName')
   async deleteFile(@Param('fileName') fileName: string) {
     return this.uploadService.deleteFile(fileName);

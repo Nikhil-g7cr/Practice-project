@@ -8,6 +8,7 @@ import AboutPage from "../components/features/About";
 import PhonesPage from "../containers/phones/phonesPage";
 import PhoneDisplay from "../containers/phones/PhoneDisplay";
 import EditPhone from "../containers/phones/updatePhone";
+import PrivateRoute from "./PrivateRoutes";
 
 // IMPORT YOUR SINGLE PHONE COMPONENT HERE
 import Phone from "../containers/phones/Phone"; 
@@ -29,8 +30,22 @@ const Approutes = ()=>{
                 {/* NEW: Dynamic route for individual phone details */}
                 <Route path="/phone/:id" element={<Phone />} />
                 
-                <Route path="/phones/update/:id" element={<EditPhone/>}/>
-                <Route path="/gallery" element={<ImageGallery/>}/>
+                <Route
+                    path="/phones/update/:id"
+                    element={
+                        <PrivateRoute>
+                            <EditPhone/>
+                        </PrivateRoute>
+                    }
+                />
+                <Route
+                    path="/gallery"
+                    element={
+                        <PrivateRoute>
+                            <ImageGallery/>
+                        </PrivateRoute>
+                    }
+                />
                 
                 {/* Other Routes */}
                 <Route path="/laptops" element={<LaptopDisplayScreen/>} />

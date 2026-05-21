@@ -4,6 +4,7 @@ interface User{
     id?:string;
     name:string;
     email:string;
+    role?:string;
 }
 
 interface AuthState{
@@ -17,7 +18,7 @@ const loadUserFromStorage = () => {
     try {
         const storedUser = sessionStorage.getItem('user');
         return storedUser ? JSON.parse(storedUser) : null;
-    } catch (error) {
+    } catch {
         return null;
     }
 };
