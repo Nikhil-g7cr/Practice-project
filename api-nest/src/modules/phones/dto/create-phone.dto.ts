@@ -1,47 +1,133 @@
-import { Type } from 'class-transformer';
 import {
-  IsDate,
-  IsMongoId,
-  IsNotEmpty,
+  IsArray,
+  IsBoolean,
   IsNumber,
+  IsOptional,
   IsString,
-  IsUrl,
-  IsUUID,
-  Max,
+  ValidateNested,
+  IsHexColor,
   Min,
 } from 'class-validator';
 
-export class CreatePhoneDto {
-  @IsString()
-  @IsNotEmpty()
-  model: string;
+import { Type } from 'class-transformer';
 
+// ================= COLORS DTO =================
+
+class ColorDto {
   @IsString()
-  @IsNotEmpty()
-  brand: string;
+  name: string;
+
+  @IsHexColor()
+  hexCode: string;
+}
+
+// ================= STORAGE VARIANT DTO =================
+
+class StorageVariantDto {
+  @IsString()
+  storage: string;
 
   @IsNumber()
-  @IsNotEmpty()
-  @Min(1)
-  @Max(5000000)
+  @Min(0)
   price: number;
 
-  @IsUrl({}, { message: 'The image link should be a url' })
-  @IsNotEmpty()
-  image: string;
+  @IsNumber()
+  @Min(0)
+  stock: number;
+}
+
+// ================= SPECIFICATIONS DTO =================
+
+class SpecificationsDto {
+  @IsString()
+  processor: string;
+
+  @IsString()
+  display: string;
+
+  @IsString()
+  battery: string;
+
+  @IsString()
+  camera: string;
+
+  @IsString()
+  ram: string;
+
+  @IsString()
+  os: string;
+}
+
+// ================= CREATE PRODUCT DTO =================
+
+export class CreatePhoneDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  slug: string;
+
+  @IsString()
+  description: string;
+
+  @IsString()
+  brand: string;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 
   @IsNumber()
-  @IsNotEmpty()
   @Min(0)
-  @Max(10)
-  rating: number;
+  basePrice: number;
 
-  @IsNotEmpty()
-  @IsUrl({}, { message: 'The site link should be a url' })
-  site: string;
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  discountPrice?: number;
 
-  @Type(() => Date)
-  @IsDate()
-  @IsNotEmpty()
-  launchDate: Date;
+  @IsString()
+  thumbnail: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  images: string[];
+
+  // ================= COLORS =================
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ColorDto)
+  colors: ColorDto[];
+
+  // ================= STORAGE VARIANTS =================
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => StorageVariantDto)
+  storageVariants: StorageVariantDto[];
+
+  // ================= SPECIFICATIONS =================
+
+  @ValidateNested()
+  @Type(() => SpecificationsDto)
+  specifications: SpecificationsDto;
+
+  // ================= OPTIONAL FIELDS =================
+
+  @IsOptional()
+  @IsNumber()
+  rating?: number;
+
+  @IsOptional()
+  @IsNumber()
+  reviewsCount?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isAvailable?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
 }

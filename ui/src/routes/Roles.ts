@@ -1,6 +1,6 @@
 export class Roles {
     static ADMIN = 'admin';
-    static CUSTOMER = 'customer';
+    static USER = 'user';
     static DEVELOPER = 'developer';
     static TESTER = 'tester';
     static MANAGER = 'manager';

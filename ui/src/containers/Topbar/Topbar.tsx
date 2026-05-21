@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SearchBar from "../../components/layout/SearchBar";
-import { useAppDispatch, useAppSelector } from "../../redux/hooks/AuthreduxHooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { logout } from "../../redux/features/auth/AuthenticationSlice";
 
 interface User {
@@ -12,12 +12,12 @@ interface User {
 
 const Topbar = () => {
   const navigate = useNavigate();
-  
+
   // 1. Grab isAuthenticated directly from Redux! No need for local state.
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  
+
   // Fixed a small typo here (dispach -> dispatch)
-  const dispatch = useAppDispatch(); 
+  const dispatch = useAppDispatch();
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -41,8 +41,8 @@ const Topbar = () => {
   }, []);
 
   const handleLogout = () => {
-    // Dispatch the logout action to Redux. 
-    // This will instantly set isAuthenticated to false in the store, 
+    // Dispatch the logout action to Redux.
+    // This will instantly set isAuthenticated to false in the store,
     // and this Topbar will automatically re-render!
     dispatch(logout());
     setShowProfileMenu(false);

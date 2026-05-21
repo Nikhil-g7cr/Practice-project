@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Auth.css";
 import { useDispatch } from "react-redux";
-import { useAppDispatch } from "../../../../redux/hooks/AuthreduxHooks";
+import { useAppDispatch } from "../../../../redux/hooks/reduxHooks";
 import { login } from "../../../../redux/features/auth/AuthenticationSlice";
 
 interface LoginFormData {
@@ -17,20 +17,17 @@ interface LoginError {
 }
 
 const Login = () => {
-
-  // dispatch initialization 
+  // dispatch initialization
   const dispatch = useAppDispatch();
-
 
   const navigate = useNavigate();
 
-  // use state for login form 
+  // use state for login form
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
     rememberMe: false,
   });
-
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<LoginError | null>(null);
@@ -96,23 +93,21 @@ const Login = () => {
         }),
       });
 
-      
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || "Login failed");
       }
-      
+
       const data = await response.json();
       // -------Adding the dispatcher here for user ---------------
-      dispatch(login({user:data.user, token:data.accessToken}))
-
+      dispatch(login({ user: data.user, token: data.accessToken }));
 
       // Store remember me preference
-      if(data.accessToken){
+      if (data.accessToken) {
         sessionStorage.setItem("accessToken", data.accessToken);
       }
 
-      if(data.user){
+      if (data.user) {
         sessionStorage.setItem("user", JSON.stringify(data.user));
       }
 

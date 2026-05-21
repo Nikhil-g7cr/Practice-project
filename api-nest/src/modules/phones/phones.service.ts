@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { CreatePhoneDto } from './dto/create-phone.dto';
 import { UpdatePhoneDto } from './dto/update-phone.dto';
-import { Phone, PhoneDocument } from './schemas/phone.schema';
+import {
+  Phone,
+  PhoneDocument,
+} from '../../database/mongoose/schemas/phones.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -50,6 +53,31 @@ export class PhonesService {
       { returnDocument: 'after' },
     );
     return newData;
+  }
+
+  async updatePhone(id: string, updatePhoneDto: UpdatePhoneDto) {
+    try {
+      const updatedPhone = await this.phoneModel.findByIdAndUpdate(
+        id,
+        updatePhoneDto,
+        {
+          new: true,
+          runValidators: true,
+        },
+      );
+
+      if (!updatedPhone) {
+        throw new NotFoundException('Phone not found');
+      }
+
+      return updatedPhone;
+    } catch (error: any) {
+      if (error.code === 11000) {
+        throw new ConflictException('Slug already exists');
+      }
+
+      throw error;
+    }
   }
 
   async remove(id: string) {

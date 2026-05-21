@@ -1,10 +1,10 @@
-import { useAppSelector, useAppDispatch } from '../../redux/hooks/AuthreduxHooks';
-import { logout } from '../../redux/features/auth/AuthenticationSlice';
+import { useAppSelector, useAppDispatch } from "../../redux/hooks/reduxHooks";
+import { logout } from "../../redux/features/auth/AuthenticationSlice";
 
 const Navbar = () => {
   // 1. READ STATE: Grab the auth state from Redux
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  
+
   // 2. SETUP DISPATCH: Get the dispatch function to trigger actions
   const dispatch = useAppDispatch();
 
