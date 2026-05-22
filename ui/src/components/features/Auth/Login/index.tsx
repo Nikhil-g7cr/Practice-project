@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Auth.css";
-import { useDispatch } from "react-redux";
 import { useAppDispatch } from "../../../../redux/hooks/reduxHooks";
 import { login } from "../../../../redux/features/auth/AuthenticationSlice";
+import {
+  PublicClientApplication,
+  type AuthenticationResult,
+} from "@azure/msal-browser";
+import { environment } from "../../../../environment/environment";
 
 interface LoginFormData {
   email: string;
@@ -15,6 +19,30 @@ interface LoginError {
   field?: string;
   message: string;
 }
+
+interface AuthUser {
+  id?: string;
+  name: string;
+  email: string;
+  role?: string;
+}
+
+interface AuthPayload {
+  user: AuthUser;
+  token: string;
+}
+
+const msalInstance = new PublicClientApplication({
+  auth: {
+    clientId: environment.CLIENT_ID,
+    authority: environment.AUTHORITY,
+    redirectUri: environment.REDIRECT_URL,
+  },
+  cache: {
+    cacheLocation: "sessionStorage",
+  },
+});
+const msalInitializePromise = msalInstance.initialize();
 
 const Login = () => {
   // dispatch initialization
@@ -31,6 +59,13 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<LoginError | null>(null);
+
+  const completeLogin = (user: AuthUser, token: string) => {
+    dispatch(login({ user, token }));
+    sessionStorage.setItem("accessToken", token);
+    sessionStorage.setItem("user", JSON.stringify(user));
+    navigate("/");
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -99,20 +134,7 @@ const Login = () => {
       }
 
       const data = await response.json();
-      // -------Adding the dispatcher here for user ---------------
-      dispatch(login({ user: data.user, token: data.accessToken }));
-
-      // Store remember me preference
-      if (data.accessToken) {
-        sessionStorage.setItem("accessToken", data.accessToken);
-      }
-
-      if (data.user) {
-        sessionStorage.setItem("user", JSON.stringify(data.user));
-      }
-
-      // Redirect to dashboard or home
-      navigate("/");
+      completeLogin(data.user, data.accessToken);
     } catch (err) {
       setError({
         message:
@@ -133,6 +155,84 @@ const Login = () => {
   const handleAppleLogin = () => {
     // Implement Apple OAuth login
     console.log("Apple login clicked");
+  };
+
+  const getMicrosoftAuthPayload = async (
+    authResult: AuthenticationResult
+  ): Promise<AuthPayload> => {
+    try {
+      const backendResponse = await fetch(
+        `${environment.APP_API_URL}/auth/microsoft`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accessToken: authResult.accessToken,
+            idToken: authResult.idToken,
+          }),
+        }
+      );
+
+      if (backendResponse.ok) {
+        const data = await backendResponse.json();
+
+        if (data?.accessToken && data?.user) {
+          return {
+            user: data.user,
+            token: data.accessToken,
+          };
+        }
+      }
+    } catch (error) {
+      console.warn("Microsoft backend exchange failed", error);
+    }
+
+    const account = authResult.account;
+
+    if (!account) {
+      throw new Error("Microsoft did not return an account profile.");
+    }
+
+    return {
+      token: authResult.accessToken || authResult.idToken,
+      user: {
+        id: account.localAccountId,
+        name: account.name || account.username,
+        email: account.username,
+        role: "user",
+      },
+    };
+  };
+
+  const handleMicrosoftLogin = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await msalInitializePromise;
+
+      const loginRequest = {
+        scopes: ["openid", "profile", "email", "User.Read"],
+      };
+
+      const response = await msalInstance.loginPopup(loginRequest);
+      msalInstance.setActiveAccount(response.account);
+
+      const { user, token } = await getMicrosoftAuthPayload(response);
+      completeLogin(user, token);
+    } catch (err) {
+      console.error("Microsoft login failed", err);
+      setError({
+        message:
+          err instanceof Error
+            ? err.message
+            : "Microsoft login failed. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -274,6 +374,19 @@ const Login = () => {
                     className="social-icon"
                   />
                   <span>Apple</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleMicrosoftLogin}
+                  className="social-btn"
+                  disabled={loading}
+                >
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg"
+                    alt="Microsoft"
+                    className="social-icon"
+                  />
+                  <span>Microsoft</span>
                 </button>
               </div>
             </div>
