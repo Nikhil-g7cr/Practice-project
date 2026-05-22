@@ -9,6 +9,7 @@ import { AuthModule } from '../auth/auth.module';
 import { PhonesModule } from '../phones/phones.module';
 import { AppController } from './app.controller';
 import { UploadModule } from '../files/upload.module';
+import { LaptopsModule } from '../laptops/laptops.module';
 
 dotenv.config();
 const mongodb = process.env.MONGODB_URI;
@@ -22,6 +23,7 @@ const mongodb = process.env.MONGODB_URI;
     MongooseModule.forRoot(`${mongodb}`),
     UserModule,
     AuthModule,
+    LaptopsModule,
     UploadModule
   ],
   controllers: [AppController],

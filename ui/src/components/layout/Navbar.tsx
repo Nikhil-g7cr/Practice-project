@@ -1,5 +1,6 @@
 import { useAppSelector, useAppDispatch } from "../../redux/hooks/reduxHooks";
 import { logout } from "../../redux/features/auth/AuthenticationSlice";
+import SearchBar from "./SearchBar";
 
 const Navbar = () => {
   // 1. READ STATE: Grab the auth state from Redux
@@ -16,6 +17,10 @@ const Navbar = () => {
   return (
     <nav className="p-4 bg-blue-600 text-white flex justify-between">
       <div>My App</div>
+        {/* Central Search Bar */}
+      <div className="flex-1 flex justify-center">
+        <SearchBar />
+      </div>
       <div>
         {isAuthenticated ? (
           <div className="flex gap-4">

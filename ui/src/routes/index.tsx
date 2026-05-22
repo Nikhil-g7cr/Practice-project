@@ -13,6 +13,7 @@ import PrivateRoute from "./PrivateRoutes";
 // IMPORT YOUR SINGLE PHONE COMPONENT HERE
 import Phone from "../containers/phones/Phone"; 
 import ImageGallery from "../containers/phones/ImageGallery";
+import AddProduct from "../containers/Admin/AddProduct";
 
 const Approutes = ()=>{
     return(
@@ -45,6 +46,25 @@ const Approutes = ()=>{
                             <ImageGallery/>
                         </PrivateRoute>
                     }
+                />
+
+                {/* --- ADMIN ROUTES --- */}
+                {/* Wrap these in <PrivateRoute> later to ensure only Admins can access them */}
+                <Route 
+                    path="/admin/add-phone" 
+                    element={
+                        <PrivateRoute>
+                            <AddProduct productType="phone" />
+                        </PrivateRoute>
+                    } 
+                />
+                <Route 
+                    path="/admin/add-laptop" 
+                    element={
+                        <PrivateRoute>
+                            <AddProduct productType="laptop" />
+                        </PrivateRoute>
+                    } 
                 />
                 
                 {/* Other Routes */}
