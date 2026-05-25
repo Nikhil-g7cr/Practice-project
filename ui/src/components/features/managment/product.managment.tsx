@@ -170,12 +170,15 @@ const ProductManagement = () => {
     }
   };
 
+  // Inside product.managment.tsx
   const handleDelete = (product: CatalogProduct) => {
     showWarning(
       "Delete product",
       `Are you sure you want to delete ${product.name}? This action cannot be undone.`,
       () => void deleteProduct(product),
       "Confirm delete",
+      true,     // NEW: requireInput
+      "delete"  // NEW: expectedInputText
     );
   };
 

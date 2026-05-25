@@ -13,6 +13,8 @@ interface PopupConfig {
   onClose?: () => void;
   showConfirm?: boolean;
   onConfirm?: () => void;
+  requireInput?: boolean;
+  expectedInputText?: string;
 }
 
 interface PopupProps {
@@ -32,14 +34,18 @@ const Popup = ({
     onClose: onConfigClose,
     showConfirm = false,
     onConfirm,
+    requireInput = false,
+    expectedInputText = "",
   },
   onClose,
 }: PopupProps) => {
   const [isAnimating, setIsAnimating] = useState(false);
+  const [inputValue, setInputValue] = useState("");
 
   useEffect(() => {
     if (isOpen) {
       setIsAnimating(true);
+      setInputValue(""); // Clear input whenever the popup opens
 
       if (autoClose && !showConfirm) {
         const timer = setTimeout(() => {
@@ -65,6 +71,8 @@ const Popup = ({
   };
 
   if (!isOpen && !isAnimating) return null;
+
+  const isConfirmDisabled = requireInput && inputValue !== expectedInputText;
 
   // Type-based styling
   const typeStyles: Record<
@@ -107,9 +115,7 @@ const Popup = ({
 
       <div
         className={`fixed inset-0 z-50 flex items-center justify-center px-4 transition-all duration-300 ${
-          isAnimating
-            ? "opacity-100"
-            : "opacity-0 pointer-events-none"
+          isAnimating ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
       >
         <div
@@ -138,9 +144,25 @@ const Popup = ({
           </div>
 
           {/* Message */}
-          <p className="font-body text-sm text-on-surface-variant mb-6 leading-relaxed">
+          <p className={`font-body text-sm text-on-surface-variant leading-relaxed ${requireInput ? 'mb-4' : 'mb-6'}`}>
             {message}
           </p>
+
+          {/* Confirmation Input Field */}
+          {requireInput && (
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Type <strong>{expectedInputText}</strong> to confirm:
+              </label>
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={expectedInputText}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-red-500 focus:ring-4 focus:ring-red-100"
+              />
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3 justify-end">
@@ -154,9 +176,10 @@ const Popup = ({
                 </button>
                 <button
                   onClick={handleConfirm}
-                  className={`px-4 py-2 rounded-xl font-headline text-sm font-semibold text-white transition-colors ${
-                    type === "error"
-                      ? "bg-error hover:bg-error/90"
+                  disabled={isConfirmDisabled}
+                  className={`px-4 py-2 rounded-xl font-headline text-sm font-semibold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                    type === "error" || type === "warning"
+                      ? "bg-red-600 hover:bg-red-700"
                       : "bg-primary hover:bg-primary/90"
                   }`}
                 >

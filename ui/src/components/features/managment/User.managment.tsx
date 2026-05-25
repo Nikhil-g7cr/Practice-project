@@ -211,6 +211,7 @@ const UserManagement = () => {
     }
   };
 
+  // Inside User.managment.tsx
   const handleDelete = (userId: string, userName: string) => {
     const targetUser = users.find((user) => user._id === userId);
 
@@ -252,6 +253,8 @@ const UserManagement = () => {
         }
       },
       "Delete",
+      true,       // NEW: requireInput
+      "delete"    // NEW: expectedInputText
     );
   };
 

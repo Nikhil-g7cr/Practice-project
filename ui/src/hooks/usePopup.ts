@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import {type PopupType } from "../common/Popup";
+import { type PopupType } from "../common/Popup";
 
 interface PopupState {
   isOpen: boolean;
@@ -12,6 +12,8 @@ interface PopupState {
   showConfirm?: boolean;
   onConfirm?: () => void;
   onClose?: () => void;
+  requireInput?: boolean;
+  expectedInputText?: string;
 }
 
 const initialState: PopupState = {
@@ -39,6 +41,8 @@ export const usePopup = () => {
         showConfirm?: boolean;
         onConfirm?: () => void;
         onClose?: () => void;
+        requireInput?: boolean;
+        expectedInputText?: string;
       },
     ) => {
       setPopupState({
@@ -52,6 +56,8 @@ export const usePopup = () => {
         showConfirm: options?.showConfirm ?? false,
         onConfirm: options?.onConfirm,
         onClose: options?.onClose,
+        requireInput: options?.requireInput,
+        expectedInputText: options?.expectedInputText,
       });
     },
     [],
@@ -77,12 +83,16 @@ export const usePopup = () => {
       message: string,
       onConfirm: () => void,
       action?: string,
+      requireInput?: boolean,
+      expectedInputText?: string
     ) => {
       showPopup("warning", title, message, {
         action,
         showConfirm: true,
         onConfirm,
         autoClose: false,
+        requireInput,
+        expectedInputText,
       });
     },
     [showPopup],
