@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ChangeEvent, FormEvent } from "react";
 import Popup from "../../../common/Popup";
 import API from "../../../config/axios.config";
 import { usePopup } from "../../../hooks/usePopup";
+import { useAppSelector } from "../../../redux/hooks/reduxHooks";
 
 type UserRole = "admin" | "user" | "developer" | "tester" | "manager" | "guest";
 
@@ -13,8 +15,19 @@ interface AdminUser {
   image_url?: string;
 }
 
+interface CreateUserForm {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
 interface UsersApiResponse {
-  data: AdminUser[] | { users?: AdminUser[]; total?: number; pages?: number };
+  data: AdminUser[] | { users?: AdminUser[] };
+}
+
+interface CreateUserApiResponse {
+  data: AdminUser;
 }
 
 const roleOptions: UserRole[] = [
@@ -25,6 +38,13 @@ const roleOptions: UserRole[] = [
   "manager",
   "guest",
 ];
+
+const initialCreateUserForm: CreateUserForm = {
+  name: "",
+  email: "",
+  password: "",
+  role: "user",
+};
 
 const getErrorMessage = (error: unknown) => {
   if (typeof error === "object" && error !== null && "response" in error) {
@@ -57,13 +77,22 @@ const getUsersFromResponse = (response: UsersApiResponse) => {
 };
 
 const UserManagement = () => {
+  const currentUser = useAppSelector((state) => state.auth.user);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState<CreateUserForm>(
+    initialCreateUserForm,
+  );
 
   const { popupState, showSuccess, showError, showWarning, closePopup } =
     usePopup();
+
+  const isOwnAccount = (user: AdminUser) =>
+    user._id === currentUser?.id || user.email === currentUser?.email;
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -96,11 +125,66 @@ const UserManagement = () => {
     );
   }, [searchTerm, users]);
 
+  const closeCreateModal = () => {
+    setIsCreateModalOpen(false);
+    setCreateForm(initialCreateUserForm);
+  };
+
+  const handleCreateInputChange = (
+    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = event.target;
+
+    setCreateForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+
+  const handleCreateUser = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsCreating(true);
+
+    try {
+      const response = await API.post<CreateUserApiResponse>("/user", {
+        name: createForm.name.trim(),
+        email: createForm.email.trim(),
+        password: createForm.password,
+        role: createForm.role,
+      });
+
+      const newUser = response.data.data;
+      setUsers((current) => [newUser, ...current]);
+      closeCreateModal();
+      showSuccess(
+        "User Created",
+        `${newUser.name}'s account has been created successfully.`,
+        "Created",
+      );
+    } catch (createError) {
+      showError("Failed to Create User", getErrorMessage(createError), "Error");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const handleRoleChange = async (
     userId: string,
     newRole: string,
     userName: string,
   ) => {
+    const targetUser = users.find((user) => user._id === userId);
+
+    if (targetUser && isOwnAccount(targetUser)) {
+      showWarning(
+        "Role Locked",
+        "You cannot change your own admin role from this page.",
+        () => undefined,
+        "Protected",
+      );
+      return;
+    }
+
     const previousUsers = users;
 
     setSavingId(userId);
@@ -125,7 +209,7 @@ const UserManagement = () => {
     }
   };
 
-  const handleDelete = async (userId: string, userName: string) => {
+  const handleDelete = (userId: string, userName: string) => {
     showWarning(
       "Delete User Account",
       `Are you sure you want to permanently delete ${userName}'s account? This action cannot be undone.`,
@@ -174,17 +258,27 @@ const UserManagement = () => {
             </p>
           </div>
 
-          <label className="relative block w-full md:max-w-sm">
-            <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-slate-400">
-              search
-            </span>
-            <input
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              placeholder="Search users"
-              className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-            />
-          </label>
+          <div className="flex w-full flex-col gap-3 md:max-w-xl md:flex-row">
+            <label className="relative block flex-1">
+              <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-slate-400">
+                search
+              </span>
+              <input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search users"
+                className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+            >
+              <span className="material-symbols-outlined text-[20px]">add</span>
+              Add user
+            </button>
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -204,74 +298,207 @@ const UserManagement = () => {
               No users found.
             </div>
           ) : (
-            filteredUsers.map((user) => (
-              <div
-                key={user._id}
-                className="grid grid-cols-2 items-center gap-3 border-b border-slate-100 px-4 py-4 last:border-b-0 md:grid-cols-[1.4fr_1.6fr_0.8fr_0.5fr]"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
-                    {user.image_url ? (
-                      <img
-                        src={user.image_url}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      user.name.slice(0, 1).toUpperCase()
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-950">
-                      {user.name}
-                    </p>
-                    <p className="truncate text-xs text-slate-500 md:hidden">
-                      {user.email}
-                    </p>
-                  </div>
-                </div>
+            filteredUsers.map((user) => {
+              const ownAccount = isOwnAccount(user);
 
-                <p className="hidden truncate text-sm text-slate-600 md:block">
-                  {user.email}
-                </p>
-
-                <select
-                  value={user.role}
-                  disabled={savingId === user._id}
-                  onChange={(event) =>
-                    void handleRoleChange(
-                      user._id,
-                      event.target.value,
-                      user.name,
-                    )
-                  }
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm capitalize text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:opacity-60"
+              return (
+                <div
+                  key={user._id}
+                  className="grid grid-cols-2 items-center gap-3 border-b border-slate-100 px-4 py-4 last:border-b-0 md:grid-cols-[1.4fr_1.6fr_0.8fr_0.5fr]"
                 >
-                  {roleOptions.map((role) => (
-                    <option key={role} value={role}>
-                      {role}
-                    </option>
-                  ))}
-                </select>
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">
+                      {user.image_url ? (
+                        <img
+                          src={user.image_url}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        user.name.slice(0, 1).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-slate-950">
+                          {user.name}
+                        </p>
+                        {ownAccount && (
+                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-700">
+                            You
+                          </span>
+                        )}
+                      </div>
+                      <p className="truncate text-xs text-slate-500 md:hidden">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="text-right">
-                  <button
-                    type="button"
-                    disabled={savingId === user._id}
-                    onClick={() => void handleDelete(user._id, user.name)}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-                    aria-label={`Delete ${user.name}`}
+                  <p className="hidden truncate text-sm text-slate-600 md:block">
+                    {user.email}
+                  </p>
+
+                  <select
+                    value={user.role}
+                    disabled={savingId === user._id || ownAccount}
+                    title={
+                      ownAccount ? "You cannot change your own role" : undefined
+                    }
+                    onChange={(event) =>
+                      void handleRoleChange(
+                        user._id,
+                        event.target.value,
+                        user.name,
+                      )
+                    }
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm capitalize text-slate-800 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:opacity-80"
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      delete
-                    </span>
-                  </button>
+                    {roleOptions.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      disabled={savingId === user._id}
+                      onClick={() => handleDelete(user._id, user.name)}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                      aria-label={`Delete ${user.name}`}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">
+                        delete
+                      </span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </section>
+
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-2xl">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-950">
+                  Add new user
+                </h2>
+                <p className="mt-1 text-sm text-slate-600">
+                  Create an account and assign the correct role.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={closeCreateModal}
+                disabled={isCreating}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 disabled:opacity-50"
+                aria-label="Close add user form"
+              >
+                <span className="material-symbols-outlined text-[20px]">
+                  close
+                </span>
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <label className="block">
+                <span className="mb-1 block text-sm font-semibold text-slate-700">
+                  Name
+                </span>
+                <input
+                  name="name"
+                  value={createForm.name}
+                  onChange={handleCreateInputChange}
+                  required
+                  placeholder="Enter full name"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-sm font-semibold text-slate-700">
+                  Email
+                </span>
+                <input
+                  name="email"
+                  type="email"
+                  value={createForm.email}
+                  onChange={handleCreateInputChange}
+                  required
+                  placeholder="name@example.com"
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                />
+              </label>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="mb-1 block text-sm font-semibold text-slate-700">
+                    Password
+                  </span>
+                  <input
+                    name="password"
+                    type="password"
+                    value={createForm.password}
+                    onChange={handleCreateInputChange}
+                    required
+                    minLength={8}
+                    placeholder="Strong password"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                  />
+                  <p className="mt-1 text-xs text-slate-500">
+                    Use uppercase, lowercase, number, and symbol.
+                  </p>
+                </label>
+
+                <label className="block">
+                  <span className="mb-1 block text-sm font-semibold text-slate-700">
+                    Role
+                  </span>
+                  <select
+                    name="role"
+                    value={createForm.role}
+                    onChange={handleCreateInputChange}
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm capitalize text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                  >
+                    {roleOptions.map((role) => (
+                      <option key={role} value={role}>
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeCreateModal}
+                  disabled={isCreating}
+                  className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreating}
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    person_add
+                  </span>
+                  {isCreating ? "Creating..." : "Create user"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
