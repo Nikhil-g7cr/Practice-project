@@ -6,6 +6,8 @@ import {
 } from "../../redux/features/phones/PhoneApi";
 import { useAppSelector } from "../../redux/hooks/reduxHooks";
 import { Roles } from "../../routes/Roles";
+import Popup from "../../common/Popup";
+import { usePopup } from "../../hooks/usePopup";
 
 interface AzureFile {
   fileName: string;
@@ -18,6 +20,7 @@ interface AzureFile {
 export default function ImageGallery() {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
+  const { popupState, showError, showSuccess, closePopup } = usePopup();
 
   const [files, setFiles] = useState<AzureFile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -82,9 +85,14 @@ export default function ImageGallery() {
       setIsUploadModalOpen(false);
       setSelectedFile(null);
       await fetchFiles(); // Refresh gallery
+      showSuccess("Image uploaded", "The image was uploaded successfully.", "Uploaded");
     } catch (err) {
       console.error("Upload failed", err);
-      alert("Failed to upload image. Make sure the backend is running.");
+      showError(
+        "Upload failed",
+        "Failed to upload image. Make sure the backend is running.",
+        "Error",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -114,9 +122,10 @@ export default function ImageGallery() {
       setIsDeleteModalOpen(false);
       setFileToDelete(null);
       await fetchFiles(); // Refresh gallery after deletion
+      showSuccess("Image deleted", "The image was removed successfully.", "Deleted");
     } catch (err) {
       console.error("Delete failed", err);
-      alert("Failed to delete image.");
+      showError("Delete failed", "Failed to delete image.", "Error");
     } finally {
       setIsDeleting(false);
     }
@@ -128,6 +137,7 @@ export default function ImageGallery() {
 
   return (
     <div className="max-w-7xl mx-auto p-8 relative">
+      <Popup config={popupState} onClose={closePopup} />
       
       {/* Header */}
       <div className="flex justify-between items-center mb-6">

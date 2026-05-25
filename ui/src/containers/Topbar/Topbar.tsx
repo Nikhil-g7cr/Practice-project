@@ -5,7 +5,6 @@ import { logout } from "../../redux/features/auth/AuthenticationSlice";
 import { Roles } from "../../routes/Roles";
 import SearchBar from "../../components/layout/SearchBar";
 import { BRAND_NAME } from "../../shared/shared-variables";
-import AdminPanel from "../Admin/AdminPanal";
 
 const Topbar = () => {
   const navigate = useNavigate();
@@ -49,15 +48,6 @@ const Topbar = () => {
   // const handleSearchClick = () => {
   //   navigate("/search");
   // };
-
-  const getInitials = (name?: string) => {
-    if (!name) return "";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
-  };
 
   return (
     <nav className="bg-surface/80 h-20 dark:bg-surface-container-lowest/80 backdrop-blur-xl docked full-width top-0 sticky border-b border-outline-variant/30 dark:border-outline/20 shadow-sm dark:shadow-none z-50">
@@ -114,9 +104,13 @@ const Topbar = () => {
                   </button>
 
                   {isAdmin && (
-                    <button className="w-full text-left px-4 py-2 hover:bg-surface-container dark:hover:bg-surface-container-highest text-sm text-on-surface dark:text-on-surface transition-colors">
-                      <Link to="/admin"> Admin Panel</Link>
-                    </button>
+                    <Link
+                      to="/admin"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="block w-full px-4 py-2 text-left text-sm text-on-surface transition-colors hover:bg-surface-container dark:text-on-surface dark:hover:bg-surface-container-highest"
+                    >
+                      Admin Panel
+                    </Link>
                   )}
 
                   <button

@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DynamicForm from "../../common/DynamicForm";
+import Popup from "../../common/Popup";
 import { phoneFields, laptopFields } from "../../config/productFormFields";
 import API from "../../config/axios.config";
+import { usePopup } from "../../hooks/usePopup";
 
 interface AddProductProps {
   productType: "phone" | "laptop";
@@ -10,6 +12,7 @@ interface AddProductProps {
 
 const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
   const navigate = useNavigate();
+  const { popupState, showPopup, closePopup } = usePopup();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,8 +71,16 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
       const response = await API.post(apiEndpoint, payload);
       
       if (response.data.status === "Success") {
-        alert(`${productType} added successfully!`);
-        navigate(redirectRoute);
+        showPopup(
+          "success",
+          "Product added",
+          `${productType} added successfully.`,
+          {
+            action: "Added",
+            autoCloseDelay: 1200,
+            onClose: () => navigate(redirectRoute),
+          },
+        );
       }
     } catch (err: any) {
       console.error(`Failed to add ${productType}:`, err);
@@ -88,6 +99,7 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Popup config={popupState} onClose={closePopup} />
       <div className="max-w-2xl mx-auto">
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-extrabold text-gray-900 capitalize">

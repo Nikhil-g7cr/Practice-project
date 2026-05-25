@@ -14,9 +14,11 @@ import PrivateRoute from "./PrivateRoutes";
 import Phone from "../containers/phones/Phone";
 import ImageGallery from "../containers/phones/ImageGallery";
 import AddProduct from "../containers/Admin/AddProduct";
-import AdminPanal from "../containers/Admin/AdminPanal";
-import AdminPanel from "../containers/Admin/AdminPanal";
+import AdminPanel from "../containers/Admin/AdminPanel";
 import Profile from "../containers/Profile";
+import UserManagement from "../components/features/managment/User.managment";
+import ProductManagement from "../components/features/managment/product.managment";
+import OrderManagement from "../components/features/managment/order.managment";
 
 const Approutes = () => {
   return (
@@ -79,11 +81,36 @@ const Approutes = () => {
           }
         />
 
+        <Route
+          path="/admin/user"
+          element={
+            <PrivateRoute>
+              <UserManagement />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/product"
+          element={
+            <PrivateRoute>
+              <ProductManagement />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/admin/order"
+          element={
+            <PrivateRoute>
+              <OrderManagement />
+            </PrivateRoute>
+          }
+        />
+
         {/* Other Routes */}
         <Route path="/laptops" element={<LaptopDisplayScreen />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/profile" element={<Profile/>} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </div>
   );
