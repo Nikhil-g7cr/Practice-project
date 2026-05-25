@@ -3,6 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { logout } from "../../redux/features/auth/AuthenticationSlice";
 import { Roles } from "../../routes/Roles";
+import SearchBar from "../../components/layout/SearchBar";
+import { BRAND_NAME } from "../../shared/shared-variables";
+import AdminPanel from "../Admin/AdminPanal";
 
 const Topbar = () => {
   const navigate = useNavigate();
@@ -43,9 +46,9 @@ const Topbar = () => {
     navigate("/profile");
   };
 
-  const handleSearchClick = () => {
-    navigate("/search");
-  };
+  // const handleSearchClick = () => {
+  //   navigate("/search");
+  // };
 
   const getInitials = (name?: string) => {
     if (!name) return "";
@@ -57,57 +60,26 @@ const Topbar = () => {
   };
 
   return (
-    <nav className="bg-surface/80 dark:bg-surface-container-lowest/80 backdrop-blur-xl docked full-width top-0 sticky border-b border-outline-variant/30 dark:border-outline/20 shadow-sm dark:shadow-none z-50">
+    <nav className="bg-surface/80 h-20 dark:bg-surface-container-lowest/80 backdrop-blur-xl docked full-width top-0 sticky border-b border-outline-variant/30 dark:border-outline/20 shadow-sm dark:shadow-none z-50">
       <div className="flex justify-between items-center w-full px-4 md:px-16 py-4 max-w-7xl mx-auto z-50">
         {/* Logo */}
         <Link
           to="/"
           className="font-display text-3xl md:text-5xl font-bold tracking-tighter text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity duration-200"
         >
-          LUMINA TECH
+          {BRAND_NAME}
         </Link>
 
         {/* Navigation Links (Desktop) */}
-        <div className="hidden md:flex items-center gap-6">
-          <Link
-            to="/smartphones"
-            className="text-primary dark:text-primary-fixed border-b-2 border-primary dark:border-primary-fixed pb-1 font-headline text-lg font-semibold hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
-          >
-            Smartphones
-          </Link>
-          <Link
-            to="/laptops"
-            className="text-on-surface-variant dark:text-outline-variant font-headline text-lg font-semibold hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
-          >
-            Laptops
-          </Link>
-          <a
-            href="#accessories"
-            className="text-on-surface-variant dark:text-outline-variant font-headline text-lg font-semibold hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
-          >
-            Accessories
-          </a>
-          {isAdmin && (
-            <Link
-              to="/gallery"
-              className="text-on-surface-variant dark:text-outline-variant font-headline text-lg font-semibold hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
-            >
-              Gallery
-            </Link>
-          )}
-        </div>
 
         {/* Trailing Icons */}
         <div className="flex items-center gap-3">
           {/* Search Button */}
           <button
-            onClick={handleSearchClick}
             aria-label="Search"
             className="p-2 text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
           >
-            <span className="material-symbols-outlined text-[24px]">
-              search
-            </span>
+            <SearchBar />
           </button>
 
           {/* Profile / Auth Button */}
@@ -140,6 +112,12 @@ const Topbar = () => {
                   >
                     View Profile
                   </button>
+
+                  {isAdmin && (
+                    <button className="w-full text-left px-4 py-2 hover:bg-surface-container dark:hover:bg-surface-container-highest text-sm text-on-surface dark:text-on-surface transition-colors">
+                      <Link to="/admin"> Admin Panel</Link>
+                    </button>
+                  )}
 
                   <button
                     onClick={handleLogout}

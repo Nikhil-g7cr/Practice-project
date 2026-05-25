@@ -8,6 +8,7 @@ import {
   type AuthenticationResult,
 } from "@azure/msal-browser";
 import { environment } from "../../../../environment/environment";
+import { BRAND_NAME } from "../../../../shared/shared-variables";
 
 interface LoginFormData {
   email: string;
@@ -250,7 +251,7 @@ const Login = () => {
           {/* Header with Logo */}
           <div className="auth-card-header">
             <a href="/" className="auth-brand-logo">
-              Lumina Tech
+             {BRAND_NAME}
             </a>
           </div>
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Auth.css";
+import { BRAND_NAME } from "../../../../shared/shared-variables";
 
 interface SignupFormData {
   name: string;
@@ -156,7 +157,7 @@ export default function Signup() {
                 Create Account
               </h1>
               <p className="font-body text-base text-on-surface-variant">
-                Join Lumina Tech to access exclusive professional-grade
+                Join {BRAND_NAME} to access exclusive professional-grade
                 electronics.
               </p>
             </div>

@@ -1,8 +1,7 @@
 const Filter = ()=>{
     return (
         <div className='Filter'> 
-            <h1>Filter</h1>
-             {/* SideNavBar */}
+
         <aside className="bg-surface dark:bg-surface-container-low border-r border-outline-variant/20 h-screen w-64 hidden lg:flex flex-col flex-shrink-0">
           <div className="flex flex-col gap-6 p-6 sticky top-24">
             <div>

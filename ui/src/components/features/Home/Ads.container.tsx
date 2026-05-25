@@ -1,7 +1,11 @@
+import { useAppSelector } from "../../../redux/hooks/reduxHooks";
+
 const Ads = ()=>{
+    
+
     return (
         <div className='Ads'> 
-            <h1>Ads</h1>
+           
             <section className="w-full bg-surface-container-lowest rounded-[2rem] elevation-1 overflow-hidden mb-20 relative elevation-2">
             <div className="absolute inset-0 z-0">
               <img alt="Hero" className="w-full h-full object-cover opacity-80 mix-blend-luminosity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_eR8uPMv6ulVz7gPmbKJPVv8VDNv_aBOz3nJVgBBaElUpPnSWpgQgf9i0eMfaP33MBmE9hli3R_CSLi2deX3gfMMR6fK4Ud0CWFkJQa1l8e8zT_rvFUs8Yih9hRHfFI96Oqg22LDJd3XJX52cTFiQRfgrYROP6U9XauxOnrw7BHBRbj8ELEZGCvTLaEWaQbjvV0mEGaQjVv4TEfkYseRvTT37BARcBXtKBNOsQa3K6KVnagkHZkP9qj5yZVrCGGvtmkHQh18tA668" />
