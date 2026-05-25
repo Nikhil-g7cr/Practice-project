@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import Popup from "../../../common/Popup";
 import API from "../../../config/axios.config";
 import { usePopup } from "../../../hooks/usePopup";
@@ -77,6 +78,7 @@ const getUsersFromResponse = (response: UsersApiResponse) => {
 };
 
 const UserManagement = () => {
+  const navigate = useNavigate();
   const currentUser = useAppSelector((state) => state.auth.user);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -210,6 +212,18 @@ const UserManagement = () => {
   };
 
   const handleDelete = (userId: string, userName: string) => {
+    const targetUser = users.find((user) => user._id === userId);
+
+    if (targetUser && isOwnAccount(targetUser)) {
+      showWarning(
+        "Account Protected",
+        "You cannot delete your own admin account from this page.",
+        () => undefined,
+        "Protected",
+      );
+      return;
+    }
+
     showWarning(
       "Delete User Account",
       `Are you sure you want to permanently delete ${userName}'s account? This action cannot be undone.`,
@@ -242,9 +256,20 @@ const UserManagement = () => {
   };
 
   return (
-    <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-8 text-left text-slate-900 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-slate-50 px-4 py-8 text-left text-slate-900 sm:px-6 lg:px-8">
       <Popup config={popupState} onClose={closePopup} />
       <section className="mx-auto max-w-6xl">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            arrow_back
+          </span>
+          Back
+        </button>
+
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">
@@ -362,17 +387,19 @@ const UserManagement = () => {
                   </select>
 
                   <div className="text-right">
-                    <button
-                      type="button"
-                      disabled={savingId === user._id}
-                      onClick={() => handleDelete(user._id, user.name)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50 disabled:opacity-50"
-                      aria-label={`Delete ${user.name}`}
-                    >
-                      <span className="material-symbols-outlined text-[20px]">
-                        delete
-                      </span>
-                    </button>
+                    {!ownAccount && (
+                      <button
+                        type="button"
+                        disabled={savingId === user._id}
+                        onClick={() => handleDelete(user._id, user.name)}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-red-600 transition hover:bg-red-50 disabled:opacity-50"
+                        aria-label={`Delete ${user.name}`}
+                      >
+                        <span className="material-symbols-outlined text-[20px]">
+                          delete
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               );

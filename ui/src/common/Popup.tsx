@@ -105,15 +105,18 @@ const Popup = ({
         onClick={handleClose}
       />
 
-      {/* Popup Container */}
       <div
-        className={`fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 transition-all duration-300 sm:w-[520px] ${
+        className={`fixed inset-0 z-50 flex items-center justify-center px-4 transition-all duration-300 ${
           isAnimating
-            ? "scale-100 opacity-100"
-            : "scale-90 opacity-0 pointer-events-none"
+            ? "opacity-100"
+            : "opacity-0 pointer-events-none"
         }`}
       >
-        <div className="w-full rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-6 text-left shadow-lg sm:p-7">
+        <div
+          className={`w-full max-w-lg rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-6 text-left shadow-lg transition-transform duration-300 sm:w-[520px] sm:p-7 ${
+            isAnimating ? "scale-100" : "scale-90"
+          }`}
+        >
           {/* Icon and Title */}
           <div className="flex items-center gap-3 mb-4">
             <span

@@ -98,9 +98,20 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <Popup config={popupState} onClose={closePopup} />
       <div className="max-w-2xl mx-auto">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            arrow_back
+          </span>
+          Back
+        </button>
+
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-extrabold text-gray-900 capitalize">
             Add New {productType}

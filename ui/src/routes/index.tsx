@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Topbar from "../containers/Topbar/Topbar";
 import Signup from "../components/features/Auth/Signup";
 import Login from "../components/features/Auth/Login";
@@ -21,9 +21,12 @@ import ProductManagement from "../components/features/managment/product.managmen
 import OrderManagement from "../components/features/managment/order.managment";
 
 const Approutes = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
     <div>
-      <Topbar />
+      {!isAdminRoute && <Topbar />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />

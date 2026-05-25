@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const quickLinks = [
   {
@@ -22,9 +22,22 @@ const quickLinks = [
 ];
 
 const AdminPanel = () => {
+  const navigate = useNavigate();
+
   return (
-    <main className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-8 text-left text-slate-900 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-slate-50 px-4 py-8 text-left text-slate-900 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-6xl">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
+        >
+          <span className="material-symbols-outlined text-[20px]">
+            arrow_back
+          </span>
+          Back
+        </button>
+
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">
