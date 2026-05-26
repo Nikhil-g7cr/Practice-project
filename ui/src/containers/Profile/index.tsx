@@ -254,7 +254,7 @@ const Profile = () => {
                   "No Email"}
               </p>
 
-              {user?.role && (
+              {user?.role !=="user" && (
                 <div
                   className="
                     mt-4

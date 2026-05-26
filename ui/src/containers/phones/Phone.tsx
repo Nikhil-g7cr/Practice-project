@@ -67,7 +67,7 @@ const SmartphoneProduct = () => {
     <div className="bg-background text-on-background selection:bg-primary-container/30 min-h-screen font-body">
       <main className="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop py-8 md:py-16">
         {/* Main Product Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="grid grid-cols-1 mt-20 lg:grid-cols-2 gap-12 items-start">
           {/* Left Column: Image */}
           <div className="relative group">
             {isAdmin && <button onClick={handleUpdate}>Update Phone</button>}

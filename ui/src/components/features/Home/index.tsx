@@ -107,7 +107,7 @@ export default function Home() {
         min-h-screen
         overflow-hidden
 
-        bg-[url('/home3.png')]
+        bg-[url('/home.png')]
         bg-cover
         bg-center
         bg-no-repeat
