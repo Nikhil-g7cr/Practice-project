@@ -142,51 +142,317 @@ export default function Signup() {
 
   return (
     <div
-      style={{
-        backgroundColor: "var(--color-background)",
-        color: "var(--color-on-surface)",
-      }}
-      className="antialiased min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container light"
+      className="
+      relative
+      min-h-screen
+      overflow-hidden
+      bg-[url('/login.png')]
+      bg-cover
+      bg-center
+      bg-no-repeat
+      antialiased
+      flex
+      flex-col
+      selection:bg-cyan-200
+      selection:text-slate-900
+    "
     >
+      {/* Dark Overlay */}
+      <div
+        className="
+        absolute
+        inset-0
+        bg-black/10
+      "
+      />
+
+      {/* Playful Liquid Background */}
+      <div
+        className="
+        absolute
+        top-[-150px]
+        left-[-100px]
+        w-[420px]
+        h-[420px]
+        bg-cyan-300/25
+        rounded-full
+        blur-3xl
+        animate-pulse
+      "
+      />
+
+      <div
+        className="
+        absolute
+        bottom-[-120px]
+        right-[-100px]
+        w-[420px]
+        h-[420px]
+        bg-purple-300/25
+        rounded-full
+        blur-3xl
+        animate-pulse
+      "
+      />
+
+      <div
+        className="
+        absolute
+        top-[45%]
+        left-[50%]
+        w-[300px]
+        h-[300px]
+        bg-pink-200/20
+        rounded-full
+        blur-3xl
+      "
+      />
+
+      {/* Global Blur */}
+      <div
+        className="
+        absolute
+        inset-0
+        backdrop-blur-[12px]
+      "
+      />
+
       {/* Main Canvas */}
-      <main className="flex-grow pt-24 pb-20 md:pt-32 flex items-center justify-center bg-gradient-to-br from-background to-surface-container px-4 md:px-16">
-        <div className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-0 rounded-xl overflow-hidden ambient-shadow bg-surface-container-lowest">
-          {/* Left Side: Registration Form */}
-          <div className="p-8 md:p-16 flex bg-white flex-col justify-center bg-surface-container-lowest border-r border-outline-variant/30">
+      <main
+        className="
+        relative
+        z-10
+        flex-grow
+        pt-24
+        pb-20
+        md:pt-32
+        flex
+        items-center
+        justify-center
+        px-4
+        md:px-16
+      "
+      >
+        {/* MAIN LIQUID CARD */}
+        <div
+          className="
+          group
+          relative
+          max-w-6xl
+          w-full
+          grid
+          grid-cols-1
+          md:grid-cols-2
+          overflow-hidden
+          rounded-[2.5rem]
+
+          /* Liquid Glass */
+          bg-white/10
+          backdrop-blur-[35px]
+
+          /* Refraction Border */
+          border
+          border-white/25
+
+          /* Light Bending */
+          before:absolute
+          before:inset-0
+          before:rounded-[2.5rem]
+          before:p-[1.2px]
+          before:bg-gradient-to-br
+          before:from-white/70
+          before:via-white/10
+          before:to-cyan-200/30
+          before:pointer-events-none
+
+          /* Inner Diffusion */
+          after:absolute
+          after:inset-[1px]
+          after:rounded-[2.4rem]
+          after:bg-white/[0.03]
+          after:backdrop-blur-[45px]
+          after:pointer-events-none
+
+          shadow-[0_20px_80px_rgba(255,255,255,0.08)]
+        "
+        >
+          {/* Reflection Layer */}
+          <div
+            className="
+            absolute
+            inset-0
+            bg-gradient-to-br
+            from-white/30
+            via-transparent
+            to-white/5
+            pointer-events-none
+          "
+          />
+
+          {/* Top Reflection */}
+          <div
+            className="
+            absolute
+            top-0
+            left-0
+            w-full
+            h-[35%]
+            bg-gradient-to-b
+            from-white/20
+            via-white/5
+            to-transparent
+            pointer-events-none
+          "
+          />
+
+          {/* Animated Shine */}
+          <div
+            className="
+            absolute
+            top-0
+            left-[-140%]
+            w-[70%]
+            h-full
+            bg-gradient-to-r
+            from-transparent
+            via-white/25
+            to-transparent
+            skew-x-[-20deg]
+            transition-all
+            duration-[1400ms]
+            group-hover:left-[140%]
+            pointer-events-none
+          "
+          />
+
+          {/* LEFT SIDE */}
+          <div
+            className="
+            relative
+            z-10
+            p-8
+            md:p-16
+            flex
+            flex-col
+            justify-center
+          "
+          >
+            {/* Header */}
             <div className="mb-10">
-              <h1 className="font-headline text-3xl md:text-4xl font-bold text-on-surface mb-2">
+              <h1
+                className="
+                font-headline
+                text-3xl
+                md:text-4xl
+                font-bold
+                mb-3
+
+                bg-gradient-to-r
+                from-slate-900
+                via-slate-700
+                to-slate-400
+                bg-clip-text
+                text-transparent
+              "
+              >
                 Create Account
               </h1>
-              <p className="font-body text-base text-on-surface-variant">
+
+              <p
+                className="
+                text-base
+                text-slate-600
+              "
+              >
                 Join {BRAND_NAME} to access exclusive professional-grade
                 electronics.
               </p>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <ErrorDisplay ErrorMessage={error.message} />
-            )}
+            {/* Error */}
+            {error && <ErrorDisplay ErrorMessage={error.message} />}
 
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* FORM */}
+            <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
               {/* Full Name */}
               <div>
                 <label
-                  className="block font-label text-xs uppercase tracking-wider font-semibold text-on-surface-variant mb-1.5"
+                  className="
+                  block
+                  text-xs
+                  uppercase
+                  tracking-wider
+                  font-semibold
+                  text-slate-600
+                  mb-2
+                "
                   htmlFor="name"
                 >
                   Full Name
                 </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">
+
+                <div
+                  className="
+                  relative
+                  overflow-hidden
+
+                  rounded-2xl
+
+                  bg-white/15
+                  backdrop-blur-2xl
+
+                  border
+                  border-white/25
+
+                  transition-all
+                  duration-300
+
+                  focus-within:border-cyan-300/60
+                  focus-within:bg-white/20
+                "
+                >
+                  {/* Reflection */}
+                  <div
+                    className="
+                    absolute
+                    inset-0
+                    bg-gradient-to-br
+                    from-white/30
+                    via-transparent
+                    to-white/5
+                    pointer-events-none
+                  "
+                  />
+
+                  <span
+                    className="
+                    material-symbols-outlined
+                    absolute
+                    left-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-slate-500
+                  "
+                  >
                     person
                   </span>
+
                   <input
-                    className={`w-full pl-10 pr-3 py-3 bg-surface-container-lowest border rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-base text-on-surface placeholder:text-outline/50 ${
-                      error?.field === "name"
-                        ? "border-error"
-                        : "border-outline-variant"
-                    }`}
+                    className="
+                    relative
+                    z-10
+                    w-full
+                    pl-12
+                    pr-4
+                    py-4
+
+                    bg-transparent
+
+                    text-slate-800
+                    placeholder:text-slate-400
+
+                    focus:outline-none
+                  "
                     id="name"
                     name="name"
                     placeholder="Jane Doe"
@@ -201,21 +467,78 @@ export default function Signup() {
               {/* Email */}
               <div>
                 <label
-                  className="block font-label text-xs uppercase tracking-wider font-semibold text-on-surface-variant mb-1.5"
+                  className="
+                  block
+                  text-xs
+                  uppercase
+                  tracking-wider
+                  font-semibold
+                  text-slate-600
+                  mb-2
+                "
                   htmlFor="email"
                 >
                   Email Address
                 </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">
+
+                <div
+                  className="
+                  relative
+                  overflow-hidden
+                  rounded-2xl
+
+                  bg-white/15
+                  backdrop-blur-2xl
+
+                  border
+                  border-white/25
+
+                  transition-all
+                  duration-300
+
+                  focus-within:border-cyan-300/60
+                "
+                >
+                  <div
+                    className="
+                    absolute
+                    inset-0
+                    bg-gradient-to-br
+                    from-white/30
+                    via-transparent
+                    to-white/5
+                  "
+                  />
+
+                  <span
+                    className="
+                    material-symbols-outlined
+                    absolute
+                    left-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-slate-500
+                  "
+                  >
                     mail
                   </span>
+
                   <input
-                    className={`w-full pl-10 pr-3 py-3 bg-surface-container-lowest border rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-base text-on-surface placeholder:text-outline/50 ${
-                      error?.field === "email"
-                        ? "border-error"
-                        : "border-outline-variant"
-                    }`}
+                    className="
+                    relative
+                    z-10
+                    w-full
+                    pl-12
+                    pr-4
+                    py-4
+
+                    bg-transparent
+
+                    text-slate-800
+                    placeholder:text-slate-400
+
+                    focus:outline-none
+                  "
                     id="email"
                     name="email"
                     placeholder="jane@example.com"
@@ -230,21 +553,78 @@ export default function Signup() {
               {/* Password */}
               <div>
                 <label
-                  className="block font-label text-xs uppercase tracking-wider font-semibold text-on-surface-variant mb-1.5"
+                  className="
+                  block
+                  text-xs
+                  uppercase
+                  tracking-wider
+                  font-semibold
+                  text-slate-600
+                  mb-2
+                "
                   htmlFor="password"
                 >
                   Password
                 </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">
+
+                <div
+                  className="
+                  relative
+                  overflow-hidden
+                  rounded-2xl
+
+                  bg-white/15
+                  backdrop-blur-2xl
+
+                  border
+                  border-white/25
+
+                  transition-all
+                  duration-300
+
+                  focus-within:border-cyan-300/60
+                "
+                >
+                  <div
+                    className="
+                    absolute
+                    inset-0
+                    bg-gradient-to-br
+                    from-white/30
+                    via-transparent
+                    to-white/5
+                  "
+                  />
+
+                  <span
+                    className="
+                    material-symbols-outlined
+                    absolute
+                    left-4
+                    top-1/2
+                    -translate-y-1/2
+                    text-slate-500
+                  "
+                  >
                     lock
                   </span>
+
                   <input
-                    className={`w-full pl-10 pr-3 py-3 bg-surface-container-lowest border rounded focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-body text-base text-on-surface placeholder:text-outline/50 ${
-                      error?.field === "password"
-                        ? "border-error"
-                        : "border-outline-variant"
-                    }`}
+                    className="
+                    relative
+                    z-10
+                    w-full
+                    pl-12
+                    pr-4
+                    py-4
+
+                    bg-transparent
+
+                    text-slate-800
+                    placeholder:text-slate-400
+
+                    focus:outline-none
+                  "
                     id="password"
                     name="password"
                     placeholder="••••••••"
@@ -255,16 +635,29 @@ export default function Signup() {
                     onChange={handleChange}
                   />
                 </div>
-                <p className="font-body text-sm text-on-surface-variant mt-1.5">
+
+                <p
+                  className="
+                  text-sm
+                  text-slate-500
+                  mt-2
+                "
+                >
                   Must be at least 8 characters long.
                 </p>
               </div>
 
-              {/* Terms Checkbox */}
+              {/* Terms */}
               <div className="flex items-start mt-4">
                 <div className="flex items-center h-5">
                   <input
-                    className="w-4 h-4 rounded border-outline-variant text-primary focus:ring-primary bg-surface-container-lowest"
+                    className="
+                    w-4
+                    h-4
+                    rounded
+                    accent-cyan-500
+                    bg-white/20
+                  "
                     id="terms"
                     name="terms"
                     required
@@ -273,21 +666,33 @@ export default function Signup() {
                     onChange={handleChange}
                   />
                 </div>
+
                 <div className="ml-3">
                   <label
-                    className="font-body text-sm text-on-surface-variant"
+                    className="
+                    text-sm
+                    text-slate-600
+                  "
                     htmlFor="terms"
                   >
                     I agree to the{" "}
                     <a
-                      className="text-primary font-semibold hover:underline"
+                      className="
+                      text-cyan-700
+                      font-semibold
+                      hover:underline
+                    "
                       href="#terms"
                     >
                       Terms of Service
                     </a>{" "}
                     and{" "}
                     <a
-                      className="text-primary font-semibold hover:underline"
+                      className="
+                      text-cyan-700
+                      font-semibold
+                      hover:underline
+                    "
                       href="#privacy"
                     >
                       Privacy Policy
@@ -297,87 +702,259 @@ export default function Signup() {
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Liquid Button */}
               <button
-                className="w-full py-3 px-6 bg-primary text-on-primary rounded-lg font-headline text-lg font-semibold hover:bg-primary/90 transition-colors duration-200 mt-8 shadow-[0_4px_0_0_rgba(74,124,89,0.3)] active:shadow-none active:translate-y-1"
+                className="
+                group
+                relative
+                overflow-hidden
+
+                w-full
+                py-4
+                mt-8
+
+                rounded-2xl
+
+                bg-white/18
+                backdrop-blur-2xl
+
+                border
+                border-white/30
+
+                text-slate-800
+                font-semibold
+                text-lg
+
+                shadow-[0_8px_30px_rgba(255,255,255,0.12)]
+
+                transition-all
+                duration-300
+
+                hover:scale-[1.02]
+                hover:bg-white/25
+
+                active:scale-[0.98]
+              "
                 type="submit"
                 disabled={loading}
               >
-                {loading ? "Creating Account..." : "Create Account"}
+                {/* Reflection */}
+                <div
+                  className="
+                  absolute
+                  inset-0
+                  bg-gradient-to-br
+                  from-white/40
+                  via-transparent
+                  to-white/10
+                "
+                />
+
+                {/* Shine */}
+                <div
+                  className="
+                  absolute
+                  top-0
+                  left-[-130%]
+                  w-[70%]
+                  h-full
+                  bg-gradient-to-r
+                  from-transparent
+                  via-white/30
+                  to-transparent
+                  skew-x-[-20deg]
+                  transition-all
+                  duration-[1000ms]
+                  group-hover:left-[130%]
+                "
+                />
+
+                <span className="relative z-10">
+                  {loading ? "Creating Account..." : "Create Account"}
+                </span>
               </button>
             </form>
           </div>
 
-          {/* Right Side: Value Proposition / Image */}
-          <div className="hidden md:flex flex-col relative overflow-hidden bg-surface-container-low">
-            {/* Abstract Tech Background Image */}
-            <div className="absolute inset-0 z-0 bg-primary/5">
+          {/* RIGHT SIDE */}
+          <div
+            className="
+            hidden
+            md:flex
+            flex-col
+            relative
+            overflow-hidden
+          "
+          >
+            {/* Background Image */}
+            <div className="absolute inset-0 z-0">
               <img
-                alt="Abstract representation of high-end circuitry and clean technological aesthetics."
-                className="w-full h-full object-cover opacity-20 grayscale mix-blend-multiply"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuCcQei8u3bglQg8rcDs70CrNhd8vFcRtqZtOZF8vn-lyaNcIH3yRctUVc0hARQlbwDKODNIM-iA5mMsN92EBHCvNkl9-jLht4ZkW9NEFeMzHu4gsVOsiGV7mqNy3oJ4VaDHG0suxZzkAwIuleO95jO34luRduAfHWs1NxV0E6Wkf-fTUPjJ-5e9UpZMa-exy09jnRyfmT__cc4BU5YMlZkMNyy8dakgIxcCjOQT3Yzm5fnlzpSMUH0A_oVTJbLSr48oGBJznVYf1X"
+                alt="Abstract technology background"
+                className="
+                w-full
+                h-full
+                object-cover
+                opacity-40
+              "
+                src="/login.png"
+              />
+
+              {/* Blur Overlay */}
+              <div
+                className="
+                absolute
+                inset-0
+                bg-white/10
+                backdrop-blur-[4px]
+              "
               />
             </div>
 
-            <div className="relative z-10 flex flex-col h-full justify-between p-16">
-              <div className="space-y-8 glass-panel p-6 rounded-xl">
-                <h2 className="font-headline text-3xl font-bold text-on-surface">
-                  Precision Engineered for Professionals
-                </h2>
-                <ul className="space-y-6">
-                  <li className="flex items-start gap-3">
-                    <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
-                      <span className="material-symbols-outlined">
-                        local_shipping
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-headline text-lg text-on-surface font-semibold">
-                        Priority Shipping
-                      </h3>
-                      <p className="font-body text-sm text-on-surface-variant mt-1">
-                        Get your gear faster with expedited order processing.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
-                      <span className="material-symbols-outlined">
-                        verified
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-headline text-lg text-on-surface font-semibold">
-                        Extended Warranty
-                      </h3>
-                      <p className="font-body text-sm text-on-surface-variant mt-1">
-                        Automatic 2-year warranty on all premium components.
-                      </p>
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <div className="bg-primary/10 p-1.5 rounded-lg text-primary">
-                      <span className="material-symbols-outlined">
-                        support_agent
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="font-headline text-lg text-on-surface font-semibold">
-                        Dedicated Support
-                      </h3>
-                      <p className="font-body text-sm text-on-surface-variant mt-1">
-                        Direct access to our tier-2 technical engineering team.
-                      </p>
-                    </div>
-                  </li>
-                </ul>
+            {/* Content */}
+            <div
+              className="
+              relative
+              z-10
+              flex
+              flex-col
+              h-full
+              justify-between
+              p-16
+            "
+            >
+              <div
+                className="
+                relative
+                overflow-hidden
+
+                rounded-[2rem]
+
+                bg-white/10
+                backdrop-blur-2xl
+
+                border
+                border-white/20
+
+                p-8
+              "
+              >
+                {/* Reflection */}
+                <div
+                  className="
+                  absolute
+                  inset-0
+                  bg-gradient-to-br
+                  from-white/25
+                  via-transparent
+                  to-white/5
+                "
+                />
+
+                <div className="relative z-10">
+                  <h2
+                    className="
+                    text-3xl
+                    font-bold
+                    text-slate-800
+                  "
+                  >
+                    Precision Engineered for Professionals
+                  </h2>
+
+                  <ul className="space-y-6 mt-8">
+                    {[
+                      {
+                        icon: "local_shipping",
+                        title: "Priority Shipping",
+                        text: "Get your gear faster with expedited order processing.",
+                      },
+                      {
+                        icon: "verified",
+                        title: "Extended Warranty",
+                        text: "Automatic 2-year warranty on premium components.",
+                      },
+                      {
+                        icon: "support_agent",
+                        title: "Dedicated Support",
+                        text: "Direct access to our engineering support team.",
+                      },
+                    ].map((item, index) => (
+                      <li
+                        key={index}
+                        className="
+                        flex
+                        items-start
+                        gap-4
+                      "
+                      >
+                        <div
+                          className="
+                          bg-white/20
+                          border
+                          border-white/20
+                          p-3
+                          rounded-2xl
+                          backdrop-blur-xl
+                        "
+                        >
+                          <span
+                            className="
+                            material-symbols-outlined
+                            text-cyan-700
+                          "
+                          >
+                            {item.icon}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3
+                            className="
+                            text-lg
+                            text-slate-800
+                            font-semibold
+                          "
+                          >
+                            {item.title}
+                          </h3>
+
+                          <p
+                            className="
+                            text-sm
+                            text-slate-600
+                            mt-1
+                          "
+                          >
+                            {item.text}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
+
+              {/* Footer */}
               <div className="mt-auto">
                 <div className="flex items-center gap-3">
-                  <span className="material-symbols-outlined text-primary">
+                  <span
+                    className="
+                    material-symbols-outlined
+                    text-cyan-700
+                  "
+                  >
                     eco
                   </span>
-                  <span className="font-label text-xs uppercase tracking-wider font-semibold text-on-surface-variant">
+
+                  <span
+                    className="
+                    text-xs
+                    uppercase
+                    tracking-wider
+                    font-semibold
+                    text-slate-600
+                  "
+                  >
                     Stuff SYSTEM v2.4 ONLINE
                   </span>
                 </div>

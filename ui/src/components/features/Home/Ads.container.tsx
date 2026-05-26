@@ -1,9 +1,8 @@
-import { useAppSelector } from "../../../redux/hooks/reduxHooks";
 
 const Ads = () => {
   return (
     <div className="Ads">
-      <section className="glass smooth-hover w-full rounded-[3rem] overflow-hidden mb-20 relative">
+      <section className="glass w-full h-full rounded-[3rem] overflow-hidden relative">
         {" "}
         <div className="absolute inset-0 z-0">
           <img
