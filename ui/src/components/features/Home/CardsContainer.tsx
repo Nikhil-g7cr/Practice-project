@@ -34,8 +34,10 @@ interface CardsContainerProps {
   categoryFilter: CategoryFilter;
 }
 
-const CardsContainer: React.FC<CardsContainerProps> = ({ products, categoryFilter }) => {
-  
+const CardsContainer: React.FC<CardsContainerProps> = ({
+  products,
+  categoryFilter,
+}) => {
   const handleAddToCart = (productId: string) => {
     console.log("Added to cart:", productId);
     // TODO: Implement add to cart functionality
@@ -54,7 +56,8 @@ const CardsContainer: React.FC<CardsContainerProps> = ({ products, categoryFilte
   return (
     <div className="w-full">
       <div className="CardsContainer">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {" "}
           {products.map((product) => {
             // Map phone properties
             if (categoryFilter === "smartphones") {
@@ -65,7 +68,9 @@ const CardsContainer: React.FC<CardsContainerProps> = ({ products, categoryFilte
                   id={phone._id}
                   name={phone.name}
                   price={phone.basePrice}
-                  originalPrice={phone.discountPrice ? phone.basePrice : undefined}
+                  originalPrice={
+                    phone.discountPrice ? phone.basePrice : undefined
+                  }
                   image={phone.thumbnail || phone.images?.[0] || ""}
                   category={phone.category || "SMARTPHONE"}
                   rating={phone.rating || 4.5}

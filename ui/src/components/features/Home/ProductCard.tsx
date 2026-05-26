@@ -26,7 +26,8 @@ const ProductCard = ({
   onAddToCart,
 }: ProductCardProps) => {
   return (
-    <article className="bg-surface-container-lowest rounded-2xl elevation-1 p-3 flex flex-col product-card elevation-2 relative">
+    <article className="product-card glass smooth-hover float-animation flex flex-col rounded-[2rem] p-5">
+      {" "}
       {(isNew || badge) && (
         <div className="absolute top-4 left-4 z-10">
           <span
@@ -40,15 +41,13 @@ const ProductCard = ({
           </span>
         </div>
       )}
-
-      <div className="product-image-bg h-48 rounded-xl mb-3 overflow-hidden flex items-center justify-center p-4">
+      <div className="max-h-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-110">
         <img
           alt={name}
           className="max-h-full object-contain mix-blend-multiply"
           src={image}
         />
       </div>
-
       <div className="flex-1 flex flex-col p-2">
         <p className="font-label text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant mb-1">
           {category}
@@ -85,7 +84,7 @@ const ProductCard = ({
           </div>
           <button
             onClick={() => onAddToCart?.(id)}
-            className="p-2 rounded-xl bg-surface-container hover:bg-primary hover:text-white transition-colors text-primary"
+            className="p-3 rounded-2xl glass hover:bg-white/20 transition-all duration-300 text-primary hover:scale-110"
           >
             <span className="material-symbols-outlined text-[20px]">
               shopping_cart

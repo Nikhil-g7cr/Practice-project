@@ -45,77 +45,89 @@ const Topbar = () => {
     navigate("/profile");
   };
 
-  // const handleSearchClick = () => {
-  //   navigate("/search");
-  // };
-
   return (
-    <nav className="bg-surface/80 h-20 dark:bg-surface-container-lowest/80 backdrop-blur-xl docked full-width top-0 sticky border-b border-outline-variant/30 dark:border-outline/20 shadow-sm dark:shadow-none z-50">
-      <div className="flex justify-between items-center w-full px-4 md:px-16 py-4 max-w-7xl mx-auto z-50">
+    <nav className="mt-4">
+      <div className="glass h-20 smooth-hover flex justify-between items-center w-full px-3 md:px-10 py-4 max-w-4xl mx-auto rounded-[2rem] border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.08)] backdrop-blur-3xl">
+        
         {/* Logo */}
         <Link
           to="/"
-          className="font-display text-3xl md:text-5xl font-bold tracking-tighter text-primary dark:text-primary-fixed hover:opacity-80 transition-opacity duration-200"
+          className="font-display text-3xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-800 via-slate-600 to-slate-900 bg-clip-text text-transparent hover:scale-105 transition-all duration-300"
         >
           {BRAND_NAME}
         </Link>
 
-        {/* Navigation Links (Desktop) */}
-
-        {/* Trailing Icons */}
+        {/* Right Actions */}
         <div className="flex items-center gap-3">
-          {/* Search Button */}
+
+          {/* Search */}
           <button
             aria-label="Search"
-            className="p-2 text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
+            className=" flex align-middle smooth-hover p-3 rounded-2xl text-slate-700  hover:bg-white/20 "
           >
             <SearchBar />
           </button>
 
-          {/* Profile / Auth Button */}
+          {/* Auth/Profile */}
           {isAuthenticated && user ? (
             <div className="relative" ref={profileRef}>
+              
+              {/* Profile Button */}
               <button
                 onClick={() => setShowProfileMenu((prev) => !prev)}
-                className="p-2 text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
+                className="glass smooth-hover p-1 rounded-2xl hover:bg-white/20 transition-all duration-300"
                 title={user.name}
               >
-                <span className="material-symbols-outlined text-[24px]">
-                  person
-                </span>
+                <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-cyan-200 via-white to-purple-200 flex items-center justify-center text-slate-800 font-bold text-sm shadow-inner border border-white/40">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
               </button>
 
+              {/* Dropdown */}
               {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-56 bg-surface dark:bg-surface-container rounded-lg shadow-lg z-50 border border-outline-variant/30 dark:border-outline/20">
-                  <div className="px-4 py-3 border-b border-outline-variant/30 dark:border-outline/20">
-                    <p className="text-sm font-semibold text-on-surface dark:text-on-surface">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-on-surface-variant dark:text-outline-variant">
-                      {user.email}
-                    </p>
+                <div className="absolute right-0 mt-4 w-72 glass rounded-[2rem] border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.12)] overflow-hidden backdrop-blur-3xl animate-glass z-50">
+
+                  {/* User Info */}
+                  <div className="px-5 py-5 border-b border-white/10 flex items-center gap-4">
+                    
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-300 via-white to-purple-300 flex items-center justify-center text-lg font-bold text-slate-800 shadow-lg">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {user.name}
+                      </p>
+
+                      <p className="text-xs text-slate-500 mt-1">
+                        {user.email}
+                      </p>
+                    </div>
                   </div>
 
+                  {/* Profile */}
                   <button
                     onClick={handleProfileClick}
-                    className="w-full text-left px-4 py-2 hover:bg-surface-container dark:hover:bg-surface-container-highest text-sm text-on-surface dark:text-on-surface transition-colors"
+                    className="w-full text-left px-5 py-3 hover:bg-white/20 transition-all duration-300 text-sm text-slate-700"
                   >
                     View Profile
                   </button>
 
+                  {/* Admin */}
                   {isAdmin && (
                     <Link
                       to="/admin"
                       onClick={() => setShowProfileMenu(false)}
-                      className="block w-full px-4 py-2 text-left text-sm text-on-surface transition-colors hover:bg-surface-container dark:text-on-surface dark:hover:bg-surface-container-highest"
+                      className="block w-full px-5 py-3 text-left text-sm text-slate-700 hover:bg-white/20 transition-all duration-300"
                     >
                       Admin Panel
                     </Link>
                   )}
 
+                  {/* Logout */}
                   <button
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 hover:bg-error/10 dark:hover:bg-error/10 text-sm text-error transition-colors border-t border-outline-variant/30 dark:border-outline/20"
+                    className="w-full text-left px-5 py-3 hover:bg-red-100/40 text-red-500 transition-all duration-300 border-t border-white/10"
                   >
                     Logout
                   </button>
@@ -125,7 +137,7 @@ const Topbar = () => {
           ) : (
             <button
               onClick={() => navigate("/login")}
-              className="p-2 text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
+              className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
             >
               <span className="material-symbols-outlined text-[24px]">
                 person
@@ -133,10 +145,10 @@ const Topbar = () => {
             </button>
           )}
 
-          {/* Cart Button */}
+          {/* Cart */}
           <button
             aria-label="Cart"
-            className="p-2 text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-200"
+            className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
           >
             <span className="material-symbols-outlined text-[24px]">
               shopping_cart

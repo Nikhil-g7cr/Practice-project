@@ -1,111 +1,151 @@
 @import url("https://fonts.googleapis.com/css2?family=Literata:wght@400;600;700&family=Nunito+Sans:wght@400;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap");
 
+@import "tailwindcss";
+
 :root {
-  --color-on-surface-variant: #4a4e4a;
-  --color-surface-container-low: #f5f1ea;
-  --color-error-container: #ffdad8;
-  --color-primary-fixed: #c8e8d0;
-  --color-on-error-container: #690005;
-  --color-inverse-on-surface: #f5f0e8;
-  --color-on-surface: #2e3230;
-  --color-tertiary-container: #c4a66a;
-  --color-on-tertiary: #ffffff;
-  --color-primary-fixed-dim: #8ecf9e;
-  --color-tertiary-fixed: #f8e0a8;
-  --color-surface-container-high: #eae6de;
-  --color-secondary: #6b6358;
-  --color-on-secondary-fixed: #1e1a13;
-  --color-on-primary: #ffffff;
-  --color-on-secondary: #ffffff;
-  --color-outline: #74796e;
-  --color-error: #b83230;
-  --color-surface-tint: #4a7c59;
-  --color-primary-container: #78a886;
-  --color-on-primary-fixed: #002110;
-  --color-surface-container: #f0ece4;
-  --color-background: #faf6f0;
-  --color-surface-bright: #faf6f0;
-  --color-on-secondary-fixed-variant: #4a4538;
-  --color-surface-dim: #dbd7cf;
-  --color-surface-container-highest: #e4e0d8;
-  --color-surface-container-lowest: #ffffff;
-  --color-on-tertiary-fixed-variant: #554020;
-  --color-on-background: #2e3230;
-  --color-primary: #4a7c59;
-  --color-on-error: #ffffff;
-  --color-inverse-surface: #2e3230;
-  --color-tertiary: #705c30;
-  --color-on-tertiary-fixed: #221a05;
-  --color-outline-variant: #c4c8bc;
-  --color-on-tertiary-container: #554020;
-  --color-secondary-container: #f0e8db;
-  --color-on-secondary-container: #5e5548;
-  --color-tertiary-fixed-dim: #dcc48e;
-  --color-surface-variant: #e4e0d8;
-  --color-surface: #faf6f0;
-  --color-secondary-fixed: #f0e8db;
-  --color-secondary-fixed-dim: #d4ccbf;
-  --color-inverse-primary: #8ecf9e;
-  --color-on-primary-fixed-variant: #2a6038;
-  --color-on-primary-container: #d8f0de;
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+
+  --primary: #4a7c59;
+  --surface: #ffffff;
+  --text: #1f2937;
+  --muted: #6b7280;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--color-background, #faf6f0);
-  color: var(--color-on-surface, #2e3230);
   margin: 0;
+  overflow-x: hidden;
+  font-family: "Nunito Sans", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(168, 168, 168, 0.15), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(71, 71, 71, 0.15), transparent 30%),
+    linear-gradient(to bottom right, #eef2ff, #f8fafc, #ecfeff);
+  min-height: 100vh;
+  color: var(--text);
 }
 
-.glass-panel {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* GLOBAL GLASS */
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
 }
 
-.btn-primary {
-  background-color: var(--color-primary, #4a7c59);
-  color: white;
+/* FLOATING ANIMATION */
+
+@keyframes floating {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.float-animation {
+  animation: floating 6s ease-in-out infinite;
+}
+
+/* SMOOTH HOVER */
+
+.smooth-hover {
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease,
+    background 0.35s ease,
+    border 0.35s ease;
+}
+
+.smooth-hover:hover {
+  transform: translateY(-8px) scale(1.01);
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: all 200ms ease-in-out;
+    0 20px 50px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(255,255,255,0.2);
 }
 
-.btn-primary:active {
-  box-shadow: none;
-  transform: translateY(2px);
-}
-
-.btn-secondary {
-  border: 1px solid var(--color-tertiary, #705c30);
-  color: var(--color-tertiary, #705c30);
-  transition: all 200ms ease-in-out;
-}
-
-.btn-secondary:hover {
-  background-color: var(--color-surface-container, #f0ece4);
-}
-
-.elevation-1 {
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  border: 1px solid var(--color-surface-variant, #e4e0d8);
-}
-
-.elevation-2:hover {
-  box-shadow: 0px 10px 15px -3px rgba(0, 0, 0, 0.05);
-}
+/* PRODUCT CARD */
 
 .product-card {
-  transition: all 200ms ease-in-out;
+  position: relative;
+  overflow: hidden;
 }
 
-.product-card:hover {
-  transform: translateY(-4px);
+.product-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      120deg,
+      rgba(255,255,255,0.25),
+      transparent,
+      rgba(255,255,255,0.1)
+    );
+  opacity: 0;
+  transition: opacity 0.4s ease;
 }
 
-.product-image-bg {
-  background-color: var(--color-background, #faf6f0);
+.product-card:hover::before {
+  opacity: 1;
+}
+
+/* BUTTONS */
+
+.btn-primary {
+  background: rgba(255,255,255,0.15);
+  color: #111827;
+  border: 1px solid rgba(255,255,255,0.3);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  box-shadow:
+    0 4px 30px rgba(0,0,0,0.1);
+
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  background: rgba(255,255,255,0.22);
+  box-shadow:
+    0 12px 40px rgba(0,0,0,0.12);
+}
+
+/* SCROLLBAR */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.25);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.4);
 }

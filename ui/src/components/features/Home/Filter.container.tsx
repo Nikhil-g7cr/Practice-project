@@ -2,7 +2,7 @@ const Filter = ()=>{
     return (
         <div className='Filter'> 
 
-        <aside className="bg-surface dark:bg-surface-container-low border-r border-outline-variant/20 h-screen w-64 hidden lg:flex flex-col flex-shrink-0">
+        <aside className="glass smooth-hover flex items-center gap-3 p-4 rounded-2xl">
           <div className="flex flex-col gap-6 p-6 sticky top-24">
             <div>
               <h2 className="font-headline text-lg font-semibold text-on-surface dark:text-on-surface-variant">Filters</h2>
