@@ -9,6 +9,7 @@ import {
 } from "@azure/msal-browser";
 import { environment } from "../../../../environment/environment";
 import { BRAND_NAME } from "../../../../shared/shared-variables";
+import ErrorDisplay from "../../../errors/errorDisplay";
 
 interface LoginFormData {
   email: string;
@@ -266,9 +267,7 @@ const Login = () => {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-error-container border border-error rounded-lg text-error-container text-sm">
-                {error.message}
-              </div>
+              <ErrorDisplay ErrorMessage={error.message}/>
             )}
 
             <form onSubmit={handleSubmit} className="auth-form">

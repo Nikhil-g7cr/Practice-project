@@ -4,7 +4,6 @@ import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { swaggerConfig, swaggerOptions } from './core/swagger/doc.swagger';
 import cookieParser from 'cookie-parser';
-// import { AllExceptionsFilter } from './core/guards/exception/exception.filter';
 
 async function bootstrap() {
   console.log('🚀 Starting application bootstrap...');
@@ -27,9 +26,7 @@ async function bootstrap() {
 
   app.enableCors(corsConfig);
   app.use(cookieParser());
-
-  // Apply global exception filter
-  // app.useGlobalFilters(new AllExceptionsFilter()); 
+ 
 
   app.useGlobalPipes(
     new ValidationPipe({

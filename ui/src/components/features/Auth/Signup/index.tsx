@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../Auth.css";
 import { BRAND_NAME } from "../../../../shared/shared-variables";
+import ErrorDisplay from "../../../errors/errorDisplay";
 
 interface SignupFormData {
   name: string;
@@ -164,9 +165,7 @@ export default function Signup() {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-error-container border border-error rounded-lg text-error-container text-sm">
-                {error.message}
-              </div>
+              <ErrorDisplay ErrorMessage={error.message} />
             )}
 
             <form className="space-y-6" onSubmit={handleSubmit}>

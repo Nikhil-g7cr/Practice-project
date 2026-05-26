@@ -19,6 +19,7 @@ import Profile from "../containers/Profile";
 import UserManagement from "../components/features/managment/User.managment";
 import ProductManagement from "../components/features/managment/product.managment";
 import OrderManagement from "../components/features/managment/order.managment";
+import NotFoundPage from "../components/errors/NotFound";
 
 const Approutes = () => {
   const location = useLocation();
@@ -114,6 +115,7 @@ const Approutes = () => {
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="*" element={<NotFoundPage/>} />
       </Routes>
     </div>
   );
