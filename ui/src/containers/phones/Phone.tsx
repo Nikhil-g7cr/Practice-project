@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import "./Phone.css";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAppSelector } from "../../redux/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { Roles } from "../../routes/Roles";
+import { addToCart } from "../../redux/features/cart/CartSlice";
 
 const SmartphoneProduct = () => {
   // get the phones from the reduc store
@@ -20,14 +21,29 @@ const SmartphoneProduct = () => {
   const [isAdded, setIsAdded] = useState(false);
   const sectionRefs = useRef<(HTMLElement | HTMLDivElement | null)[]>([]);
 
+  const dispatch  = useAppDispatch();
+
   // Handle Add to Cart micro-interaction
   const handleAddToCart = () => {
+    // 1. Safety check to ensure phone exists before dispatching
+    if (!phone) return; 
+
+    // 2. Pass the selected quantity along with the phone details
+    dispatch(addToCart({ 
+      _id: phone._id, 
+      name: phone.name, 
+      price: phone.basePrice, 
+      imageUrl: phone.thumbnail,
+      quantity: quantity // <-- Add this!
+    }));
+
     setCartStatus("Added to Cart!");
     setIsAdded(true);
 
     setTimeout(() => {
       setCartStatus("Add to Cart");
       setIsAdded(false);
+      setQuantity(1); // Optional: Reset quantity back to 1 after adding
     }, 2000);
   };
 
@@ -58,6 +74,7 @@ const SmartphoneProduct = () => {
     }
   };
 
+  
   const navigate = useNavigate();
   const handleUpdate = () => {
     navigate(`/phones/update/${phone?._id}`);

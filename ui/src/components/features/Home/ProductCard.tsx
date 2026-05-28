@@ -1,3 +1,6 @@
+import { addToCart } from "../../../redux/features/cart/CartSlice";
+import { useAppDispatch } from "../../../redux/hooks/reduxHooks";
+
 interface ProductCardProps {
   id: string;
   name: string;

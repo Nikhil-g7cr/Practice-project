@@ -5,6 +5,7 @@ import { logout } from "../../redux/features/auth/AuthenticationSlice";
 import { Roles } from "../../routes/Roles";
 import SearchBar from "../../components/layout/SearchBar";
 import { BRAND_NAME } from "../../shared/shared-variables";
+import CartIcon from "../../components/layout/CartIcon";
 
 const Topbar = () => {
   const navigate = useNavigate();
@@ -161,9 +162,7 @@ const Topbar = () => {
                 aria-label="Cart"
                 className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
               >
-                <span className="material-symbols-outlined text-[24px]">
-                  shopping_cart
-                </span>
+                <CartIcon/>
               </button>
             </div>
           ) : (

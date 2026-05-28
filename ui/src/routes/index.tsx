@@ -21,6 +21,7 @@ import ProductManagement from "../components/features/managment/product.managmen
 import OrderManagement from "../components/features/managment/order.managment";
 import NotFoundPage from "../components/errors/NotFound";
 import Navbar from "../components/layout/Navbar";
+import Cart from "../components/features/AddToCart/Cart";
 
 const Approutes = () => {
   const location = useLocation();
@@ -38,8 +39,8 @@ const Approutes = () => {
         <Route path="/tablets" element={<h1>tablets</h1>} />
 
         {/* Phone Routes */}
-        <Route path="/phones" element={<PhonesPage />} />
-        <Route path="/smartphones" element={<PhoneDisplay />} />
+        {/* <Route path="/phones" element={<PhonesPage />} />
+        <Route path="/smartphones" element={<PhoneDisplay />} /> */}
 
         {/* NEW: Dynamic route for individual phone details */}
         <Route path="/phone/:id" element={<Phone />} />
@@ -116,6 +117,7 @@ const Approutes = () => {
 
         {/* Other Routes */}
         <Route path="/laptops" element={<LaptopDisplayScreen />} />
+        <Route path="/user/cart" element={<Cart/>}/>
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/profile" element={<Profile />} />
