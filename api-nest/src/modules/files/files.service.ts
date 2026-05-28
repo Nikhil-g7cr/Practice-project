@@ -5,9 +5,8 @@ import {
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
-
-import { BlobServiceClient, ContainerClient } from '@azure/storage-blob';
-
+// 1. Import BlobSASPermissions
+import { BlobServiceClient, ContainerClient, BlobSASPermissions } from '@azure/storage-blob';
 import { AppConfigService } from '../../config/appconfig.service';
 
 @Injectable()
@@ -38,18 +37,25 @@ export class UploadService implements OnModuleInit {
     );
   }
 
-  // Runs automatically when module starts
   async onModuleInit() {
     try {
       await this.containerClient.createIfNotExists();
-      // Only set access: 'blob' if you are 100% sure the storage account allows it.
       console.log('Azure Blob Container Ready');
     } catch (error: any) {
-      console.error(
-        'Failed to initialize Azure Blob Container:',
-        error.message,
-      );
+      console.error('Failed to initialize Azure Blob Container:', error.message);
     }
+  }
+
+  // 2. Add a helper method to generate a SAS URL valid for a specific duration (e.g., 1 hour)
+  async getSasUrl(fileName: string): Promise<string> {
+    const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
+    
+    const sasUrl = await blockBlobClient.generateSasUrl({
+      permissions: BlobSASPermissions.parse("r"), // "r" stands for read permissions
+      expiresOn: new Date(new Date().valueOf() + 3600 * 1000), // Expires in 1 hour
+    });
+
+    return sasUrl;
   }
 
   async uploadFile(file: Express.Multer.File) {
@@ -58,7 +64,6 @@ export class UploadService implements OnModuleInit {
     }
 
     try {
-      // Replace spaces with dashes and remove special characters
       const sanitizedOriginalName = file.originalname
         .replace(/\s+/g, '-')
         .replace(/[^a-zA-Z0-9.\-]/g, '');
@@ -71,20 +76,19 @@ export class UploadService implements OnModuleInit {
         },
       });
 
+      // 3. Generate SAS URL for the newly uploaded file
+      const sasUrl = await this.getSasUrl(fileName);
+
       return {
         message: 'File uploaded successfully',
         fileName,
-        url: blockBlobClient.url,
+        url: sasUrl, // Return the SAS URL instead of blockBlobClient.url
       };
     } catch (error) {
       console.error('Azure Upload Error:', error);
-      throw new InternalServerErrorException(
-        'Failed to upload file to storage',
-      );
+      throw new InternalServerErrorException('Failed to upload file to storage');
     }
   }
-
-   // api-nest/src/modules/files/files.service.ts
 
   async getFileStream(blobName: string) {
     const blockBlobClient = this.containerClient.getBlockBlobClient(blobName);
@@ -95,7 +99,6 @@ export class UploadService implements OnModuleInit {
 
     const downloadResponse = await blockBlobClient.download(0);
     
-    // Return both the stream and the mime-type (content type)
     return {
       stream: downloadResponse.readableStreamBody,
       contentType: downloadResponse.contentType, 
@@ -104,16 +107,16 @@ export class UploadService implements OnModuleInit {
 
   async getAllFiles() {
     try {
-      const files:any[] = [];
+      const files: any[] = [];
       
-      // listBlobsFlat returns an async iterator to loop through all files in the container
       for await (const blob of this.containerClient.listBlobsFlat()) {
-        const blockBlobClient = this.containerClient.getBlockBlobClient(blob.name);
+        // 4. Generate SAS URL for each file in the list
+        const sasUrl = await this.getSasUrl(blob.name);
         
         files.push({
           fileName: blob.name,
-          url: blockBlobClient.url,
-          size: blob.properties.contentLength, // Size in bytes
+          url: sasUrl, // Return the SAS URL instead of blockBlobClient.url
+          size: blob.properties.contentLength, 
           contentType: blob.properties.contentType,
           createdAt: blob.properties.createdOn,
         });
@@ -128,7 +131,6 @@ export class UploadService implements OnModuleInit {
 
   async deleteFile(fileName: string) {
     const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
-
     await blockBlobClient.deleteIfExists();
 
     return {

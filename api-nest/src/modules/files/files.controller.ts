@@ -47,6 +47,17 @@ export class UploadController {
     return this.uploadService.uploadFile(file);
   }
 
+  @UseGuards(JwtAuthGuard) // Only allow authenticated users to generate a token
+  @Get('sas/:fileName')
+  async getFileSasToken(@Param('fileName') fileName: string) {
+    const url = await this.uploadService.getSasUrl(fileName);
+    return {
+      status: 'Success',
+      fileName,
+      url,
+    };
+  }
+  
   @Get()
   async getAllFiles() {
     const files = await this.uploadService.getAllFiles();
