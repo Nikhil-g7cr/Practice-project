@@ -71,9 +71,10 @@ export class UploadService implements OnModuleInit {
       {
         containerName: this.containerClient.containerName,
         blobName: fileName,
-        permissions: BlobSASPermissions.parse("r"), // "r" for read
-        startsOn: new Date(),
-        expiresOn: new Date(new Date().valueOf() + 3600 * 1000), // Expires in 1 hour
+        permissions: BlobSASPermissions.parse("r"),
+        // FIX: Subtract 5 minutes to prevent "Time Skew" authentication errors
+        startsOn: new Date(new Date().valueOf() - 5 * 60 * 1000), 
+        expiresOn: new Date(new Date().valueOf() + 3600 * 1000), 
       },
       sharedKeyCredential
     ).toString();

@@ -12,12 +12,14 @@ import {
 } from '../../database/mongoose/schemas/phones.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { UploadService } from '../files/files.service';
 
 @Injectable()
 export class PhonesService {
   constructor(
     @InjectModel(Phone.name)
     private phoneModel: Model<PhoneDocument>,
+    private uploadService: UploadService // Inject the upload service
   ) {}
 
   create(createPhoneDto: CreatePhoneDto) {
@@ -32,21 +34,86 @@ export class PhonesService {
     }
   }
 
+  // async findAll() {
+  //   // 1. Get all phones from MongoDB
+  //   const phones = await this.phoneModel.find().lean().exec();
+
+  //   // 2. Loop through them and replace the filename with a fresh SAS URL
+  //   const phonesWithUrls = await Promise.all(
+  //     phones.map(async (phone) => {
+  //       let signedUrl = phone.thumbnail; // default to what's in DB
+        
+  //       // If the thumbnail is just a filename (not an old http link), generate a SAS URL
+  //       if (phone.thumbnail && !phone.thumbnail.startsWith('http')) {
+  //          signedUrl = await this.uploadService.getSasUrl(phone.thumbnail);
+  //       }
+
+  //       return {
+  //         ...phone,
+  //         thumbnail: signedUrl, // The frontend now receives a ready-to-use, fresh 1-hour URL!
+  //       };
+  //     })
+  //   );
+
+  //   return phonesWithUrls;
+  // }
+
+  // async findAll(page: number = 1, limit: number = 10) {
+  //   // Calculate how many documents to skip
+  //   const skip = (page - 1) * limit;
+
+  //   // Run both queries in parallel for better performance
+  //   const [data, totalItems] = await Promise.all([
+  //     this.phoneModel.find().skip(skip).limit(limit).exec(),
+  //     this.phoneModel.countDocuments().exec()
+  //   ]);
+
+  //   // Calculate total pages
+  //   const totalPages = Math.ceil(totalItems / limit);
+
+  //   return {
+  //     data,
+  //     meta: {
+  //       totalItems,
+  //       itemsPerPage: limit,
+  //       currentPage: page,
+  //       totalPages,
+  //     }
+  //   };
+  // }
+
   async findAll(page: number = 1, limit: number = 10) {
     // Calculate how many documents to skip
     const skip = (page - 1) * limit;
 
     // Run both queries in parallel for better performance
     const [data, totalItems] = await Promise.all([
-      this.phoneModel.find().skip(skip).limit(limit).exec(),
+      // ADDED .lean() HERE so 'phone' is a standard object, not a heavy Mongoose document
+      this.phoneModel.find().skip(skip).limit(limit).lean().exec(), 
       this.phoneModel.countDocuments().exec()
     ]);
 
     // Calculate total pages
     const totalPages = Math.ceil(totalItems / limit);
 
+    const phonesWithUrls = await Promise.all(
+      data.map(async (phone) => {
+        let signedUrl = phone.thumbnail; // default to what's in DB
+        
+        // If the thumbnail is just a filename (not an old http link), generate a SAS URL
+        if (phone.thumbnail && !phone.thumbnail.startsWith('http')) {
+           signedUrl = await this.uploadService.getSasUrl(phone.thumbnail);
+        }
+
+        return {
+          ...phone,
+          thumbnail: signedUrl, // The frontend now receives a ready-to-use, fresh 1-hour URL!
+        };
+      })
+    );
+
     return {
-      data,
+      data: phonesWithUrls, // FIX: Return the newly mapped array with the URLs!
       meta: {
         totalItems,
         itemsPerPage: limit,
