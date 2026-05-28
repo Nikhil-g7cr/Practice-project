@@ -5,8 +5,16 @@ import {
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
-// 1. Import BlobSASPermissions
-import { BlobServiceClient, ContainerClient, BlobSASPermissions } from '@azure/storage-blob';
+
+// Import the specific SAS generation tools
+import { 
+  BlobServiceClient, 
+  ContainerClient, 
+  BlobSASPermissions, 
+  StorageSharedKeyCredential, 
+  generateBlobSASQueryParameters 
+} from '@azure/storage-blob';
+
 import { AppConfigService } from '../../config/appconfig.service';
 
 @Injectable()
@@ -15,17 +23,18 @@ export class UploadService implements OnModuleInit {
 
   constructor(private readonly appConfigService: AppConfigService) {
     const blobConfig = this.appConfigService.get('blobStorage');
+    console.log("Name:", blobConfig.blobAccountName);
+    console.log("Key Length:", blobConfig.blobAccountKey?.length);
+    console.log("String Length:", blobConfig.blobAccountConnectionString?.length);
 
     if (!blobConfig?.blobAccountConnectionString) {
-      throw new Error(
-        'Azure Storage connection string is not configured. Please set AZURE_STORAGE_CONNECTION_STRING in environment variables.',
-      );
+      throw new Error('Azure Storage connection string is not configured.');
     }
-
     if (!blobConfig?.blobUploadContainer) {
-      throw new Error(
-        'Azure Storage container name is not configured. Please set AZURE_STORAGE_CONTAINER_NAME or BLOB_UPLOAD_CONTAINER in environment variables.',
-      );
+      throw new Error('Azure Storage container name is not configured.');
+    }
+    if (!blobConfig?.blobAccountKey) {
+      throw new Error('Azure Storage Account Name or Key is not configured in environment variables.');
     }
 
     const blobServiceClient = BlobServiceClient.fromConnectionString(
@@ -46,16 +55,34 @@ export class UploadService implements OnModuleInit {
     }
   }
 
-  // 2. Add a helper method to generate a SAS URL valid for a specific duration (e.g., 1 hour)
+  // Updated SAS generation logic using explicit credentials
   async getSasUrl(fileName: string): Promise<string> {
-    const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
+    const blobConfig = this.appConfigService.get('blobStorage');
     
-    const sasUrl = await blockBlobClient.generateSasUrl({
-      permissions: BlobSASPermissions.parse("r"), // "r" stands for read permissions
-      expiresOn: new Date(new Date().valueOf() + 3600 * 1000), // Expires in 1 hour
-    });
+    // 1. Create a credential object using your explicit Account Name and Key
+    const sharedKeyCredential = new StorageSharedKeyCredential(
+      blobConfig.blobAccountName,
+      blobConfig.blobAccountKey
+    );
 
-    return sasUrl;
+
+    // 2. Generate the SAS Token string
+    const sasToken = generateBlobSASQueryParameters(
+      {
+        containerName: this.containerClient.containerName,
+        blobName: fileName,
+        permissions: BlobSASPermissions.parse("r"), // "r" for read
+        startsOn: new Date(),
+        expiresOn: new Date(new Date().valueOf() + 3600 * 1000), // Expires in 1 hour
+      },
+      sharedKeyCredential
+    ).toString();
+
+    // 3. Append the signed token to the standard blob URL
+    const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
+    const finalUrl= `${blockBlobClient.url}?${sasToken}`;
+    console.log("Generated SAS URL:", finalUrl);
+    return finalUrl;
   }
 
   async uploadFile(file: Express.Multer.File) {

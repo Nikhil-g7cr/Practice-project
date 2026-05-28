@@ -22,6 +22,7 @@ export interface IAppConfig {
     blobAccountConnectionString: string | undefined;
     blobUploadContainer: string | undefined;
     blobAccountKey: string | undefined;
+    blobAccountName: string | undefined
   };
 }
 
@@ -50,12 +51,10 @@ export class AppConfigService {
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
       },
       blobStorage: {
-        blobAccountConnectionString:process.env.AZURE_STORAGE_CONNECTION_STRING,
-        blobAccountKey:process.env.AZURE_STORAGE_KEY,
-        blobUploadContainer:
-          process.env.AZURE_STORAGE_CONTAINER_NAME ||
-          process.env.BLOB_UPLOAD_CONTAINER ||
-          'uploads',
+        blobAccountConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
+        blobUploadContainer: process.env.AZURE_STORAGE_CONTAINER_NAME || process.env.BLOB_UPLOAD_CONTAINER || 'uploads',
+        blobAccountName: process.env.AZURE_STORAGE_ACCOUNT_NAME, 
+        blobAccountKey: process.env.AZURE_STORAGE_ACCOUNT_KEY,   
       },
     };
   }
