@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-export type FieldType = "text" | "number" | "email" | "password" | "textarea" | "select" | "checkbox";
+export type FieldType = "text" | "number" | "email" | "password" | "textarea" | "select" | "checkbox" | "file";
 
 export interface FormField {
   name: string;
@@ -8,7 +8,8 @@ export interface FormField {
   type: FieldType;
   placeholder?: string;
   required?: boolean;
-  options?: { label: string; value: string | number }[]; 
+  accept?: string;
+  options?: { label: string; value: string | number }[];
 }
 
 export interface DynamicFormProps {
@@ -20,7 +21,7 @@ export interface DynamicFormProps {
 
 const DynamicForm: React.FC<DynamicFormProps> = ({
   fields,
-  initialValues, // FIX 1: Removed the '= {}' from here
+  initialValues,
   onSubmit,
   submitButtonText = "Submit",
 }) => {
@@ -29,24 +30,31 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   useEffect(() => {
     const initialState: Record<string, any> = {};
     fields.forEach((field) => {
-      // FIX 2: Safely check if initialValues exists using optional chaining (?.)
       initialState[field.name] =
         initialValues?.[field.name] !== undefined
           ? initialValues[field.name]
           : field.type === "checkbox"
           ? false
+          : field.type === "file" // File inputs should start as null
+          ? null
           : "";
     });
     setFormData(initialState);
-  }, [fields, initialValues]); // Now this won't trigger on every keystroke!
+  }, [fields, initialValues]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
     
-    const finalValue =
-      type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
+    // FIX: Check if the input is a file. If it is, grab the actual File object.
+    let finalValue: any = value;
+    if (type === "checkbox") {
+      finalValue = (e.target as HTMLInputElement).checked;
+    } else if (type === "file") {
+      const files = (e.target as HTMLInputElement).files;
+      finalValue = files && files.length > 0 ? files[0] : null;
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -109,6 +117,17 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 />
                 <span className="ml-2 text-sm text-gray-600">Yes</span>
               </div>
+            ) : field.type === "file" ? (
+              // FIX: File inputs cannot have a `value` prop in React, so we render it separately
+              <input
+                type="file"
+                id={field.name}
+                name={field.name}
+                accept={field.accept}
+                onChange={handleChange}
+                required={field.required}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md p-1"
+              />
             ) : (
               <input
                 type={field.type}
@@ -127,7 +146,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 
       <button
         type="submit"
-        className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors"
+        className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors"
       >
         {submitButtonText}
       </button>

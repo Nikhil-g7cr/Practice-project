@@ -30,7 +30,7 @@ export const phoneFields: FormField[] = [
   { name: "slug", label: "Slug", type: "text", required: true, placeholder: "e.g., iphone-15-pro" },
   { name: "brand", label: "Brand", type: "text", required: true, placeholder: "e.g., Apple" },
   { name: "basePrice", label: "Base Price ($)", type: "number", required: true },
-  { name: "thumbnail", label: "Thumbnail URL or Filename", type: "text", required: true },
+  { name: "thumbnail", label: "Thumbnail URL or Filename", type: "file", required: true, accept: "image/*"},
   { name: "description", label: "Description", type: "textarea", required: true },
   
   // Specifications (Using spec_ prefix to map them later)

@@ -82,7 +82,6 @@ export class UploadService implements OnModuleInit {
     // 3. Append the signed token to the standard blob URL
     const blockBlobClient = this.containerClient.getBlockBlobClient(fileName);
     const finalUrl= `${blockBlobClient.url}?${sasToken}`;
-    console.log("Generated SAS URL:", finalUrl);
     return finalUrl;
   }
 
