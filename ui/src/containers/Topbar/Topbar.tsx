@@ -68,11 +68,11 @@ const Topbar = () => {
 
           {/* Auth/Profile */}
           {isAuthenticated && user ? (
-            <div className="relative" ref={profileRef}>
+            <div className="flex " ref={profileRef}>
               {/* Profile Button */}
               <button
                 onClick={() => setShowProfileMenu((prev) => !prev)}
-                className="glass smooth-hover p-1 rounded-2xl hover:bg-white/20 transition-all duration-300"
+                className="glass mr-4 smooth-hover p-1 rounded-2xl hover:bg-white/20 transition-all duration-300"
                 title={user.name}
               >
                 <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-950 via-white to-purple-200 flex items-center justify-center text-slate-800 font-bold text-sm shadow-inner border border-white/40">
@@ -82,318 +82,112 @@ const Topbar = () => {
 
               {/* Dropdown */}
               {showProfileMenu && (
-                <div
-  className="
-    group
-    absolute
-    right-0
-    mt-4
-    w-72
-    overflow-hidden
-    rounded-[2rem]
-    
-    /* Main Liquid Glass */
-    bg-white/18
-    backdrop-blur-[30px]
+                <div className="group absolute right-0 mr-4 mt-16 w-72 overflow-hidden rounded-[2rem] bg-white/18 backdrop-blur-[30px] border border-white/30 before:absolute before:inset-0 before:rounded-[2rem] before:p-[1.2px] before:bg-gradient-to-br before:from-white/70 before:via-white/10 before:to-black-200 before:pointer-events-none after:absolute after:inset-[1px] after:rounded-[1.9rem] after:bg-white/[0.04] after:backdrop-blur-[40px] after:pointer-events-none shadow-[0_10px_50px_rgba(255,255,255,0.08)] animate-glass z-50">
+                  {/* Background Blur Layer */}
+                  <div className="absolute inset-0 backdrop-blur-[80px] bg-white/[0.03] pointer-events-none " />
 
-    /* Border + Refraction */
-    border
-    border-white/30
+                  {/* Top Reflection */}
+                  <div className="absolute top-0 left-0 w-full h-[40%] bg-gradient-to-b from-white/25 via-white/5 to-transparent pointer-events-none" />
 
-    /* Light Bending Edge Glow */
-    before:absolute
-    before:inset-0
-    before:rounded-[2rem]
-    before:p-[1.2px]
-    before:bg-gradient-to-br
-    before:from-white/70
-    before:via-white/10
-    before:to-black-200
-    before:pointer-events-none
+                  {/* Edge Light Refraction */}
+                  <div className="absolute inset-0 rounded-[2rem] border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)] pointer-events-none" />
 
-    /* Inner Glass Refraction */
-    after:absolute
-    after:inset-[1px]
-    after:rounded-[1.9rem]
-    after:bg-white/[0.04]
-    after:backdrop-blur-[40px]
-    after:pointer-events-none
+                  {/* Floating Light Glow */}
+                  <div className="absolute -top-16 -left-16 w-40 h-40 bg-cyan-200/25 rounded-full blur-3xl pointer-events-none" />
 
-    /* Shadow Depth */
-    shadow-[0_10px_50px_rgba(255,255,255,0.08)]
+                  {/* Secondary Glow */}
+                  <div className="absolute bottom-[-60px] right-[-40px] w-32 h-32 bg-purple-200/20 rounded-full blur-3xl pointer-events-none" />
 
-    animate-glass
-    z-50
-  "
->
+                  {/* Animated Liquid Shine */}
+                  <div className="absolute top-0 left-[-130%] w-[70%] h-full bg-gradient-to-r from-transparent via-white/35 to-transparent skew-x-[-20deg] transition-all duration-[1400ms] group-hover:left-[140%] pointer-events-none" />
 
-  {/* Background Blur Layer */}
-  <div
-    className="
-      absolute
-      inset-0
-      backdrop-blur-[80px]
-      bg-white/[0.03]
-      pointer-events-none
-    "
-  />
+                  {/* User Info */}
+                  <div className="relative z-10 px-5 py-5 border-b border-white/10 flex items-center gap-4">
+                    {/* Avatar */}
+                    <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-200 via-white to-purple-200 flex items-center justify-center text-lg font-bold text-slate-800 border border-white/40 shadow-[0_8px_30px_rgba(255,255,255,0.22)] overflow-hidden">
+                      {/* Avatar Refraction */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-transparent" />
 
-  {/* Top Reflection */}
-  <div
-    className="
-      absolute
-      top-0
-      left-0
-      w-full
-      h-[40%]
-      bg-gradient-to-b
-      from-white/25
-      via-white/5
-      to-transparent
-      pointer-events-none
-    "
-  />
+                      {/* Inner Highlight */}
+                      <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white/40 blur-md" />
 
-  {/* Edge Light Refraction */}
-  <div
-    className="
-      absolute
-      inset-0
-      rounded-[2rem]
-      border
-      border-white/20
-      shadow-[inset_0_1px_1px_rgba(255,255,255,0.35)]
-      pointer-events-none
-    "
-  />
+                      <span className="relative z-10">
+                        {user?.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
 
-  {/* Floating Light Glow */}
-  <div
-    className="
-      absolute
-      -top-16
-      -left-16
-      w-40
-      h-40
-      bg-cyan-200/25
-      rounded-full
-      blur-3xl
-      pointer-events-none
-    "
-  />
+                    {/* User Details */}
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">
+                        {user.name}
+                      </p>
 
-  {/* Secondary Glow */}
-  <div
-    className="
-      absolute
-      bottom-[-60px]
-      right-[-40px]
-      w-32
-      h-32
-      bg-purple-200/20
-      rounded-full
-      blur-3xl
-      pointer-events-none
-    "
-  />
+                      <p className="text-xs text-slate-500 mt-1">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
 
-  {/* Animated Liquid Shine */}
-  <div
-    className="
-      absolute
-      top-0
-      left-[-130%]
-      w-[70%]
-      h-full
-      bg-gradient-to-r
-      from-transparent
-      via-white/35
-      to-transparent
-      skew-x-[-20deg]
-      transition-all
-      duration-[1400ms]
-      group-hover:left-[140%]
-      pointer-events-none
-    "
-  />
+                  {/* Profile */}
+                  <button
+                    onClick={handleProfileClick}
+                    className="relative z-10 w-full text-left px-5 py-3 text-sm text-slate-700 hover:bg-white/15 hover:backdrop-blur-xl hover:pl-6 transition-all duration-300"
+                  >
+                    View Profile
+                  </button>
 
-  {/* User Info */}
-  <div className="relative z-10 px-5 py-5 border-b border-white/10 flex items-center gap-4">
+                  {/* Admin */}
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setShowProfileMenu(false)}
+                      className="relative z-10 block w-full px-5 py-3 text-left text-sm text-slate-700 hover:bg-white/15 hover:backdrop-blur-xl hover:pl-6 transition-all duration-300"
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
 
-    {/* Avatar */}
-    <div
-      className="
-        relative
-        w-14
-        h-14
-        rounded-2xl
-
-        bg-gradient-to-br
-        from-cyan-200
-        via-white
-        to-purple-200
-
-        flex
-        items-center
-        justify-center
-
-        text-lg
-        font-bold
-        text-slate-800
-
-        border
-        border-white/40
-
-        shadow-[0_8px_30px_rgba(255,255,255,0.22)]
-
-        overflow-hidden
-      "
-    >
-
-      {/* Avatar Refraction */}
-      <div
-        className="
-          absolute
-          inset-0
-          bg-gradient-to-br
-          from-white/60
-          via-transparent
-          to-transparent
-        "
-      />
-
-      {/* Inner Highlight */}
-      <div
-        className="
-          absolute
-          top-1
-          left-1
-          w-5
-          h-5
-          rounded-full
-          bg-white/40
-          blur-md
-        "
-      />
-
-      <span className="relative z-10">
-        {user?.name?.charAt(0).toUpperCase()}
-      </span>
-    </div>
-
-    {/* User Details */}
-    <div>
-      <p className="text-sm font-semibold text-slate-800">
-        {user.name}
-      </p>
-
-      <p className="text-xs text-slate-500 mt-1">
-        {user.email}
-      </p>
-    </div>
-  </div>
-
-  {/* Profile */}
-  <button
-    onClick={handleProfileClick}
-    className="
-      relative
-      z-10
-      w-full
-      text-left
-      px-5
-      py-3
-      text-sm
-      text-slate-700
-
-      hover:bg-white/15
-      hover:backdrop-blur-xl
-      hover:pl-6
-
-      transition-all
-      duration-300
-    "
-  >
-    View Profile
-  </button>
-
-  {/* Admin */}
-  {isAdmin && (
-    <Link
-      to="/admin"
-      onClick={() => setShowProfileMenu(false)}
-      className="
-        relative
-        z-10
-        block
-        w-full
-        px-5
-        py-3
-        text-left
-        text-sm
-        text-slate-700
-
-        hover:bg-white/15
-        hover:backdrop-blur-xl
-        hover:pl-6
-
-        transition-all
-        duration-300
-      "
-    >
-      Admin Panel
-    </Link>
-  )}
-
-  {/* Logout */}
-  <button
-    onClick={handleLogout}
-    className="
-      relative
-      z-10
-      w-full
-      text-left
-      px-5
-      py-3
-
-      text-red-500
-
-      border-t
-      border-white/10
-
-      hover:bg-red-100/25
-      hover:backdrop-blur-xl
-      hover:pl-6
-
-      transition-all
-      duration-300
-    "
-  >
-    Logout
-  </button>
-</div>
+                  {/* Logout */}
+                  <button
+                    onClick={handleLogout}
+                    className="relative z-10 w-full text-left px-5 py-3 text-red-500 border-t border-white/10 hover:bg-red-100/25 hover:backdrop-blur-xl hover:pl-6 transition-all duration-300"
+                  >
+                    Logout
+                  </button>
+                </div>
               )}
+              {/* Cart */}
+              <button
+                aria-label="Cart"
+                className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
+              >
+                <span className="material-symbols-outlined text-[24px]">
+                  shopping_cart
+                </span>
+              </button>
             </div>
           ) : (
-            <button
-              onClick={() => navigate("/login")}
-              className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
-            >
-              <span className="material-symbols-outlined text-[24px]">
-                person
-              </span>
-            </button>
+            <div className="flex gap-4">
+              <button
+                onClick={() => navigate("/login")}
+                className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
+              >
+                <span className="material-symbols-outlined text-[24px]">
+                  Login
+                </span>
+              </button>
+              <button
+                onClick={() => navigate("/Signup")}
+                className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
+              >
+                <span className="text-[24px]">
+                 signup
+                </span>
+              </button>
+            </div>
           )}
 
           {/* Cart */}
-          <button
-            aria-label="Cart"
-            className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
-          >
-            <span className="material-symbols-outlined text-[24px]">
-              shopping_cart
-            </span>
-          </button>
         </div>
       </div>
     </nav>

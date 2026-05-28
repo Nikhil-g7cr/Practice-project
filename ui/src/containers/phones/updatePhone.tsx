@@ -1,82 +1,54 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  useAppDispatch,
-  useAppSelector,
-} from "../../redux/hooks/reduxHooks";
+import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { updatePhone } from "../../redux/features/phones/PhoneSlice";
 
 const EditPhone = () => {
-
   const navigate = useNavigate();
 
   const { id } = useParams();
 
-  const dispatch =
-    useAppDispatch();
+  const dispatch = useAppDispatch();
 
-  const { phones } =
-    useAppSelector(
-      (state) => state.phones
-    );
+  const { phones } = useAppSelector((state) => state.phones);
 
-  const phone = phones?.find(
-    (p: any) => p._id === id
-  );
+  const phone = phones?.find((p: any) => p._id === id);
 
-  const [name, setName] =
-    useState(phone?.name || "");
+  const [name, setName] = useState(phone?.name || "");
 
-  const [price, setPrice] =
-    useState(
-      phone?.basePrice || 0
-    );
+  const [price, setPrice] = useState(phone?.basePrice || 0);
 
-  const [image, setImage] =
-    useState(phone?.thumbnail);
+  const [image, setImage] = useState(phone?.thumbnail);
 
   useEffect(() => {
-
     if (phone) {
-
       setName(phone.name);
 
-      setPrice(
-        phone.basePrice
-      );
+      setPrice(phone.basePrice);
 
-      setImage(
-        phone.thumbnail
-      );
+      setImage(phone.thumbnail);
     }
-
   }, [phone]);
 
-  const handleUpdate =
-    async () => {
+  const handleUpdate = async () => {
+    if (!phone) return;
 
-      if (!phone) return;
+    await dispatch(
+      updatePhone({
+        id: phone._id,
+        data: {
+          name,
+          basePrice: price,
+          thumbnail: image,
+        },
+      }),
+    );
 
-      await dispatch(
-        updatePhone({
-          id: phone._id,
-          data: {
-            name,
-            basePrice: price,
-            thumbnail: image,
-          },
-        })
-      );
-
-      navigate(
-        `/phone/${phone._id}`
-      );
-    };
+    navigate(`/phone/${phone._id}`);
+  };
 
   if (!phone) {
-
     return (
-
       <div
         className="
           min-h-screen
@@ -90,7 +62,6 @@ const EditPhone = () => {
           bg-fixed
         "
       >
-
         <div
           className="
             relative
@@ -110,7 +81,6 @@ const EditPhone = () => {
             shadow-[0_20px_60px_rgba(255,255,255,0.08)]
           "
         >
-
           {/* Reflection */}
           <div
             className="
@@ -143,7 +113,6 @@ const EditPhone = () => {
   }
 
   return (
-
     <div
       className="
         relative
@@ -151,7 +120,7 @@ const EditPhone = () => {
 
         min-h-screen
 
-        bg-[url('/updateSM1.png')]
+        bg-[url('/updateSM2.png')]
         bg-cover
         bg-center
         bg-fixed
@@ -160,9 +129,8 @@ const EditPhone = () => {
         py-20
       "
     >
-
       {/* Global Blur */}
-      <div
+      {/* <div
         className="
           absolute
           inset-0
@@ -171,7 +139,7 @@ const EditPhone = () => {
 
           bg-white/[0.03]
         "
-      />
+      /> */}
 
       {/* Cyan Glow */}
       <div
@@ -223,7 +191,6 @@ const EditPhone = () => {
           mt-20
         "
       >
-
         {/* Liquid Glass Card */}
         <div
           className="
@@ -259,7 +226,6 @@ const EditPhone = () => {
             shadow-[0_20px_60px_rgba(255,255,255,0.08)]
           "
         >
-
           {/* Reflection */}
           <div
             className="
@@ -347,10 +313,8 @@ const EditPhone = () => {
               md:p-10
             "
           >
-
             {/* Title */}
             <div className="mb-8">
-
               <span
                 className="
                   inline-flex
@@ -403,10 +367,8 @@ const EditPhone = () => {
 
             {/* FORM */}
             <div className="space-y-6">
-
               {/* NAME */}
               <div>
-
                 <label
                   className="
                     block
@@ -438,7 +400,6 @@ const EditPhone = () => {
                     shadow-[0_8px_20px_rgba(255,255,255,0.05)]
                   "
                 >
-
                   {/* Reflection */}
                   <div
                     className="
@@ -454,11 +415,7 @@ const EditPhone = () => {
 
                   <input
                     value={name}
-                    onChange={(e) =>
-                      setName(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setName(e.target.value)}
                     className="
                       relative
                       z-10
@@ -482,7 +439,6 @@ const EditPhone = () => {
 
               {/* PRICE */}
               <div>
-
                 <label
                   className="
                     block
@@ -514,7 +470,6 @@ const EditPhone = () => {
                     shadow-[0_8px_20px_rgba(255,255,255,0.05)]
                   "
                 >
-
                   <div
                     className="
                       absolute
@@ -530,13 +485,7 @@ const EditPhone = () => {
                   <input
                     type="number"
                     value={price}
-                    onChange={(e) =>
-                      setPrice(
-                        Number(
-                          e.target.value
-                        )
-                      )
-                    }
+                    onChange={(e) => setPrice(Number(e.target.value))}
                     className="
                       relative
                       z-10
@@ -560,7 +509,6 @@ const EditPhone = () => {
 
               {/* IMAGE */}
               <div>
-
                 <label
                   className="
                     block
@@ -592,7 +540,6 @@ const EditPhone = () => {
                     shadow-[0_8px_20px_rgba(255,255,255,0.05)]
                   "
                 >
-
                   <div
                     className="
                       absolute
@@ -608,11 +555,7 @@ const EditPhone = () => {
                   <input
                     type="text"
                     value={image}
-                    onChange={(e) =>
-                      setImage(
-                        e.target.value
-                      )
-                    }
+                    onChange={(e) => setImage(e.target.value)}
                     className="
                       relative
                       z-10
@@ -636,9 +579,7 @@ const EditPhone = () => {
 
               {/* BUTTON */}
               <button
-                onClick={
-                  handleUpdate
-                }
+                onClick={handleUpdate}
                 className="
                   group
                   relative
@@ -672,7 +613,6 @@ const EditPhone = () => {
                   active:scale-95
                 "
               >
-
                 {/* Reflection */}
                 <div
                   className="
@@ -710,9 +650,7 @@ const EditPhone = () => {
                   "
                 />
 
-                <span className="relative z-10">
-                  Update Phone
-                </span>
+                <span className="relative z-10">Update Phone</span>
               </button>
             </div>
           </div>
