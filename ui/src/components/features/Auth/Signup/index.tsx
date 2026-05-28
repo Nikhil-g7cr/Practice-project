@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../Auth.css";
-import { BRAND_NAME } from "../../../../shared/shared-variables";
-import ErrorDisplay from "../../../errors/errorDisplay";
+
+const BRAND_NAME = "Stuff SYSTEM";
+
+const ErrorDisplay = ({ ErrorMessage }: { ErrorMessage: string }) => (
+  <div className="bg-red-500/10 border border-red-500/50 text-red-700 text-sm p-3 rounded-xl backdrop-blur-md">
+    {ErrorMessage}
+  </div>
+);
 
 interface SignupFormData {
   name: string;
@@ -217,14 +222,14 @@ export default function Signup() {
       "
       />
 
-      {/* Main Canvas */}
+      {/* Main Canvas - Kept top padding as requested, reduced bottom padding */}
       <main
         className="
         relative
         z-10
         flex-grow
         pt-24
-        pb-20
+        pb-8
         md:pt-32
         flex
         items-center
@@ -238,7 +243,7 @@ export default function Signup() {
           className="
           group
           relative
-          max-w-6xl
+          max-w-5xl
           w-full
           grid
           grid-cols-1
@@ -325,27 +330,27 @@ export default function Signup() {
           "
           />
 
-          {/* LEFT SIDE */}
+          {/* LEFT SIDE (Form) */}
           <div
             className="
             relative
             z-10
-            p-8
-            md:p-16
+            p-6
+            md:p-10
             flex
             flex-col
             justify-center
           "
           >
             {/* Header */}
-            <div className="mb-10">
+            <div className="mb-6">
               <h1
                 className="
                 font-headline
-                text-3xl
-                md:text-4xl
+                text-2xl
+                md:text-3xl
                 font-bold
-                mb-3
+                mb-2
 
                 bg-gradient-to-r
                 from-slate-900
@@ -360,12 +365,12 @@ export default function Signup() {
 
               <p
                 className="
-                text-base
+                text-sm
+                md:text-base
                 text-slate-600
               "
               >
-                Join {BRAND_NAME} to access exclusive professional-grade
-                electronics.
+                Join {BRAND_NAME} to access exclusive professional-grade electronics.
               </p>
             </div>
 
@@ -373,7 +378,7 @@ export default function Signup() {
             {error && <ErrorDisplay ErrorMessage={error.message} />}
 
             {/* FORM */}
-            <form className="space-y-6 mt-6" onSubmit={handleSubmit}>
+            <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
               {/* Full Name */}
               <div>
                 <label
@@ -384,7 +389,7 @@ export default function Signup() {
                   tracking-wider
                   font-semibold
                   text-slate-600
-                  mb-2
+                  mb-1.5
                 "
                   htmlFor="name"
                 >
@@ -395,18 +400,13 @@ export default function Signup() {
                   className="
                   relative
                   overflow-hidden
-
-                  rounded-2xl
-
+                  rounded-xl
                   bg-white/15
                   backdrop-blur-2xl
-
                   border
                   border-white/25
-
                   transition-all
                   duration-300
-
                   focus-within:border-cyan-300/60
                   focus-within:bg-white/20
                 "
@@ -428,10 +428,11 @@ export default function Signup() {
                     className="
                     material-symbols-outlined
                     absolute
-                    left-4
+                    left-3.5
                     top-1/2
                     -translate-y-1/2
                     text-slate-500
+                    text-[20px]
                   "
                   >
                     person
@@ -442,15 +443,12 @@ export default function Signup() {
                     relative
                     z-10
                     w-full
-                    pl-12
+                    pl-11
                     pr-4
-                    py-4
-
+                    py-3
                     bg-transparent
-
                     text-slate-800
                     placeholder:text-slate-400
-
                     focus:outline-none
                   "
                     id="name"
@@ -474,7 +472,7 @@ export default function Signup() {
                   tracking-wider
                   font-semibold
                   text-slate-600
-                  mb-2
+                  mb-1.5
                 "
                   htmlFor="email"
                 >
@@ -485,17 +483,13 @@ export default function Signup() {
                   className="
                   relative
                   overflow-hidden
-                  rounded-2xl
-
+                  rounded-xl
                   bg-white/15
                   backdrop-blur-2xl
-
                   border
                   border-white/25
-
                   transition-all
                   duration-300
-
                   focus-within:border-cyan-300/60
                 "
                 >
@@ -514,10 +508,11 @@ export default function Signup() {
                     className="
                     material-symbols-outlined
                     absolute
-                    left-4
+                    left-3.5
                     top-1/2
                     -translate-y-1/2
                     text-slate-500
+                    text-[20px]
                   "
                   >
                     mail
@@ -528,15 +523,12 @@ export default function Signup() {
                     relative
                     z-10
                     w-full
-                    pl-12
+                    pl-11
                     pr-4
-                    py-4
-
+                    py-3
                     bg-transparent
-
                     text-slate-800
                     placeholder:text-slate-400
-
                     focus:outline-none
                   "
                     id="email"
@@ -560,7 +552,7 @@ export default function Signup() {
                   tracking-wider
                   font-semibold
                   text-slate-600
-                  mb-2
+                  mb-1.5
                 "
                   htmlFor="password"
                 >
@@ -571,17 +563,13 @@ export default function Signup() {
                   className="
                   relative
                   overflow-hidden
-                  rounded-2xl
-
+                  rounded-xl
                   bg-white/15
                   backdrop-blur-2xl
-
                   border
                   border-white/25
-
                   transition-all
                   duration-300
-
                   focus-within:border-cyan-300/60
                 "
                 >
@@ -600,10 +588,11 @@ export default function Signup() {
                     className="
                     material-symbols-outlined
                     absolute
-                    left-4
+                    left-3.5
                     top-1/2
                     -translate-y-1/2
                     text-slate-500
+                    text-[20px]
                   "
                   >
                     lock
@@ -614,15 +603,12 @@ export default function Signup() {
                     relative
                     z-10
                     w-full
-                    pl-12
+                    pl-11
                     pr-4
-                    py-4
-
+                    py-3
                     bg-transparent
-
                     text-slate-800
                     placeholder:text-slate-400
-
                     focus:outline-none
                   "
                     id="password"
@@ -638,9 +624,9 @@ export default function Signup() {
 
                 <p
                   className="
-                  text-sm
+                  text-xs
                   text-slate-500
-                  mt-2
+                  mt-1.5
                 "
                 >
                   Must be at least 8 characters long.
@@ -648,7 +634,7 @@ export default function Signup() {
               </div>
 
               {/* Terms */}
-              <div className="flex items-start mt-4">
+              <div className="flex items-start mt-3">
                 <div className="flex items-center h-5">
                   <input
                     className="
@@ -667,10 +653,10 @@ export default function Signup() {
                   />
                 </div>
 
-                <div className="ml-3">
+                <div className="ml-2.5">
                   <label
                     className="
-                    text-sm
+                    text-xs
                     text-slate-600
                   "
                     htmlFor="terms"
@@ -708,31 +694,22 @@ export default function Signup() {
                 group
                 relative
                 overflow-hidden
-
                 w-full
-                py-4
-                mt-8
-
-                rounded-2xl
-
+                py-3
+                mt-6
+                rounded-xl
                 bg-white/18
                 backdrop-blur-2xl
-
                 border
                 border-white/30
-
                 text-slate-800
                 font-semibold
-                text-lg
-
+                text-base
                 shadow-[0_8px_30px_rgba(255,255,255,0.12)]
-
                 transition-all
                 duration-300
-
                 hover:scale-[1.02]
                 hover:bg-white/25
-
                 active:scale-[0.98]
               "
                 type="submit"
@@ -776,7 +753,7 @@ export default function Signup() {
             </form>
           </div>
 
-          {/* RIGHT SIDE */}
+          {/* RIGHT SIDE (Info) */}
           <div
             className="
             hidden
@@ -819,23 +796,20 @@ export default function Signup() {
               flex-col
               h-full
               justify-between
-              p-16
+              p-8
+              lg:p-10
             "
             >
               <div
                 className="
                 relative
                 overflow-hidden
-
-                rounded-[2rem]
-
+                rounded-2xl
                 bg-white/10
                 backdrop-blur-2xl
-
                 border
                 border-white/20
-
-                p-8
+                p-6
               "
               >
                 {/* Reflection */}
@@ -853,7 +827,7 @@ export default function Signup() {
                 <div className="relative z-10">
                   <h2
                     className="
-                    text-3xl
+                    text-2xl
                     font-bold
                     text-slate-800
                   "
@@ -861,7 +835,7 @@ export default function Signup() {
                     Precision Engineered for Professionals
                   </h2>
 
-                  <ul className="space-y-6 mt-8">
+                  <ul className="space-y-4 mt-5">
                     {[
                       {
                         icon: "local_shipping",
@@ -884,7 +858,7 @@ export default function Signup() {
                         className="
                         flex
                         items-start
-                        gap-4
+                        gap-3
                       "
                       >
                         <div
@@ -892,8 +866,8 @@ export default function Signup() {
                           bg-white/20
                           border
                           border-white/20
-                          p-3
-                          rounded-2xl
+                          p-2
+                          rounded-xl
                           backdrop-blur-xl
                         "
                         >
@@ -901,6 +875,7 @@ export default function Signup() {
                             className="
                             material-symbols-outlined
                             text-cyan-700
+                            text-[20px]
                           "
                           >
                             {item.icon}
@@ -910,7 +885,7 @@ export default function Signup() {
                         <div>
                           <h3
                             className="
-                            text-lg
+                            text-base
                             text-slate-800
                             font-semibold
                           "
@@ -920,9 +895,9 @@ export default function Signup() {
 
                           <p
                             className="
-                            text-sm
+                            text-xs
                             text-slate-600
-                            mt-1
+                            mt-0.5
                           "
                           >
                             {item.text}
@@ -935,12 +910,13 @@ export default function Signup() {
               </div>
 
               {/* Footer */}
-              <div className="mt-auto">
-                <div className="flex items-center gap-3">
+              <div className="mt-auto pt-6">
+                <div className="flex items-center gap-2">
                   <span
                     className="
                     material-symbols-outlined
                     text-cyan-700
+                    text-[18px]
                   "
                   >
                     eco
@@ -948,7 +924,7 @@ export default function Signup() {
 
                   <span
                     className="
-                    text-xs
+                    text-[10px]
                     uppercase
                     tracking-wider
                     font-semibold

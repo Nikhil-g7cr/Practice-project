@@ -10,6 +10,7 @@ interface ProductCardProps {
   badge?: string;
   isNew?: boolean;
   onAddToCart?: (productId: string) => void;
+  handlePhones?: (productId:string) => void;
 }
 
 const ProductCard = ({
@@ -24,6 +25,7 @@ const ProductCard = ({
   badge,
   isNew,
   onAddToCart,
+  handlePhones,
 }: ProductCardProps) => {
   return (
     <article className="product-card glass smooth-hover float-animation flex flex-col rounded-[2rem] p-5">
@@ -41,7 +43,7 @@ const ProductCard = ({
           </span>
         </div>
       )}
-      <div className="max-h-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-110">
+      <div onClick={() => handlePhones?.(id)} className="max-h-full object-contain mix-blend-multiply transition-transform duration-500 hover:scale-110">
         <img
           alt={name}
           className="max-h-full object-contain mix-blend-multiply"

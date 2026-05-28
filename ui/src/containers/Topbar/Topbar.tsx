@@ -180,7 +180,7 @@ const Topbar = () => {
                 onClick={() => navigate("/Signup")}
                 className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
               >
-                <span className="text-[24px]">
+                <span className="text-[20px]">
                  signup
                 </span>
               </button>

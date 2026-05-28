@@ -1,5 +1,6 @@
 import React from "react";
 import ProductCard from "./ProductCard";
+import { useNavigate } from "react-router-dom";
 
 interface Phone {
   _id: string;
@@ -38,10 +39,19 @@ const CardsContainer: React.FC<CardsContainerProps> = ({
   products,
   categoryFilter,
 }) => {
+
   const handleAddToCart = (productId: string) => {
     console.log("Added to cart:", productId);
     // TODO: Implement add to cart functionality
   };
+
+  const navigate  = useNavigate()
+
+  const handlePhone = (productId: string)=>{
+    navigate('/phone/'+productId)
+    
+  }
+
 
   if (!products || products.length === 0) {
     return (
@@ -76,6 +86,7 @@ const CardsContainer: React.FC<CardsContainerProps> = ({
                   rating={phone.rating || 4.5}
                   reviews={phone.reviewsCount || 0}
                   onAddToCart={handleAddToCart}
+                  handlePhones={handlePhone}
                 />
               );
             }

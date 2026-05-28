@@ -358,9 +358,11 @@ const Login = () => {
         {/* LIQUID GLASS CARD */}
         <div
           className="
+          mt-20
           group
           relative
-          w-[600px]
+          w-full
+          max-w-[460px]
           overflow-hidden
           rounded-[2.5rem]
 
@@ -472,11 +474,11 @@ const Login = () => {
           />
 
           {/* Header */}
-          <div className="relative z-10 px-10 pt-10 pb-4 text-center">
+          <div className="relative z-10 px-6 pt-6 pb-2 text-center">
             <h1
               className="
               inline-block
-              text-4xl
+              text-3xl
               font-bold
               tracking-tight
               bg-gradient-to-r
@@ -496,7 +498,7 @@ const Login = () => {
           </div>
 
           {/* Form */}
-          <div className="relative z-10 px-10 pb-10">
+          <div className="relative z-10 px-6 pb-6">
             {error && (
               <div className="mb-4">
                 <ErrorDisplay ErrorMessage={error.message} />
@@ -522,7 +524,7 @@ const Login = () => {
 
                   rounded-2xl
                   px-4
-                  py-4
+                  py-3
 
                   backdrop-blur-2xl
 
@@ -579,7 +581,7 @@ const Login = () => {
 
                   rounded-2xl
                   px-4
-                  py-4
+                  py-3
 
                   backdrop-blur-2xl
 
@@ -663,8 +665,7 @@ const Login = () => {
                   relative
                   overflow-hidden
 
-                  w-80
-                  py-4
+                  w-full py-3
 
                   rounded-2xl
 
