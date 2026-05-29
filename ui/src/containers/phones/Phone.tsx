@@ -95,8 +95,8 @@ const SmartphoneProduct = () => {
         {/* Main Product Section */}
         <div className="grid grid-cols-1 mt-20 lg:grid-cols-2 gap-12 items-start">
           {/* Left Column: Image */}
-          <div className="relative group">
-            {isAdmin && <button onClick={handleUpdate}>Update Phone</button>}
+          <div className="relative group ">
+            {isAdmin && <button className="p-3 rounded-2xl glass hover:bg-white/20 transition-all duration-300 text-primary hover:scale-110" onClick={handleUpdate}>Update Phone</button>}
             <div className="aspect-square rounded-[2rem] overflow-hidden bg-white flex items-center justify-center p-8">
               <img
                 alt={phone?.name || "Phone Image"}
@@ -134,7 +134,7 @@ const SmartphoneProduct = () => {
                 New Arrival
               </span>
               <h1 className="text-4xl md:text-5xl font-display font-black text-on-surface mb-2">
-                {phone?.name || "Nexus X Pro"}
+                {phone?.name || "Loading..."}
               </h1>
 
               <div className="flex items-center gap-2 mb-4">
@@ -176,7 +176,7 @@ const SmartphoneProduct = () => {
               </div>
 
               <p className="text-3xl font-display font-bold text-primary">
-                ${phone?.basePrice?.toLocaleString() || "1,299"}
+                ₹{phone?.basePrice?.toLocaleString() || "1,299"}
               </p>
             </div>
 

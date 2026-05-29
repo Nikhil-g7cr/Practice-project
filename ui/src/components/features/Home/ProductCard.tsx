@@ -73,7 +73,7 @@ const ProductCard = ({
           <div className="flex flex-col">
             {originalPrice && (
               <span className="font-body text-[12px] text-on-surface-variant line-through">
-                ${originalPrice.toFixed(2)}
+                ₹{originalPrice.toFixed(2)}
               </span>
             )}
             <span
@@ -81,7 +81,7 @@ const ProductCard = ({
                 originalPrice ? "text-error" : "text-on-surface"
               }`}
             >
-              ${price.toFixed(2)}
+              ₹{price.toFixed(2)}
             </span>
           </div>
           <button
