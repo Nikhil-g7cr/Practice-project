@@ -7,6 +7,12 @@ export const fetchPhonesApi = async () => {
   return response.data;
 };
 
+export const getPhoneByIdApi = async(id:string)=>{
+  const response = await API.get<PhoneResponse>(`/phones/${id}`);
+
+  return response.data;
+}
+
 export const getPhonesApi = async (page: number = 1, limit: number = 8) => {
   const response = await API.get<PhonesResponse>("/phones", {
     params: { page, limit },

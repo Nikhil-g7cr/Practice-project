@@ -45,6 +45,7 @@ export interface PaginationMeta {
 
 export interface PhoneState {
   phones: Phone[];
+  currentPhone: Phone | null; // Add this to store the currently viewed phone
   meta: PaginationMeta | null;
   loading: boolean;
   error: string | null;

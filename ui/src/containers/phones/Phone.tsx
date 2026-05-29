@@ -31,13 +31,6 @@ const SmartphoneProduct = () => {
     const discountedPrice = 80;
     // 2. Pass the selected quantity along with the phone details
     dispatch(
-      // addToCart({
-      //   _id: phone._id,
-      //   name: phone.name,
-      //   price: phone.basePrice,
-      //   imageUrl: phone.thumbnail,
-      //   quantity: quantity, // <-- Add this!
-      // }),
       syncCartItem({
         productId: phone._id,
         productModel: "Phone",
