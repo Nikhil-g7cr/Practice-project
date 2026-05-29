@@ -1,82 +1,47 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import API from '../../../config/axios.config';
 
-// Defining the shape of a single cart item
-export interface CartItem {
-  _id: string; // Assuming MongoDB ObjectId format from your backend
-  name: string;
-  price: number;
-  imageUrl?: string;
-  quantity: number;
-}
+export const fetchCart = createAsyncThunk('cart/fetchCart', async () => {
+  const response = await API.get('/cart');
+  return response.data;
+});
 
-// Defining the shape of our entire Cart state
-export interface CartState {
-  cartItems: CartItem[];
-  totalQuantity: number;
-  totalPrice: number;
-}
-
-const initialState: CartState = {
-  cartItems: [],
-  totalQuantity: 0,
-  totalPrice: 0,
-};
+export const syncCartItem = createAsyncThunk(
+  'cart/syncCartItem',
+  async (itemData: any) => {
+    const response = await API.post('/cart/sync', itemData);
+    return response.data;
+  }
+);
 
 const cartSlice = createSlice({
   name: 'cart',
-  initialState,
-  reducers: {
-    // Add an item to the cart (if it exists, increment the quantity)
-    // Update the PayloadAction to accept the full CartItem (including quantity)
-    addToCart(state, action: PayloadAction<CartItem>) {
-      const newItem = action.payload;
-      const existingItem = state.cartItems.find(item => item._id === newItem._id);
-      
-      // Add the incoming quantity instead of just '1'
-      state.totalQuantity += newItem.quantity;
-      state.totalPrice += (newItem.price * newItem.quantity);
-
-      if (!existingItem) {
-        // Push the item exactly as it came in
-        state.cartItems.push(newItem);
-      } else {
-        // Add the new quantity to the existing quantity
-        existingItem.quantity += newItem.quantity;
-      }
+  initialState: {
+    items: [],
+    summary: {
+      subtotal: 0,
+      totalDiscount: 0,
+      gstAmount: 0,
+      deliveryCharge: 0,
+      platformFee: 0,
+      couponDiscount: 0,
+      finalAmount: 0,
     },
-    // Completely remove an item from the cart regardless of quantity
-    removeFromCart(state, action: PayloadAction<string>) {
-      const id = action.payload;
-      const existingItem = state.cartItems.find(item => item._id === id);
+    loading: false,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    const handleSuccess = (state:any, action:any) => {
+      state.items = action.payload.cart.items;
+      state.summary = action.payload.summary;
+      state.loading = false;
+    };
 
-      if (existingItem) {
-        state.totalQuantity -= existingItem.quantity;
-        state.totalPrice -= (existingItem.price * existingItem.quantity);
-        state.cartItems = state.cartItems.filter(item => item._id !== id);
-      }
-    },
-    
-    // Increase or decrease the exact quantity of an existing item
-    updateQuantity(state, action: PayloadAction<{ id: string; quantity: number }>) {
-      const { id, quantity } = action.payload;
-      const existingItem = state.cartItems.find(item => item._id === id);
-
-      if (existingItem && quantity > 0) {
-        const quantityDiff = quantity - existingItem.quantity;
-        state.totalQuantity += quantityDiff;
-        state.totalPrice += (existingItem.price * quantityDiff);
-        existingItem.quantity = quantity;
-      }
-    },
-    
-    // Empty out the cart entirely
-    clearCart(state) {
-      state.cartItems = [];
-      state.totalQuantity = 0;
-      state.totalPrice = 0;
-    }
-  }
+    builder
+      .addCase(fetchCart.pending, (state) => { state.loading = true; })
+      .addCase(fetchCart.fulfilled, handleSuccess)
+      .addCase(syncCartItem.fulfilled, handleSuccess);
+  },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, clearCart } = cartSlice.actions;
 export default cartSlice.reducer;

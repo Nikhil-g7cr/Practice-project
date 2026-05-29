@@ -3,7 +3,7 @@ import "./Phone.css";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
 import { Roles } from "../../routes/Roles";
-import { addToCart } from "../../redux/features/cart/CartSlice";
+import { syncCartItem } from "../../redux/features/cart/CartSlice";
 
 const SmartphoneProduct = () => {
   // get the phones from the reduc store
@@ -21,21 +21,31 @@ const SmartphoneProduct = () => {
   const [isAdded, setIsAdded] = useState(false);
   const sectionRefs = useRef<(HTMLElement | HTMLDivElement | null)[]>([]);
 
-  const dispatch  = useAppDispatch();
+  const dispatch = useAppDispatch();
 
   // Handle Add to Cart micro-interaction
   const handleAddToCart = () => {
     // 1. Safety check to ensure phone exists before dispatching
-    if (!phone) return; 
+    if (!phone) return;
 
+    const discountedPrice = 80;
     // 2. Pass the selected quantity along with the phone details
-    dispatch(addToCart({ 
-      _id: phone._id, 
-      name: phone.name, 
-      price: phone.basePrice, 
-      imageUrl: phone.thumbnail,
-      quantity: quantity // <-- Add this!
-    }));
+    dispatch(
+      // addToCart({
+      //   _id: phone._id,
+      //   name: phone.name,
+      //   price: phone.basePrice,
+      //   imageUrl: phone.thumbnail,
+      //   quantity: quantity, // <-- Add this!
+      // }),
+      syncCartItem({
+        productId: phone._id,
+        productModel: "Phone",
+        quantity: 1,
+        originalPrice: phone.basePrice,
+        discountPrice: discountedPrice, // Whatever your discounted field is named
+      }),
+    );
 
     setCartStatus("Added to Cart!");
     setIsAdded(true);
@@ -74,7 +84,6 @@ const SmartphoneProduct = () => {
     }
   };
 
-  
   const navigate = useNavigate();
   const handleUpdate = () => {
     navigate(`/phones/update/${phone?._id}`);
@@ -220,16 +229,14 @@ const SmartphoneProduct = () => {
                 </p>
                 {phone?.storageVariants && phone.storageVariants.length > 0 && (
                   <div className="flex flex-wrap gap-2 ml-auto mr-auto">
-                    {phone.storageVariants.map(
-                      (variant) => (
-                        <button
-                          key={variant.storage}
-                          className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all"
-                        >
-                          {variant.storage}
-                        </button>
-                      ),
-                    )}
+                    {phone.storageVariants.map((variant) => (
+                      <button
+                        key={variant.storage}
+                        className="px-6 py-2 rounded-lg border-2 border-primary bg-primary/5 text-primary font-bold transition-all"
+                      >
+                        {variant.storage}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
