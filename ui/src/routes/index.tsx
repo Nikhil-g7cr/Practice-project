@@ -5,8 +5,7 @@ import Login from "../components/features/Auth/Login";
 import Home from "../components/features/Home";
 import LaptopDisplayScreen from "../containers/laptops/index";
 import AboutPage from "../components/features/About";
-import PhonesPage from "../containers/phones/phonesPage";
-import PhoneDisplay from "../containers/phones/PhoneDisplay";
+
 import EditPhone from "../containers/phones/updatePhone";
 import PrivateRoute from "./PrivateRoutes";
 
@@ -20,8 +19,7 @@ import UserManagement from "../components/features/managment/User.managment";
 import ProductManagement from "../components/features/managment/product.managment";
 import OrderManagement from "../components/features/managment/order.managment";
 import NotFoundPage from "../components/errors/NotFound";
-import Navbar from "../components/layout/Navbar";
-import Cart from "../components/features/AddToCart/Cart";
+import CartSummary from "../components/features/AddToCart/CartSummary";
 
 const Approutes = () => {
   const location = useLocation();
@@ -117,7 +115,7 @@ const Approutes = () => {
 
         {/* Other Routes */}
         <Route path="/laptops" element={<LaptopDisplayScreen />} />
-        <Route path="/user/cart" element={<Cart/>}/>
+        <Route path="/user/cart" element={<CartSummary/>}/>
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/profile" element={<Profile />} />
