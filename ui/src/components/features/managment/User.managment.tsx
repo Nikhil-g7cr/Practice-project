@@ -90,8 +90,7 @@ const UserManagement = () => {
     initialCreateUserForm,
   );
 
-  const { popupState, showSuccess, showError, showWarning, closePopup } =
-    usePopup();
+  const { popupState, showSuccess, showError, showWarning, closePopup } = usePopup();
 
   const isOwnAccount = (user: AdminUser) =>
     user._id === currentUser?.id || user.email === currentUser?.email;

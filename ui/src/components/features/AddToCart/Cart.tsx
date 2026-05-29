@@ -10,6 +10,8 @@ import {
 } from "../../../redux/features/cart/CartSlice";
 import { useNavigate } from "react-router-dom";
 import CartSummary from "./CartSummary";
+import { usePopup } from "../../../hooks/usePopup";
+import Popup from "../../../common/Popup";
 
 const Cart: React.FC = () => {
   // 1. Read the correct state variables from CartSlice
@@ -34,6 +36,21 @@ const Cart: React.FC = () => {
       }),
     );
   };
+
+  const {popupState,showWarning, closePopup} = usePopup();
+  const confirmRemoveItem = (item: any) => {
+    showWarning(
+      "Remove Product",
+      `Are you sure you want to remove ${item.productId.name} from your cart?`,
+      () => {
+        // This runs ONLY if the user clicks "Confirm/Remove" in the popup
+        handleQuantityChange(item, 0);
+      },
+      "Remove" // Action button text
+    );
+  };
+
+
 
   if (loading) {
     return (
@@ -67,6 +84,7 @@ const Cart: React.FC = () => {
   // Populated Cart View
   return (
     <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
+            <Popup config={popupState} onClose={closePopup} />
       <div className="mt-10 flex flex-col gap-2">
         <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
           Shopping Cart
@@ -136,7 +154,7 @@ const Cart: React.FC = () => {
 
                     {/* Removing an item is just updating its quantity to 0 */}
                     <button
-                      onClick={() => handleQuantityChange(item, 0)}
+                      onClick={() => confirmRemoveItem(item)}
                       className="text-red-400 hover:text-red-600 text-sm font-medium flex items-center gap-1"
                     >
                       <span className="material-symbols-outlined text-[16px]">
