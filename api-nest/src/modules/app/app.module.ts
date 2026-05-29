@@ -11,12 +11,14 @@ import { AppController } from './app.controller';
 import { UploadModule } from '../files/upload.module';
 import { LaptopsModule } from '../laptops/laptops.module';
 import { CartModule } from '../cart/cart.module';
+import { AdsModule } from '../ads/ads.module';
 
 dotenv.config();
 const mongodb = process.env.MONGODB_URI;
 
 @Module({
   imports: [
+    AdsModule,
     CartModule,
     PhonesModule,
     ConfigModule.forRoot({
