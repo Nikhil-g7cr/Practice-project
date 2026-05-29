@@ -3,9 +3,12 @@ import { useAppSelector } from "../../redux/hooks/reduxHooks";
 import { useNavigate } from 'react-router-dom';
 
 const CartIcon: React.FC = () => {
-  // Subscribe specifically to the total quantity 
-  const totalQuantity = useAppSelector((state) => state.cart.totalQuantity);
+  // Read the items array from our updated CartSlice
+  const items = useAppSelector((state) => state.cart.items);
   const navigate = useNavigate();
+
+  // Calculate total quantity by adding up the quantity of each item
+  const totalQuantity = items?.reduce((total, item) => total + item.quantity, 0) || 0;
 
   return (
     <button 

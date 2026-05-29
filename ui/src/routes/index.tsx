@@ -19,7 +19,8 @@ import UserManagement from "../components/features/managment/User.managment";
 import ProductManagement from "../components/features/managment/product.managment";
 import OrderManagement from "../components/features/managment/order.managment";
 import NotFoundPage from "../components/errors/NotFound";
-import CartSummary from "../components/features/AddToCart/CartSummary";
+import Cart from "../components/features/AddToCart/Cart";
+// import CartSummary from "../components/features/AddToCart/CartSummary";
 
 const Approutes = () => {
   const location = useLocation();
@@ -115,7 +116,7 @@ const Approutes = () => {
 
         {/* Other Routes */}
         <Route path="/laptops" element={<LaptopDisplayScreen />} />
-        <Route path="/user/cart" element={<CartSummary/>}/>
+        <Route path="/user/cart" element={<Cart/>}/>
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/profile" element={<Profile />} />

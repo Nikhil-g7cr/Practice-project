@@ -10,12 +10,14 @@ import { PhonesModule } from '../phones/phones.module';
 import { AppController } from './app.controller';
 import { UploadModule } from '../files/upload.module';
 import { LaptopsModule } from '../laptops/laptops.module';
+import { CartModule } from '../cart/cart.module';
 
 dotenv.config();
 const mongodb = process.env.MONGODB_URI;
 
 @Module({
   imports: [
+    CartModule,
     PhonesModule,
     ConfigModule.forRoot({
       isGlobal: true,
