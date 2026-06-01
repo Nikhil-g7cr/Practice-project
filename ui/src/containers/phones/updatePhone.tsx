@@ -153,13 +153,13 @@ const EditPhone = () => {
                 <div className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 shadow-[0_8px_20px_rgba(255,255,255,0.05)]">
                   <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/5" />
                   {/* Shows current string or URL (useful if no new file is selected) */}
-                  {/* <input
+                  <input
                     type="text"
                     value={image}
                     onChange={(e) => setImage(e.target.value)}
                     className="relative z-10 w-full px-5 py-4 bg-transparent text-slate-800 placeholder:text-slate-400 focus:outline-none"
                     placeholder="Paste image URL or wait for upload"
-                  /> */}
+                  />
                   
                   {/* Triggers handleFileSelect on change */}
                   <input

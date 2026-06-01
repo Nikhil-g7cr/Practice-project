@@ -77,7 +77,15 @@ const Topbar = () => {
                 title={user.name}
               >
                 <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-950 via-white to-purple-200 flex items-center justify-center text-slate-800 font-bold text-sm shadow-inner border border-white/40">
-                  {user?.name?.charAt(0).toUpperCase()}
+                  {user.image_url ? (
+                    <img
+                      src={user.image_url}
+                      alt={user.name}
+                      className="h-full w-full rounded-2xl object-cover"
+                    />
+                  ) : (
+                    user?.name?.charAt(0).toUpperCase()
+                  )}
                 </div>
               </button>
 
@@ -112,9 +120,17 @@ const Topbar = () => {
                       {/* Inner Highlight */}
                       <div className="absolute top-1 left-1 w-5 h-5 rounded-full bg-white/40 blur-md" />
 
-                      <span className="relative z-10">
-                        {user?.name?.charAt(0).toUpperCase()}
-                      </span>
+                      {user.image_url ? (
+                        <img
+                          src={user.image_url}
+                          alt={user.name}
+                          className="relative z-10 h-full w-full rounded-2xl object-cover"
+                        />
+                      ) : (
+                        <span className="relative z-10">
+                          {user?.name?.charAt(0).toUpperCase()}
+                        </span>
+                      )}
                     </div>
 
                     {/* User Details */}

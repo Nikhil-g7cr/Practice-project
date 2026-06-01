@@ -23,6 +23,38 @@ export class UserService {
     return this.userDao.findByEmail(email);
   }
 
+  async createMicrosoftUser(data: {
+    name: string;
+    email: string;
+    microsoftOid: string;
+    microsoftTenantId: string;
+    imageUrl?: string;
+  }) {
+    return this.userDao.createMicrosoftUser(data);
+  }
+
+  async findByMicrosoftIdentity(
+    microsoftOid: string,
+    microsoftTenantId: string,
+  ) {
+    return this.userDao.findByMicrosoftIdentity(
+      microsoftOid,
+      microsoftTenantId,
+    );
+  }
+
+  async linkMicrosoftIdentity(
+    id: string,
+    data: {
+      name: string;
+      microsoftOid: string;
+      microsoftTenantId: string;
+      imageUrl?: string;
+    },
+  ) {
+    return this.userDao.linkMicrosoftIdentity(id, data);
+  }
+
   async findByRole(role: string) {
     return this.userDao.findByRole(role);
   }

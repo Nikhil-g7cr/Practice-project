@@ -8,9 +8,7 @@ import {
   type AuthenticationResult,
 } from "@azure/msal-browser";
 import { environment } from "../../../../environment/environment";
-import { BRAND_NAME } from "../../../../shared/shared-variables";
 import ErrorDisplay from "../../../errors/errorDisplay";
-import { GlassButton } from "../../../../styles/liquidUI";
 
 interface LoginFormData {
   email: string;
@@ -28,6 +26,7 @@ interface AuthUser {
   name: string;
   email: string;
   role?: string;
+  image_url?: string;
 }
 
 interface AuthPayload {
@@ -62,12 +61,28 @@ const Login = () => {
 
   const [error, setError] = useState<LoginError | null>(null);
 
-  const completeLogin = (user: AuthUser, token: string) => {
-    dispatch(login({ user, token }));
+  const fetchAuthenticatedUser = async (token: string, fallbackUser: AuthUser) => {
+    const response = await fetch(`${environment.APP_API_URL}/auth/profile`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return fallbackUser;
+    }
+
+    return response.json();
+  };
+
+  const completeLogin = async (user: AuthUser, token: string) => {
+    const authenticatedUser = await fetchAuthenticatedUser(token, user);
+
+    dispatch(login({ user: authenticatedUser, token }));
 
     sessionStorage.setItem("accessToken", token);
 
-    sessionStorage.setItem("user", JSON.stringify(user));
+    sessionStorage.setItem("user", JSON.stringify(authenticatedUser));
 
     navigate("/");
   };
@@ -135,7 +150,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3000/api/auth/login", {
+      const response = await fetch(`${environment.APP_API_URL}/auth/login`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -155,7 +170,7 @@ const Login = () => {
 
       const data = await response.json();
 
-      completeLogin(data.user, data.accessToken);
+      await completeLogin(data.user, data.accessToken);
     } catch (err) {
       setError({
         message:
@@ -169,61 +184,48 @@ const Login = () => {
   };
 
   const handleGoogleLogin = () => {
-    console.log("Google login clicked");
+    setError({ message: "Google sign-in is not configured yet." });
   };
 
   const handleAppleLogin = () => {
-    console.log("Apple login clicked");
+    setError({ message: "Apple sign-in is not configured yet." });
   };
 
   const getMicrosoftAuthPayload = async (
     authResult: AuthenticationResult,
   ): Promise<AuthPayload> => {
-    try {
-      const backendResponse = await fetch(
-        `${environment.APP_API_URL}/auth/microsoft`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            accessToken: authResult.accessToken,
-            idToken: authResult.idToken,
-          }),
-        },
-      );
-
-      if (backendResponse.ok) {
-        const data = await backendResponse.json();
-
-        if (data?.accessToken && data?.user) {
-          return {
-            user: data.user,
-            token: data.accessToken,
-          };
-        }
-      }
-    } catch (error) {
-      console.warn("Microsoft backend exchange failed", error);
+    if (!authResult.idToken) {
+      throw new Error("Microsoft did not return an ID token.");
     }
 
-    const account = authResult.account;
+    const backendResponse = await fetch(
+      `${environment.APP_API_URL}/auth/microsoft`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          idToken: authResult.idToken,
+          accessToken: authResult.accessToken,
+        }),
+      },
+    );
 
-    if (!account) {
-      throw new Error("Microsoft did not return an account profile.");
+    const data = await backendResponse.json();
+
+    if (!backendResponse.ok) {
+      throw new Error(data.message || "Microsoft login failed.");
+    }
+
+    if (!data?.accessToken || !data?.user) {
+      throw new Error("Microsoft login returned an invalid server response.");
     }
 
     return {
-      token: authResult.accessToken || authResult.idToken,
-
-      user: {
-        id: account.localAccountId,
-        name: account.name || account.username,
-        email: account.username,
-        role: "user",
-      },
+      user: data.user,
+      token: data.accessToken,
     };
   };
 
@@ -244,7 +246,7 @@ const Login = () => {
 
       const { user, token } = await getMicrosoftAuthPayload(response);
 
-      completeLogin(user, token);
+      await completeLogin(user, token);
     } catch (err) {
       console.error("Microsoft login failed", err);
 
@@ -747,10 +749,33 @@ const Login = () => {
 
             {/* Social Buttons */}
             <div className="grid grid-cols-3 gap-4">
-              {/* Social Button */}
-              {[1, 2, 3].map((_, i) => (
+              {[
+                {
+                  label: "Google",
+                  icon: "G",
+                  onClick: handleGoogleLogin,
+                  disabled: loading,
+                },
+                {
+                  label: "Microsoft",
+                  icon: "M",
+                  onClick: handleMicrosoftLogin,
+                  disabled: loading,
+                },
+                {
+                  label: "Apple",
+                  icon: "A",
+                  onClick: handleAppleLogin,
+                  disabled: loading,
+                },
+              ].map((provider) => (
                 <button
-                  key={i}
+                  key={provider.label}
+                  type="button"
+                  aria-label={`Continue with ${provider.label}`}
+                  title={`Continue with ${provider.label}`}
+                  onClick={provider.onClick}
+                  disabled={provider.disabled}
                   className="
                   relative
                   overflow-hidden
@@ -770,6 +795,8 @@ const Login = () => {
                   duration-300
 
                   hover:scale-105
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
                 "
                 >
                   <div
@@ -782,6 +809,9 @@ const Login = () => {
                     to-white/5
                   "
                   />
+                  <span className="relative z-10 text-sm font-bold text-slate-800">
+                    {provider.icon}
+                  </span>
                 </button>
               ))}
             </div>

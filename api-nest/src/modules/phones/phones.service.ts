@@ -123,8 +123,23 @@ export class PhonesService {
     };
   }
 
-  findOne(id: string) {
-    return this.phoneModel.findById(id);
+  async findOne(id: string) {
+    const phone = await this.phoneModel.findById(id).lean().exec();
+
+    if (!phone) {
+      throw new NotFoundException(`Unable to find the data with id:-${id}`);
+    }
+
+    let signedUrl = phone.thumbnail;
+
+    if (phone.thumbnail && !phone.thumbnail.startsWith('http')) {
+      signedUrl = await this.uploadService.getSasUrl(phone.thumbnail);
+    }
+
+    return {
+      ...phone,
+      thumbnail: signedUrl,
+    };
   }
 
   async update(id: string, updatePhoneDto: UpdatePhoneDto) {

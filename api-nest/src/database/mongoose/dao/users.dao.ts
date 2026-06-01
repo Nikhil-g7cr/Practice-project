@@ -5,14 +5,14 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from '../schemas/user.schema';
+import { User, UserDocument } from '../../../modules/user/schemas/user.schema';
 import { CreateUserDto } from '../../../modules/user/dto/create-user.dto';
 
 @Injectable()
 export class UserDao {
   constructor(
     @InjectModel(User.name)
-    private userModel: Model<User>,
+    private userModel: Model<UserDocument>,
   ) {}
 
   /**
@@ -88,8 +88,68 @@ export class UserDao {
    * Find user by email (includes password for auth)
    */
   async findByEmail(email: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ email });
+    const user = await this.userModel.findOne({ email: email.toLowerCase() });
     return user || null;
+  }
+
+  async createMicrosoftUser(data: {
+    name: string;
+    email: string;
+    microsoftOid: string;
+    microsoftTenantId: string;
+    imageUrl?: string;
+  }): Promise<UserDocument> {
+    const user = new this.userModel({
+      name: data.name,
+      email: data.email.toLowerCase(),
+      role: 'user',
+      authProvider: 'microsoft',
+      microsoftOid: data.microsoftOid,
+      microsoftTenantId: data.microsoftTenantId,
+      image_url: data.imageUrl,
+    });
+
+    return user.save();
+  }
+
+  async findByMicrosoftIdentity(
+    microsoftOid: string,
+    microsoftTenantId: string,
+  ): Promise<UserDocument | null> {
+    return this.userModel.findOne({
+      microsoftOid,
+      microsoftTenantId,
+    });
+  }
+
+  async linkMicrosoftIdentity(
+    id: string,
+    data: {
+      name: string;
+      microsoftOid: string;
+      microsoftTenantId: string;
+      imageUrl?: string;
+    },
+  ): Promise<UserDocument> {
+    const user = await this.userModel.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          name: data.name,
+          authProvider: 'microsoft',
+          microsoftOid: data.microsoftOid,
+          microsoftTenantId: data.microsoftTenantId,
+          ...(data.imageUrl ? { image_url: data.imageUrl } : {}),
+        },
+      },
+      { new: true, runValidators: true },
+    );
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
   }
 
   /**

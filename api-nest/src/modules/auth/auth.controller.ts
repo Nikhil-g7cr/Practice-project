@@ -13,6 +13,7 @@ import {
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { MicrosoftLoginDto } from './dto/microsoft-login.dto';
 
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -64,6 +65,37 @@ export class AuthController {
       maxAge: this.parseTimeToMs(result.refreshTokenExpiresIn),
 
       // Important
+      path: '/',
+    });
+
+    return {
+      accessToken: result.accessToken,
+      user: result.user,
+    };
+  }
+
+  @ApiOperation({ summary: 'Microsoft SSO login' })
+  @ApiResponse({ status: 200, description: 'Microsoft login successful' })
+  @Post('microsoft')
+  async microsoftLogin(
+    @Body() microsoftLoginDto: MicrosoftLoginDto,
+    @Headers('user-agent') userAgent: string,
+    @Request() req,
+    @Response({ passthrough: true }) res,
+  ) {
+    const ipAddress = req.ip || req.connection.remoteAddress;
+
+    const result = await this.authService.microsoftLogin(
+      microsoftLoginDto,
+      userAgent,
+      ipAddress,
+    );
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: this.parseTimeToMs(result.refreshTokenExpiresIn),
       path: '/',
     });
 
@@ -180,8 +212,8 @@ export class AuthController {
   })
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  profile(@Request() req) {
-    return req.user;
+  async profile(@Request() req) {
+    return this.authService.getProfile(req.user.id);
   }
 
   // ================= ADMIN =================

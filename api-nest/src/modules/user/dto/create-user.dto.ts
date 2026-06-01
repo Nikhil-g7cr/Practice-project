@@ -16,6 +16,7 @@ export class CreateUserDto {
   @IsNotEmpty()
   email: string;
 
+  @IsOptional()
   @IsStrongPassword({
     minLength: 8,
     minLowercase: 1,

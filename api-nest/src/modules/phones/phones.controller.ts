@@ -89,7 +89,12 @@ export class PhonesController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
-      return await this.phonesService.findOne(id);
+      const phone = await this.phonesService.findOne(id);
+      return {
+        status: 'Success',
+        code: HttpStatus.OK,
+        data: phone,
+      };
     } catch {
       throw new HttpException('Not Found', HttpStatus.NOT_FOUND);
     }
