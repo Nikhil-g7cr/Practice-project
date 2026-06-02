@@ -113,10 +113,17 @@ const Approutes = () => {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/user/cart"
+          element={
+            <PrivateRoute>
+              <Cart />
+            </PrivateRoute>
+          }
+        />
 
         {/* Other Routes */}
         <Route path="/laptops" element={<LaptopDisplayScreen />} />
-        <Route path="/user/cart" element={<Cart/>}/>
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/profile" element={<Profile />} />

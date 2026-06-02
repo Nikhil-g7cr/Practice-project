@@ -197,16 +197,20 @@ export class AuthController {
   }
 
   // ==================Clean the old cookies==================
-  // @Get('clear-old-cookie')
-  // clearOldCookie(@Response({ passthrough: true }) res) {
-  //   res.clearCookie('refreshToken', {
-  //     path: '/api/auth',
-  //   });
+  @Get('clear-old-cookie')
+  clearOldCookie(@Response({ passthrough: true }) res) {
+    res.clearCookie('refreshToken', {
+      path: '/api/auth',
+    });
 
-  //   return {
-  //     message: 'Old cookie cleared',
-  //   };
-  // }
+    res.clearCookie('refreshToken', {
+      path:'/api/auth/microsoft'
+    });
+
+    return {
+      message: 'Old cookie cleared',
+    };
+  }
   // ================= PROFILE =================
 
   @ApiOperation({ summary: 'Get user profile' })
