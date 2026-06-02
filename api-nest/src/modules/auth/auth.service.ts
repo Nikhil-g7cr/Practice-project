@@ -21,26 +21,39 @@ export class AuthService {
     private sessionService: SessionService,
   ) {}
 
-  async signup(signupDto: SignUpDto) {
-    try {
-      const existingUser = await this.userService.findbyEmail(signupDto.email);
+  // async signup(signupDto: SignUpDto) {
+  //   try {
+  //     const existingUser = await this.userService.findbyEmail(signupDto.email);
 
-      if (existingUser) {
-        throw new ConflictException('Email already exists');
-      }
+  //     if (existingUser) {
+  //       throw new ConflictException('Email already exists');
+  //     }
 
-      const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+  //     const hashedPassword = await bcrypt.hash(signupDto.password, 10);
 
-      const user = await this.userService.create({
-        ...signupDto,
-        password: hashedPassword,
-      });
+  //     const user = await this.userService.create({
+  //       ...signupDto,
+  //       password: hashedPassword,
+  //     });
 
-      return user;
-    } catch (error: any) {
-      throw new ConflictException(error.message);
-    }
-  }
+  //     return user;
+  //   } catch (error: any) {
+  //     throw new ConflictException(error.message);
+  //   }
+  // }
+
+  async signup(dto: SignUpDto) {
+  const user = await this.userService.create(dto);
+
+  const payload = {
+    email: user?.email,
+  };
+
+  return {
+    accessToken: this.jwtService.sign(payload),
+    user,
+  };
+}
 
   async login(loginDto: LoginDto, userAgent: string, ipAddress: string) {
     const { email, password } = loginDto;

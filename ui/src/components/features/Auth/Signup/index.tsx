@@ -1,13 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../../../redux/hooks/reduxHooks";
+import { login } from "../../../../redux/features/auth/AuthenticationSlice";
 
 const BRAND_NAME = "Stuff SYSTEM";
 
-const ErrorDisplay = ({ ErrorMessage }: { ErrorMessage: string }) => (
-  <div className="bg-red-500/10 border border-red-500/50 text-red-700 text-sm p-3 rounded-xl backdrop-blur-md">
-    {ErrorMessage}
-  </div>
-);
+// const ErrorDisplay = ({ ErrorMessage }: { ErrorMessage: string }) => (
+//   <div className="bg-red-500/10 border border-red-500/50 text-red-700 text-sm p-3 rounded-xl backdrop-blur-md">
+//     {ErrorMessage}
+//   </div>
+// );
 
 interface SignupFormData {
   name: string;
@@ -139,7 +141,9 @@ export default function Signup() {
     return true;
   };
 
-  // Handle form submission
+
+  const dispatch = useAppDispatch();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -151,7 +155,6 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      // Replace with your actual API endpoint
       const response = await fetch("http://localhost:3000/api/auth/signup", {
         method: "POST",
         headers: {
@@ -171,19 +174,22 @@ export default function Signup() {
 
       const data = await response.json();
 
-      // Store token if provided
-      if (data.accessToken) {
-        localStorage.setItem("accessToken", data.accessToken);
+      if (data.accessToken && data.user) {
+        // 1. Save to sessionStorage (matching your slice's logic)
+        sessionStorage.setItem("accessToken", data.accessToken);
+        sessionStorage.setItem("user", JSON.stringify(data.user));
+
+        // 2. Dispatch your Redux action to instantly log them in
+        dispatch(login({
+          user: data.user,
+          token: data.accessToken
+        }));
+
+        // 3. Clear errors and redirect
+        setFieldErrors({});
+        navigate("/"); // or "/" or wherever your logged-in users go
       }
 
-      // Store user data
-      if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
-      }
-
-      // Redirect to dashboard or login
-      setFieldErrors({});
-      navigate("/login");
     } catch (err) {
       setError({
         message:
