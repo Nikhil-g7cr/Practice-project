@@ -75,55 +75,39 @@ export class AuthService {
     userAgent: string,
     ipAddress: string,
   ) {
-    const microsoftTokenUser = await this.verifyMicrosoftIdToken(
+    console.log('[Microsoft SSO] Login exchange started', {
+      hasIdToken: !!microsoftLoginDto.idToken,
+      hasGraphAccessToken: !!microsoftLoginDto.accessToken,
+      ipAddress,
+    });
+
+    const microsoftProfile = await this.verifyMicrosoftIdToken(
       microsoftLoginDto.idToken,
     );
-    const microsoftGraphUser = await this.fetchMicrosoftGraphProfile(
-      microsoftLoginDto.accessToken,
-    );
 
-    const microsoftUser = {
-      ...microsoftTokenUser,
-      name: microsoftGraphUser?.name || microsoftTokenUser.name,
-      email: microsoftGraphUser?.email || microsoftTokenUser.email,
-      imageUrl: microsoftGraphUser?.imageUrl,
-    };
+    console.log('[Microsoft SSO] ID token verified', {
+      email: microsoftProfile.email,
+      microsoftOid: microsoftProfile.microsoftOid,
+      microsoftTenantId: microsoftProfile.microsoftTenantId,
+    });
 
-    let user = await this.userService.findByMicrosoftIdentity(
-      microsoftUser.oid,
-      microsoftUser.tid,
-    );
+    const imageUrl = microsoftLoginDto.accessToken
+      ? await this.fetchMicrosoftGraphProfilePhoto(
+          microsoftLoginDto.accessToken,
+        )
+      : undefined;
 
-    if (!user) {
-      const userWithSameEmail = await this.userService.findbyEmail(
-        microsoftUser.email,
-      );
+    const user = await this.findOrCreateMicrosoftUser({
+      ...microsoftProfile,
+      imageUrl,
+    });
 
-      user = userWithSameEmail
-        ? await this.userService.linkMicrosoftIdentity(
-            userWithSameEmail._id.toString(),
-            {
-              name: microsoftUser.name,
-              microsoftOid: microsoftUser.oid,
-              microsoftTenantId: microsoftUser.tid,
-              imageUrl: microsoftUser.imageUrl,
-            },
-          )
-        : await this.userService.createMicrosoftUser({
-            name: microsoftUser.name,
-            email: microsoftUser.email,
-            microsoftOid: microsoftUser.oid,
-            microsoftTenantId: microsoftUser.tid,
-            imageUrl: microsoftUser.imageUrl,
-          });
-    } else if (microsoftUser.imageUrl && user.image_url !== microsoftUser.imageUrl) {
-      user = await this.userService.linkMicrosoftIdentity(user._id.toString(), {
-        name: microsoftUser.name,
-        microsoftOid: microsoftUser.oid,
-        microsoftTenantId: microsoftUser.tid,
-        imageUrl: microsoftUser.imageUrl,
-      });
-    }
+    console.log('[Microsoft SSO] Local user resolved', {
+      userId: user._id,
+      email: user.email,
+      authProvider: user.authProvider,
+      hasProfileImage: !!user.image_url,
+    });
 
     return this.createAuthSession(user, userAgent, ipAddress);
   }
@@ -146,9 +130,8 @@ export class AuthService {
       });
 
       // Check if session exists and is active
-      const session = await this.sessionService.findActiveSessionByRefreshToken(
-        refreshToken,
-      );
+      const session =
+        await this.sessionService.findActiveSessionByRefreshToken(refreshToken);
       if (!session) {
         throw new UnauthorizedException('Session expired or revoked');
       }
@@ -209,7 +192,9 @@ export class AuthService {
       console.error('🔴 Refresh Token Error:', {
         error: error.message,
         hasToken: !!refreshToken,
-        tokenPreview: refreshToken ? refreshToken.substring(0, 20) + '...' : 'NONE',
+        tokenPreview: refreshToken
+          ? refreshToken.substring(0, 20) + '...'
+          : 'NONE',
       });
       throw new UnauthorizedException(error.message || 'Invalid refresh token');
     }
@@ -240,7 +225,17 @@ export class AuthService {
     };
   }
 
-  private async createAuthSession(user: any, userAgent: string, ipAddress: string) {
+  private async createAuthSession(
+    user: any,
+    userAgent: string,
+    ipAddress: string,
+  ) {
+    console.log('[Auth Session] Creating session', {
+      userId: user._id,
+      email: user.email,
+      ipAddress,
+    });
+
     const accessToken = this.jwtService.sign({
       id: user._id,
       name: user.name,
@@ -268,10 +263,17 @@ export class AuthService {
       user._id.toString(),
       accessToken,
       refreshToken,
-      userAgent,
-      ipAddress,
+      userAgent || 'unknown',
+      ipAddress || 'unknown',
       expiresAt,
     );
+
+    console.log('[Auth Session] Session created', {
+      userId: user._id,
+      accessTokenExpiresIn: this.configService.get('JWT_EXPIRES') || '3d',
+      refreshTokenExpiresIn:
+        this.configService.get('JWT_REFRESH_EXPIRES') || '7d',
+    });
 
     return {
       accessToken,
@@ -288,40 +290,96 @@ export class AuthService {
     };
   }
 
-  private async fetchMicrosoftGraphProfile(accessToken?: string) {
-    if (!accessToken) {
-      return null;
+  private async verifyMicrosoftIdToken(idToken: string) {
+    const clientId =
+      this.configService.get<string>('MICROSOFT_CLIENT_ID') ||
+      this.configService.get<string>('AZURE_AD_CLIENT_ID');
+    const configuredTenantId =
+      this.configService.get<string>('MICROSOFT_TENANT_ID') ||
+      this.configService.get<string>('AZURE_AD_TENANT_ID') ||
+      'common';
+
+    if (!clientId) {
+      throw new BadRequestException(
+        'Microsoft SSO is not configured. Missing MICROSOFT_CLIENT_ID.',
+      );
     }
 
     try {
-      const profileResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
+      const { payload } = await jwtVerify(idToken, this.getMicrosoftJwks(), {
+        audience: clientId,
       });
 
-      if (!profileResponse.ok) {
-        return null;
+      this.assertMicrosoftIssuer(payload, configuredTenantId);
+
+      const microsoftOid = this.getRequiredClaim(payload, 'oid');
+      const microsoftTenantId = this.getRequiredClaim(payload, 'tid');
+      const email =
+        this.getOptionalStringClaim(payload, 'email') ||
+        this.getOptionalStringClaim(payload, 'preferred_username') ||
+        this.getOptionalStringClaim(payload, 'upn');
+      const tokenName =
+        this.getOptionalStringClaim(payload, 'name') ||
+        this.getOptionalStringClaim(payload, 'given_name');
+
+      if (!email) {
+        throw new UnauthorizedException(
+          'Microsoft token did not include an email address.',
+        );
       }
 
-      const profile = await profileResponse.json();
-      const imageUrl = await this.fetchMicrosoftProfilePhoto(accessToken);
-
       return {
-        name: profile.displayName as string | undefined,
-        email: (profile.mail || profile.userPrincipalName) as
-          | string
-          | undefined,
-        imageUrl,
+        name: tokenName || email,
+        email: email.toLowerCase(),
+        microsoftOid,
+        microsoftTenantId,
       };
-    } catch {
-      return null;
+    } catch (error: any) {
+      console.error('[Microsoft SSO] ID token verification failed', {
+        error: error.message,
+      });
+      throw new UnauthorizedException('Invalid Microsoft sign-in token');
     }
   }
 
-  private async fetchMicrosoftProfilePhoto(accessToken: string) {
+  private async findOrCreateMicrosoftUser(data: {
+    name: string;
+    email: string;
+    microsoftOid: string;
+    microsoftTenantId: string;
+    imageUrl?: string;
+  }) {
+    const existingMicrosoftUser =
+      await this.userService.findByMicrosoftIdentity(
+        data.microsoftOid,
+        data.microsoftTenantId,
+      );
+
+    if (existingMicrosoftUser) {
+      console.log('[Microsoft SSO] Found user by Microsoft identity');
+      return this.userService.linkMicrosoftIdentity(
+        existingMicrosoftUser._id.toString(),
+        data,
+      );
+    }
+
+    const existingEmailUser = await this.userService.findbyEmail(data.email);
+
+    if (existingEmailUser) {
+      console.log('[Microsoft SSO] Linking Microsoft identity to email user');
+      return this.userService.linkMicrosoftIdentity(
+        existingEmailUser._id.toString(),
+        data,
+      );
+    }
+
+    console.log('[Microsoft SSO] Creating new Microsoft user');
+    return this.userService.createMicrosoftUser(data);
+  }
+
+  private async fetchMicrosoftGraphProfilePhoto(accessToken: string) {
     try {
-      const photoResponse = await fetch(
+      const response = await fetch(
         'https://graph.microsoft.com/v1.0/me/photo/$value',
         {
           headers: {
@@ -330,108 +388,83 @@ export class AuthService {
         },
       );
 
-      if (!photoResponse.ok) {
+      if (!response.ok) {
+        console.log('[Microsoft SSO] Graph profile photo unavailable', {
+          status: response.status,
+        });
         return undefined;
       }
 
-      const contentType =
-        photoResponse.headers.get('content-type') || 'image/jpeg';
-      const buffer = Buffer.from(await photoResponse.arrayBuffer());
+      const contentType = response.headers.get('content-type') || 'image/jpeg';
+      const photoBuffer = Buffer.from(await response.arrayBuffer());
 
-      return `data:${contentType};base64,${buffer.toString('base64')}`;
-    } catch {
+      console.log('[Microsoft SSO] Graph profile photo loaded', {
+        bytes: photoBuffer.length,
+        contentType,
+      });
+
+      return `data:${contentType};base64,${photoBuffer.toString('base64')}`;
+    } catch (error: any) {
+      console.error('[Microsoft SSO] Graph profile photo fetch failed', {
+        error: error.message,
+      });
       return undefined;
     }
   }
 
-  private async verifyMicrosoftIdToken(idToken: string) {
-    const clientId = this.getMicrosoftClientId();
-    const tenantId = this.getMicrosoftTenantId();
-    const issuer = `https://login.microsoftonline.com/${tenantId}/v2.0`;
-
+  private getMicrosoftJwks() {
     if (!this.microsoftJwks) {
       this.microsoftJwks = createRemoteJWKSet(
-        new URL(
-          `https://login.microsoftonline.com/${tenantId}/discovery/v2.0/keys`,
-        ),
+        new URL('https://login.microsoftonline.com/common/discovery/v2.0/keys'),
       );
     }
 
-    const { payload } = await jwtVerify(idToken, this.microsoftJwks, {
-      audience: clientId,
-      issuer,
-    });
-
-    const email = this.getMicrosoftEmail(payload);
-    const oid = this.requiredClaim(payload, 'oid');
-    const tid = this.requiredClaim(payload, 'tid');
-    const name = this.getMicrosoftName(payload, email);
-
-    return {
-      email,
-      oid,
-      tid,
-      name,
-    };
+    return this.microsoftJwks;
   }
 
-  private getMicrosoftClientId() {
-    const clientId =
-      this.configService.get<string>('MICROSOFT_CLIENT_ID') ||
-      process.env.MICROSOFT_CLIENT_ID;
+  private assertMicrosoftIssuer(
+    payload: JWTPayload,
+    configuredTenantId: string,
+  ) {
+    const tokenTenantId = this.getRequiredClaim(payload, 'tid');
 
-    if (!clientId) {
-      throw new BadRequestException('MICROSOFT_CLIENT_ID is not configured');
+    // Build expected issuer using token's tenant ID or configured tenant ID
+    const issuerTenantId =
+      configuredTenantId === 'common' ? tokenTenantId : configuredTenantId;
+    const expectedIssuer = `https://login.microsoftonline.com/${issuerTenantId}/v2.0`;
+
+    if (payload.iss !== expectedIssuer) {
+      console.warn('[Microsoft SSO] Token issuer mismatch', {
+        expected: expectedIssuer,
+        actual: payload.iss,
+      });
+      throw new UnauthorizedException('Invalid Microsoft token issuer');
     }
 
-    return clientId;
-  }
-
-  private getMicrosoftTenantId() {
-    const tenantId =
-      this.configService.get<string>('MICROSOFT_TENANT_ID') ||
-      process.env.MICROSOFT_TENANT_ID;
-
-    if (!tenantId) {
-      throw new BadRequestException('MICROSOFT_TENANT_ID is not configured');
+    if (
+      configuredTenantId !== 'common' &&
+      configuredTenantId !== 'organizations' &&
+      configuredTenantId !== tokenTenantId
+    ) {
+      throw new UnauthorizedException('Microsoft tenant is not allowed');
     }
-
-    return tenantId;
   }
 
-  private getMicrosoftEmail(payload: JWTPayload) {
-    const email =
-      this.stringClaim(payload, 'preferred_username') ||
-      this.stringClaim(payload, 'email') ||
-      this.stringClaim(payload, 'upn');
+  private getRequiredClaim(payload: JWTPayload, claim: string) {
+    const value = payload[claim];
 
-    if (!email) {
+    if (typeof value !== 'string' || !value.trim()) {
       throw new UnauthorizedException(
-        'Microsoft account did not provide an email address',
+        `Missing Microsoft token claim: ${claim}`,
       );
-    }
-
-    return email.toLowerCase();
-  }
-
-  private getMicrosoftName(payload: JWTPayload, email: string) {
-    return this.stringClaim(payload, 'name') || email.split('@')[0];
-  }
-
-  private requiredClaim(payload: JWTPayload, claim: string) {
-    const value = this.stringClaim(payload, claim);
-
-    if (!value) {
-      throw new UnauthorizedException(`Microsoft token is missing ${claim}`);
     }
 
     return value;
   }
 
-  private stringClaim(payload: JWTPayload, claim: string) {
+  private getOptionalStringClaim(payload: JWTPayload, claim: string) {
     const value = payload[claim];
-
-    return typeof value === 'string' ? value : undefined;
+    return typeof value === 'string' && value.trim() ? value : undefined;
   }
 
   private calculateExpirationDate(expiresIn: string): Date {

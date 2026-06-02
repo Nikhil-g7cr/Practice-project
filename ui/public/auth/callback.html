@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+  <head><title>Auth</title></head>
+  <body>
+    <script>
+      // This page exists only to let MSAL close the popup.
+      // It should never be seen by the user.
+      window.opener = window.opener || window;
+    </script>
+  </body>
+</html>

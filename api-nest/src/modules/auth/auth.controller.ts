@@ -74,6 +74,8 @@ export class AuthController {
     };
   }
 
+  // ================= MICROSOFT SSO =================
+
   @ApiOperation({ summary: 'Microsoft SSO login' })
   @ApiResponse({ status: 200, description: 'Microsoft login successful' })
   @Post('microsoft')
@@ -84,6 +86,11 @@ export class AuthController {
     @Response({ passthrough: true }) res,
   ) {
     const ipAddress = req.ip || req.connection.remoteAddress;
+
+    console.log('[Microsoft SSO] Controller received login request', {
+      userAgent,
+      ipAddress,
+    });
 
     const result = await this.authService.microsoftLogin(
       microsoftLoginDto,
@@ -104,6 +111,7 @@ export class AuthController {
       user: result.user,
     };
   }
+
 
   // ================= REFRESH TOKEN =================
 

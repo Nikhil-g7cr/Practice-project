@@ -18,6 +18,11 @@ export interface IAppConfig {
     secret: string;
     expiresIn: string;
   };
+  microsoft: {
+    clientId: string | undefined;
+    tenantId: string;
+    authority: string;
+  };
   blobStorage: {
     blobAccountConnectionString: string | undefined;
     blobUploadContainer: string | undefined;
@@ -49,6 +54,22 @@ export class AppConfigService {
       jwt: {
         secret: process.env.JWT_SECRET || 'secret-key',
         expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+      },
+      microsoft: {
+        clientId:
+          process.env.MICROSOFT_CLIENT_ID || process.env.AZURE_AD_CLIENT_ID,
+        tenantId:
+          process.env.MICROSOFT_TENANT_ID ||
+          process.env.AZURE_AD_TENANT_ID ||
+          'common',
+        authority:
+          process.env.MICROSOFT_AUTHORITY ||
+          process.env.AZURE_AD_AUTHORITY ||
+          `https://login.microsoftonline.com/${
+            process.env.MICROSOFT_TENANT_ID ||
+            process.env.AZURE_AD_TENANT_ID ||
+            'common'
+          }`,
       },
       blobStorage: {
         blobAccountConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING,
@@ -85,6 +106,10 @@ export class AppConfigService {
    */
   getJwtConfig() {
     return this.envConfig.jwt;
+  }
+
+  getMicrosoftConfig() {
+    return this.envConfig.microsoft;
   }
 
   /**

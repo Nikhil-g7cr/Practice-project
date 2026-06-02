@@ -5,7 +5,7 @@ export class MicrosoftLoginDto {
   @IsNotEmpty()
   idToken: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   accessToken?: string;
 }

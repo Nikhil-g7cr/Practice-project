@@ -16,6 +16,12 @@ interface SignupFormData {
   terms: boolean;
 }
 
+interface SignupErrors {
+  name?: string;
+  email?: string;
+  password?: string;
+}
+
 interface SignupError {
   field?: string;
   message: string;
@@ -33,45 +39,93 @@ export default function Signup() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<SignupErrors>({});
   const [error, setError] = useState<SignupError | null>(null);
 
   // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
+
+    const newValue = type === "checkbox" ? checked : value;
+
     setFormData((prevState) => ({
       ...prevState,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: newValue,
     }));
+
+    // Clear form submission error when user starts typing
+    setError(null);
+
+    // Real-time validation
+    const errors: SignupErrors = { ...fieldErrors };
+
+    if (name === "name") {
+      if (!value.trim()) {
+        errors.name = "Name is required";
+      } else if (!/^[a-zA-Z\s]*$/.test(value)) {
+        errors.name = "Name can only contain letters and spaces";
+      } else {
+        delete errors.name;
+      }
+    }
+
+    if (name === "email") {
+      if (!value.trim()) {
+        errors.email = "Email is required";
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+          errors.email = "Please enter a valid email address";
+        } else {
+          delete errors.email;
+        }
+      }
+    }
+
+    if (name === "password") {
+      if (!value.trim()) {
+        errors.password = "Password is required";
+      } else if (value.length < 8) {
+        errors.password = "Password must be at least 8 characters";
+      } else {
+        delete errors.password;
+      }
+    }
+
+    setFieldErrors(errors);
   };
 
   // Validate form
   const validateForm = (): boolean => {
+    const errors: SignupErrors = {};
+
+    // Validate name
     if (!formData.name.trim()) {
-      setError({ field: "name", message: "Full name is required" });
-      return false;
+      errors.name = "Name is required";
+    } else if (!/^[a-zA-Z\s]*$/.test(formData.name)) {
+      errors.name = "Name can only contain letters and spaces";
     }
 
+    // Validate email
     if (!formData.email.trim()) {
-      setError({ field: "email", message: "Email is required" });
-      return false;
+      errors.email = "Email is required";
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        errors.email = "Please enter a valid email address";
+      }
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setError({ field: "email", message: "Please enter a valid email" });
-      return false;
-    }
-
+    // Validate password
     if (!formData.password.trim()) {
-      setError({ field: "password", message: "Password is required" });
-      return false;
+      errors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
     }
 
-    if (formData.password.length < 8) {
-      setError({
-        field: "password",
-        message: "Password must be at least 8 characters",
-      });
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
       return false;
     }
 
@@ -128,6 +182,7 @@ export default function Signup() {
       }
 
       // Redirect to dashboard or login
+      setFieldErrors({});
       navigate("/login");
     } catch (err) {
       setError({
@@ -370,12 +425,13 @@ export default function Signup() {
                 text-slate-600
               "
               >
-                Join {BRAND_NAME} to access exclusive professional-grade electronics.
+                Join {BRAND_NAME} to access exclusive professional-grade
+                electronics.
               </p>
             </div>
 
             {/* Error */}
-            {error && <ErrorDisplay ErrorMessage={error.message} />}
+            {/* Errors are now displayed at the field level and below the submit button */}
 
             {/* FORM */}
             <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
@@ -397,19 +453,21 @@ export default function Signup() {
                 </label>
 
                 <div
-                  className="
+                  className={`
                   relative
                   overflow-hidden
                   rounded-xl
                   bg-white/15
                   backdrop-blur-2xl
                   border
-                  border-white/25
                   transition-all
                   duration-300
-                  focus-within:border-cyan-300/60
-                  focus-within:bg-white/20
-                "
+                  ${
+                    fieldErrors.name
+                      ? "border-red-400/60 bg-red-50/10"
+                      : "border-white/25 focus-within:border-cyan-300/60 focus-within:bg-white/20"
+                  }
+                `}
                 >
                   {/* Reflection */}
                   <div
@@ -460,6 +518,14 @@ export default function Signup() {
                     onChange={handleChange}
                   />
                 </div>
+                {fieldErrors.name && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs">
+                      error
+                    </span>
+                    {fieldErrors.name}
+                  </p>
+                )}
               </div>
 
               {/* Email */}
@@ -480,18 +546,21 @@ export default function Signup() {
                 </label>
 
                 <div
-                  className="
+                  className={`
                   relative
                   overflow-hidden
                   rounded-xl
                   bg-white/15
                   backdrop-blur-2xl
                   border
-                  border-white/25
                   transition-all
                   duration-300
-                  focus-within:border-cyan-300/60
-                "
+                  ${
+                    fieldErrors.email
+                      ? "border-red-400/60 bg-red-50/10"
+                      : "border-white/25 focus-within:border-cyan-300/60"
+                  }
+                `}
                 >
                   <div
                     className="
@@ -540,6 +609,14 @@ export default function Signup() {
                     onChange={handleChange}
                   />
                 </div>
+                {fieldErrors.email && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs">
+                      error
+                    </span>
+                    {fieldErrors.email}
+                  </p>
+                )}
               </div>
 
               {/* Password */}
@@ -560,18 +637,21 @@ export default function Signup() {
                 </label>
 
                 <div
-                  className="
+                  className={`
                   relative
                   overflow-hidden
                   rounded-xl
                   bg-white/15
                   backdrop-blur-2xl
                   border
-                  border-white/25
                   transition-all
                   duration-300
-                  focus-within:border-cyan-300/60
-                "
+                  ${
+                    fieldErrors.password
+                      ? "border-red-400/60 bg-red-50/10"
+                      : "border-white/25 focus-within:border-cyan-300/60"
+                  }
+                `}
                 >
                   <div
                     className="
@@ -621,16 +701,25 @@ export default function Signup() {
                     onChange={handleChange}
                   />
                 </div>
-
-                <p
-                  className="
-                  text-xs
-                  text-slate-500
-                  mt-1.5
-                "
-                >
-                  Must be at least 8 characters long.
-                </p>
+                {fieldErrors.password && (
+                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs">
+                      error
+                    </span>
+                    {fieldErrors.password}
+                  </p>
+                )}
+                {!fieldErrors.password && (
+                  <p
+                    className="
+                    text-xs
+                    text-slate-500
+                    mt-1.5
+                  "
+                  >
+                    Must be at least 8 characters long.
+                  </p>
+                )}
               </div>
 
               {/* Terms */}
@@ -750,6 +839,23 @@ export default function Signup() {
                   {loading ? "Creating Account..." : "Create Account"}
                 </span>
               </button>
+
+              {/* Signup Error Display */}
+              {error && error.message && (
+                <div className="mt-4 rounded-xl border border-red-400/50 bg-red-50/20 px-4 py-3 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-red-500 text-[20px] flex-shrink-0 mt-0.5">
+                    error
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm text-red-600 font-medium">
+                      {error.message}
+                    </p>
+                    <p className="text-xs text-red-500 mt-1">
+                      Please check your information and try again.
+                    </p>
+                  </div>
+                </div>
+              )}
             </form>
           </div>
 

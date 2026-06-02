@@ -1,0 +1,147 @@
+---
+references:
+  - "File: /api-nest/src/modules/auth/auth.service.ts"
+  - "File: /api-nest/src/modules/auth/auth.controller.ts"
+  - "File: /api-nest/src/modules/user/user.service.ts"
+  - "File: /ui/src/redux/features/auth/AuthenticationSlice.ts"
+  - "File: /ui/src/components/features/Auth/Login/index.tsx"
+generationTime: 2026-06-01T09:54:19.457Z
+---
+flowchart TD
+    Start(["User Interaction"]) --> Route{Route Type}
+    
+    %% SIGNUP FLOW
+    Route -->|signup| SignUp["POST /auth/signup"]
+    SignUp --> ValidateEmail{Email exists?}
+    ValidateEmail -->|Yes| ConflictErr["Throw ConflictException"]
+    ValidateEmail -->|No| HashPwd["Hash password with bcrypt"]
+    HashPwd --> CreateUser["userService.create()"]
+    CreateUser --> UserDB[(User DB)]
+    UserDB --> ReturnUser["Return user object"]
+    
+    %% LOGIN FLOW
+    Route -->|login| Login["POST /auth/login"]
+    Login --> FindUser{User found?}
+    FindUser -->|No| UnAuthErr1["Throw UnauthorizedException"]
+    FindUser -->|Yes| CheckPwd{Check if no password}
+    CheckPwd -->|Yes| MicrosoftErr["Throw UnauthorizedException<br/>Account uses Microsoft"]
+    CheckPwd -->|No| VerifyPwd{Password<br/>matches?}
+    VerifyPwd -->|No| UnAuthErr2["Throw UnauthorizedException"]
+    VerifyPwd -->|Yes| CreateSession1["createAuthSession()"]
+    
+    %% MICROSOFT LOGIN FLOW
+    Route -->|microsoft| MSLogin["POST /auth/microsoft"]
+    MSLogin --> GetIdToken["Extract idToken"]
+    GetIdToken --> VerifyMS["verifyMicrosoftIdToken()"]
+    VerifyMS --> FetchJWKS["Fetch Microsoft JWKS"]
+    FetchJWKS --> ValidateToken{Token<br/>valid?}
+    ValidateToken -->|No| MSTokenErr["Throw UnauthorizedException"]
+    ValidateToken -->|Yes| ExtractClaims["Extract: email, oid, tid, name"]
+    ExtractClaims --> FindMSUser{Microsoft user<br/>exists?}
+    FindMSUser -->|Yes| CheckNameMatch{Name<br/>changed?}
+    CheckNameMatch -->|Yes| UpdateMS["linkMicrosoftIdentity()"]
+    CheckNameMatch -->|No| CreateSession1
+    FindMSUser -->|No| CheckEmail{Email<br/>exists locally?}
+    CheckEmail -->|Yes| LinkMS["linkMicrosoftIdentity()"]
+    CheckEmail -->|No| CreateMS["createMicrosoftUser()"]
+    UpdateMS --> CreateSession1
+    LinkMS --> CreateSession1
+    CreateMS --> CreateSession1
+    
+    %% CREATE AUTH SESSION
+    CreateSession1 --> SignJWT1["Sign access token<br/>JWT.sign()"]
+    SignJWT1 --> SignJWT2["Sign refresh token<br/>JWT.sign()"]
+    SignJWT2 --> CalcExpiry["calculateExpirationDate()"]
+    CalcExpiry --> StoreSession["sessionService.createSession()"]
+    StoreSession --> SessionDB[(Session DB)]
+    SessionDB --> SetCookie["Set refreshToken<br/>httpOnly cookie"]
+    SetCookie --> ReturnAuth["Return accessToken<br/>+ user data"]
+    
+    %% REFRESH TOKEN FLOW
+    Route -->|refresh| RefreshRoute["POST /auth/refresh"]
+    RefreshRoute --> GetCookie["Extract refreshToken<br/>from cookie"]
+    GetCookie --> RefreshCheck{Token<br/>exists?}
+    RefreshCheck -->|No| RefreshErr["Throw UnauthorizedException"]
+    RefreshCheck -->|Yes| VerifyRefresh["JWT.verify()"]
+    VerifyRefresh --> CheckSession{Session<br/>active?}
+    CheckSession -->|No| SessionErr["Throw UnauthorizedException"]
+    CheckSession -->|Yes| GetUserData["userService.findOne()"]
+    GetUserData --> SignNewAccess["Generate new<br/>access token"]
+    SignNewAccess --> SignNewRefresh["Generate new<br/>refresh token"]
+    SignNewRefresh --> UpdateSession["sessionService<br/>.refreshSession()"]
+    UpdateSession --> ReturnAuth
+    
+    %% LOGOUT FLOW
+    Route -->|logout| LogoutRoute["POST /auth/logout"]
+    LogoutRoute --> ExtractToken["Extract token from<br/>Authorization header"]
+    ExtractToken --> RevokeSession["sessionService<br/>.revokeSession()"]
+    RevokeSession --> ClearCookie["Clear refreshToken<br/>cookie"]
+    ClearCookie --> LogoutSuccess["Return success message"]
+    
+    %% LOGOUT ALL FLOW
+    Route -->|logout-all| LogoutAllRoute["POST /auth/logout-all"]
+    LogoutAllRoute --> RevokeAllSessions["sessionService<br/>.revokeAllUserSessions()"]
+    RevokeAllSessions --> ClearAllCookies["Clear refreshToken<br/>cookie"]
+    ClearAllCookies --> LogoutAllSuccess["Return success message"]
+    
+    %% PROFILE FLOW
+    Route -->|profile| ProfileRoute["GET /auth/profile"]
+    ProfileRoute --> GuardCheck{JWT Guard<br/>passed?}
+    GuardCheck -->|No| GuardErr["Unauthorized"]
+    GuardCheck -->|Yes| GetProfile["userService.findOne()"]
+    GetProfile --> ReturnProfile["Return user profile"]
+    
+    %% FRONTEND LOGIN FLOW
+    Route -->|frontend-login| UILogin["Login Component"]
+    UILogin --> ValidateUI{Validate<br/>form}
+    ValidateUI -->|Invalid| ShowError["Show error message"]
+    ValidateUI -->|Valid| FetchLogin["fetch() POST /auth/login"]
+    FetchLogin --> UIResponse{Response<br/>ok?}
+    UIResponse -->|No| UIError["Display error"]
+    UIResponse -->|Yes| DispatchRedux["dispatch login()<br/>AuthenticationSlice"]
+    DispatchRedux --> StoreUserSS["sessionStorage.setItem<br/>user + accessToken"]
+    StoreUserSS --> NavigateDash["navigate to /"]
+    
+    %% FRONTEND MICROSOFT FLOW
+    Route -->|frontend-ms| UIMicrosoft["handleMicrosoftLogin()"]
+    UIMicrosoft --> InitMSAL["msalInstance.initialize()"]
+    InitMSAL --> MSPopup["msalInstance.loginPopup()"]
+    MSPopup --> GetIdTokenMS["Receive authResult<br/>with idToken"]
+    GetIdTokenMS --> FetchMSBackend["fetch() POST /auth/microsoft"]
+    FetchMSBackend --> BackendMSResponse{Response<br/>ok?}
+    BackendMSResponse -->|No| MSUIError["Display error"]
+    BackendMSResponse -->|Yes| DispatchMSRedux["dispatch login()<br/>AuthenticationSlice"]
+    DispatchMSRedux --> StoreUserSS
+    
+    %% STYLING
+    ConflictErr --> End(["Error Response"])
+    UnAuthErr1 --> End
+    UnAuthErr2 --> End
+    MicrosoftErr --> End
+    MSTokenErr --> End
+    RefreshErr --> End
+    SessionErr --> End
+    GuardErr --> End
+    UIError --> End
+    MSUIError --> End
+    ReturnUser --> End
+    ReturnAuth --> End
+    LogoutSuccess --> End
+    LogoutAllSuccess --> End
+    ReturnProfile --> End
+    ShowError --> End
+    NavigateDash --> End(["Login Complete"])
+    
+    classDef decision fill:#fff4e6,stroke:#ff9800,stroke-width:2px
+    classDef process fill:#e3f2fd,stroke:#2196f3,stroke-width:2px
+    classDef database fill:#f3e5f5,stroke:#9c27b0,stroke-width:2px
+    classDef error fill:#ffebee,stroke:#f44336,stroke-width:2px
+    classDef success fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    classDef endpoint fill:#fce4ec,stroke:#e91e63,stroke-width:2px
+    
+    class Route,ValidateEmail,FindUser,CheckPwd,VerifyPwd,ValidateToken,FindMSUser,CheckNameMatch,CheckEmail,RefreshCheck,CheckSession,GuardCheck,ValidateUI,UIResponse,BackendMSResponse decision
+    class SignUp,Login,MSLogin,VerifyMS,ExtractClaims,CreateSession1,RefreshRoute,LogoutRoute,LogoutAllRoute,ProfileRoute,UILogin,UIMicrosoft process
+    class UserDB,SessionDB database
+    class ConflictErr,UnAuthErr1,UnAuthErr2,MicrosoftErr,MSTokenErr,RefreshErr,SessionErr,GuardErr,UIError,MSUIError error
+    class ReturnUser,ReturnAuth,LogoutSuccess,LogoutAllSuccess,ReturnProfile,NavigateDash success
+    class SignUp,Login,MSLogin,RefreshRoute,LogoutRoute,LogoutAllRoute,ProfileRoute endpoint
