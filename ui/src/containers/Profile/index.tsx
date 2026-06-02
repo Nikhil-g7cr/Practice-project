@@ -3,17 +3,24 @@ import { useSelector, useDispatch } from "react-redux";
 import Bg from "../../../public/profileBg.png";
 import API from "../../config/axios.config";
 import { login } from "../../redux/features/auth/AuthenticationSlice";
-import Popup, {type PopupConfig} from "../../common/Popup";
-
+import Popup, { type PopupConfig } from "../../common/Popup";
 
 const Profile = () => {
   const dispatch = useDispatch();
-  
+
   // User Data from Redux
   const { user, token } = useSelector((state: any) => state.auth);
 
   // Profile Form State
   const [profileForm, setProfileForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+
+  // Error State for inline validation
+  const [formErrors, setFormErrors] = useState({
     name: "",
     email: "",
     phone: "",
@@ -30,66 +37,147 @@ const Profile = () => {
     message: "",
   });
 
-  const closePopup = () => setPopupState((prev) => ({ ...prev, isOpen: false }));
+  const closePopup = () =>
+    setPopupState((prev) => ({ ...prev, isOpen: false }));
   // ---------------------------------
-
-  const [cartItems] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
       setProfileForm({
         name: user.name || "",
         email: user.email || "",
-        phone: user.phone || "", 
-        password: "", 
+        phone: user.phone || "",
+        password: "",
       });
     }
   }, [user]);
 
+  // --- 1. SINGLE FIELD VALIDATOR ---
+  const validateField = (name: string, value: string): string => {
+    let error = "";
+    const trimmedValue = value.trim();
+
+    switch (name) {
+      case "name":
+        if (!trimmedValue) error = "Full name is required.";
+        else if (trimmedValue.length < 2) error = "Name must be at least 2 characters long.";
+        else if (trimmedValue.length > 50) error = "Name cannot exceed 50 characters.";
+        else if (!/^[a-zA-Z\s\.\-]+$/.test(trimmedValue)) error = "Name can only contain letters, spaces, hyphens, and periods.";
+        break;
+
+      case "email":
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!trimmedValue) error = "Email address is required.";
+        else if (!emailRegex.test(trimmedValue)) error = "Please enter a valid email address.";
+        break;
+
+      case "phone":
+        if (trimmedValue) {
+          const phoneRegex = /^\+?[1-9]\d{6,14}$/;
+          if (!phoneRegex.test(trimmedValue)) error = "Phone must be 7-15 digits, optionally starting with '+'.";
+        }
+        break;
+
+      case "password":
+        if (trimmedValue && trimmedValue.length < 8) {
+          error = "Password must be at least 8 characters long.";
+        }
+        break;
+      
+      default:
+        break;
+    }
+    return error;
+  };
+
+  // --- 2. REAL-TIME VALIDATION ON CHANGE ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    
+    // Update the input value
     setProfileForm((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // Immediately validate the current field and update its error state
+    const fieldError = validateField(name, value);
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: fieldError,
+    }));
+  };
+
+  // --- 3. FULL FORM VALIDATION ON SUBMIT ---
+  const validateForm = () => {
+    const errors = {
+      name: validateField("name", profileForm.name),
+      email: validateField("email", profileForm.email),
+      phone: validateField("phone", profileForm.phone),
+      password: validateField("password", profileForm.password),
+    };
+
+    setFormErrors(errors);
+
+    // Returns true if all error strings are completely empty
+    return !Object.values(errors).some(error => error !== "");
   };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Run full validation before proceeding
+    if (!validateForm()) {
+      return;
+    }
+
+    const updateData: any = {};
+
+    if (profileForm.name !== user.name) {
+      updateData.name = profileForm.name;
+    }
+    if (profileForm.email !== user.email) {
+      updateData.email = profileForm.email;
+    }
+    if (profileForm.phone !== (user.phone || "")) {
+      updateData.phone = profileForm.phone;
+    }
+    if (profileForm.password.trim() !== "") {
+      updateData.password = profileForm.password;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      setPopupState({
+        isOpen: true,
+        type: "info",
+        title: "No Changes",
+        message: "You haven't made any changes to your profile.",
+        autoClose: true,
+        autoCloseDelay: 3000,
+      });
+      return;
+    }
+
     setIsUpdating(true);
 
     try {
-      const updateData: any = {
-        name: profileForm.name,
-        email: profileForm.email,
-        phone: profileForm.phone,
-      };
-      if (profileForm.password.trim() !== "") {
-        updateData.password = profileForm.password;
-      }
-
-      // 1. Await the response and use the correct /api/user path
       const currentUserId = user.id || user._id;
-      const response = await API.patch(`/user/${currentUserId}`, updateData); 
+      const response = await API.patch(`/user/${currentUserId}`, updateData);
 
-      // 2. Extract the successfully updated user from your backend response
-      // (Your NestJS controller returns { status: 'Success', data: { updatedUser } })
       const updatedUserFromDB = response.data.data;
 
-      // 3. Dispatch the exact new data to Redux to instantly update the UI
       dispatch(
         login({
-          user: { 
-            ...user, 
+          user: {
+            ...user,
             name: updatedUserFromDB.name || updateData.name,
             email: updatedUserFromDB.email || updateData.email,
-            phone: updatedUserFromDB.phone || updateData.phone
-          }, 
+            phone: updatedUserFromDB.phone || updateData.phone,
+          },
           token: token,
         })
       );
 
-      // Trigger SUCCESS custom popup
       setPopupState({
         isOpen: true,
         type: "success",
@@ -98,20 +186,20 @@ const Profile = () => {
         autoClose: true,
         autoCloseDelay: 3000,
       });
-      
+
       setProfileForm((prev) => ({ ...prev, password: "" }));
-      
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to update profile:", error);
-      
-      // Trigger ERROR custom popup
+
+      const errorMessage = error.response?.data?.message || "We couldn't update your profile. Please try again.";
+
       setPopupState({
         isOpen: true,
         type: "error",
         title: "Update Failed",
-        message: "We couldn't update your profile. Please try again.",
+        message: errorMessage,
         autoClose: true,
-        autoCloseDelay: 3000,
+        autoCloseDelay: 4000,
       });
     } finally {
       setIsUpdating(false);
@@ -123,7 +211,6 @@ const Profile = () => {
       className="relative min-h-screen overflow-hidden px-4 py-32"
       style={{ backgroundImage: `url(${Bg})` }}
     >
-      {/* ADD POPUP COMPONENT HERE */}
       <Popup config={popupState} onClose={closePopup} />
 
       {/* PLAYFUL LIQUID BACKGROUND */}
@@ -148,13 +235,11 @@ const Profile = () => {
                 <span className="relative z-10">{user?.name?.charAt(0).toUpperCase()}</span>
               )}
             </div>
-
             <div className="relative z-10">
               <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-slate-700 to-slate-500 bg-clip-text text-transparent">
                 {user?.name || "Guest User"}
               </h1>
               <p className="text-slate-500 mt-2">{user?.email || "No Email"}</p>
-
               {user?.role !== "user" && (
                 <div className="mt-4 inline-flex px-4 py-2 rounded-full bg-white/30 border border-white/30 backdrop-blur-xl text-sm font-medium text-slate-700 capitalize">
                   {user?.role}
@@ -173,59 +258,108 @@ const Profile = () => {
               Update Profile Information
             </h2>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-5">
+            <form onSubmit={handleUpdateProfile} className="space-y-5" noValidate>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                
+                {/* Full Name */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">Full Name</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">
+                    Full Name
+                  </label>
                   <input
                     type="text"
                     name="name"
                     placeholder="Enter your full name"
                     value={profileForm.name}
                     onChange={handleInputChange}
-                    required
-                    className="w-full px-5 py-4 rounded-2xl bg-white/25 border border-white/30 backdrop-blur-xl focus:outline-none focus:border-indigo-400 text-slate-800 placeholder:text-slate-400 transition-all"
+                    maxLength={50}
+                    className={`w-full px-5 py-4 rounded-2xl bg-white/25 border backdrop-blur-xl focus:outline-none transition-all ${
+                      formErrors.name 
+                        ? "border-red-400 focus:border-red-500" 
+                        : "border-white/30 focus:border-indigo-400"
+                    } text-slate-800 placeholder:text-slate-400`}
                   />
+                  {formErrors.name && (
+                    <p className="text-red-500 text-xs mt-1.5 ml-2 font-medium">
+                      {formErrors.name}
+                    </p>
+                  )}
                 </div>
 
+                {/* Email Address */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">Email Address</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">
+                    Email Address
+                  </label>
                   <input
                     type="email"
                     name="email"
                     placeholder="name@example.com"
                     value={profileForm.email}
                     onChange={handleInputChange}
-                    required
-                    className="w-full px-5 py-4 rounded-2xl bg-white/25 border border-white/30 backdrop-blur-xl focus:outline-none focus:border-indigo-400 text-slate-800 placeholder:text-slate-400 transition-all"
+                    className={`w-full px-5 py-4 rounded-2xl bg-white/25 border backdrop-blur-xl focus:outline-none transition-all ${
+                      formErrors.email 
+                        ? "border-red-400 focus:border-red-500" 
+                        : "border-white/30 focus:border-indigo-400"
+                    } text-slate-800 placeholder:text-slate-400`}
                   />
+                  {formErrors.email && (
+                    <p className="text-red-500 text-xs mt-1.5 ml-2 font-medium">
+                      {formErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                
+                {/* Phone Number */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">Phone Number</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">
+                    Phone Number
+                  </label>
                   <input
                     type="tel"
                     name="phone"
-                    placeholder="Enter phone number"
+                    placeholder="e.g., +919876543210"
                     value={profileForm.phone}
                     onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-2xl bg-white/25 border border-white/30 backdrop-blur-xl focus:outline-none focus:border-indigo-400 text-slate-800 placeholder:text-slate-400 transition-all"
+                    className={`w-full px-5 py-4 rounded-2xl bg-white/25 border backdrop-blur-xl focus:outline-none transition-all ${
+                      formErrors.phone 
+                        ? "border-red-400 focus:border-red-500" 
+                        : "border-white/30 focus:border-indigo-400"
+                    } text-slate-800 placeholder:text-slate-400`}
                   />
+                  {formErrors.phone && (
+                    <p className="text-red-500 text-xs mt-1.5 ml-2 font-medium">
+                      {formErrors.phone}
+                    </p>
+                  )}
                 </div>
 
+                {/* New Password */}
                 <div className="flex flex-col">
-                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">New Password</label>
+                  <label className="text-sm font-semibold text-slate-700 mb-1 ml-1">
+                    New Password
+                  </label>
                   <input
                     type="password"
                     name="password"
                     placeholder="Leave blank to keep unchanged"
                     value={profileForm.password}
                     onChange={handleInputChange}
-                    minLength={8}
-                    className="w-full px-5 py-4 rounded-2xl bg-white/25 border border-white/30 backdrop-blur-xl focus:outline-none focus:border-indigo-400 text-slate-800 placeholder:text-slate-400 transition-all"
+                    maxLength={64}
+                    className={`w-full px-5 py-4 rounded-2xl bg-white/25 border backdrop-blur-xl focus:outline-none transition-all ${
+                      formErrors.password 
+                        ? "border-red-400 focus:border-red-500" 
+                        : "border-white/30 focus:border-indigo-400"
+                    } text-slate-800 placeholder:text-slate-400`}
                   />
+                  {formErrors.password && (
+                    <p className="text-red-500 text-xs mt-1.5 ml-2 font-medium">
+                      {formErrors.password}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -244,29 +378,6 @@ const Profile = () => {
             </form>
           </div>
         </div>
-
-        {/* CART SECTION */}
-        {/* <div className="relative overflow-hidden rounded-[2.5rem] bg-white/18 backdrop-blur-3xl border border-white/30 shadow-[0_10px_60px_rgba(255,255,255,0.1)] p-8">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-white/5 pointer-events-none" />
-          <div className="relative z-10">
-            <h2 className="text-2xl font-bold text-slate-800 mb-6">Current Cart Status</h2>
-            {cartItems.length === 0 ? (
-              <div className="text-center py-10 rounded-2xl bg-white/20 border border-white/20 backdrop-blur-xl">
-                <p className="text-lg text-slate-700 font-medium">Your cart is currently empty.</p>
-                <p className="text-slate-500 mt-2">Browse products and add something amazing.</p>
-              </div>
-            ) : (
-              <ul className="space-y-4">
-                {cartItems.map((item, index) => (
-                  <li key={index} className="p-5 rounded-2xl bg-white/20 border border-white/20 backdrop-blur-xl">
-                    {item.name} - ${item.price}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div> */}
-
       </div>
     </div>
   );

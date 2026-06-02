@@ -3,7 +3,7 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
-@Schema({ timestamps: true,versionKey: false })
+@Schema({ timestamps: true, versionKey: false })
 export class User {
   _id: Types.ObjectId;
 
@@ -38,8 +38,8 @@ export class User {
   })
   role: string;
 
-  @Prop({maxlength: 10})
-  phone?:number;
+  @Prop({ maxlength: 15, trim: true })
+  phone?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

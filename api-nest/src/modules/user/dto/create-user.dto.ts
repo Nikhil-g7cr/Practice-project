@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsString,
   IsStrongPassword,
+  Matches,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -29,8 +30,10 @@ export class CreateUserDto {
   @IsString()
   role?: string;
 
-  // Added phone field so it can be accepted by the controller
   @IsOptional()
   @IsString()
+  @Matches(/^\+?[1-9]\d{6,14}$/, {
+    message: 'Phone number must be a valid format (e.g., +1234567890) and between 7 to 15 digits',
+  })
   phone?: string; 
 }
