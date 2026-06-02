@@ -1,4 +1,5 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import API from "../../../config/axios.config";
 
 interface User{
     id?:string;
@@ -32,6 +33,20 @@ const initialState: AuthState = {
     isAuthenticated: !!sessionStorage.getItem('accessToken'),
 }
 
+export const performLogout = createAsyncThunk(
+    'auth/performLogout',
+    async (_, { dispatch }) => {
+        try {
+            // Call the backend endpoint to clear the HttpOnly cookie and revoke the session
+            await API.post('/api/auth/logout');
+        } catch (error) {
+            console.error("Backend logout failed, but clearing local state anyway.", error);
+        } finally {
+            // Always clear the local Redux/SessionStorage state
+            dispatch(logout());
+        }
+    }
+);
 
 const authSlice = createSlice({
     name:'auth',

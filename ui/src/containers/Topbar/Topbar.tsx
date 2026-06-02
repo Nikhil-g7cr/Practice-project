@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
-import { logout } from "../../redux/features/auth/AuthenticationSlice";
+import { logout, performLogout } from "../../redux/features/auth/AuthenticationSlice";
 import { Roles } from "../../routes/Roles";
 import SearchBar from "../../components/layout/SearchBar";
 import { BRAND_NAME } from "../../shared/shared-variables";
@@ -37,6 +37,7 @@ const Topbar = () => {
 
   const handleLogout = () => {
     dispatch(logout());
+    dispatch(performLogout());
     setShowProfileMenu(false);
     navigate("/");
   };
