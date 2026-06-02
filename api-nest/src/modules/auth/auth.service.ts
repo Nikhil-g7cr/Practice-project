@@ -255,6 +255,7 @@ export class AuthService {
           email: user.email,
           role: user.role,
           image_url: user.image_url,
+          phone: user.phone,
         },
       };
     } catch (error: any) {
@@ -291,6 +292,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       image_url: user.image_url,
+      phone: user.phone,
     };
   }
 
@@ -310,6 +312,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      phone: user.phone,
     });
 
     const refreshToken = this.jwtService.sign(
@@ -355,6 +358,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         image_url: user.image_url,
+        phone: user.phone,
       },
     };
   }

@@ -8,6 +8,8 @@ import {
   Delete,
   HttpStatus,
   UseGuards,
+  Request,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -54,19 +56,19 @@ export class UserController {
     return { status: 'Success', code: HttpStatus.OK, data: user };
   }
 
-  @ApiOperation({ summary: 'Update user' })
-  @ApiResponse({ status: 200, description: 'User updated successfully' })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    const updatedUser = await this.userService.update(
-      id,
-      await this.hashPasswordIfPresent(updateUserDto),
-    );
+  // @ApiOperation({ summary: 'Update user' })
+  // @ApiResponse({ status: 200, description: 'User updated successfully' })
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles('admin')
+  // @Patch(':id')
+  // async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  //   const updatedUser = await this.userService.update(
+  //     id,
+  //     await this.hashPasswordIfPresent(updateUserDto),
+  //   );
 
-    return { status: 'Success', code: HttpStatus.OK, data: updatedUser };
-  }
+  //   return { status: 'Success', code: HttpStatus.OK, data: updatedUser };
+  // }
 
   @ApiOperation({ summary: 'Delete user' })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
@@ -90,5 +92,27 @@ export class UserController {
       ...userDto,
       password: await bcrypt.hash(userDto.password, 10),
     };
+  }
+
+  @ApiOperation({ summary: 'Update user' })
+  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  @UseGuards(JwtAuthGuard) // Removed RolesGuard here so anyone logged in can access it
+  @Patch(':id')
+  async update(
+    @Param('id') id: string, 
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req: any // Inject the request to check who is asking
+  ) {
+    // SECURITY CHECK: You can only update the profile if it belongs to you, OR if you are an Admin
+    if (req.user.id !== id && req.user.role !== 'admin') {
+      throw new UnauthorizedException('You do not have permission to update this profile');
+    }
+
+    const updatedUser = await this.userService.update(
+      id,
+      await this.hashPasswordIfPresent(updateUserDto),
+    );
+
+    return { status: 'Success', code: HttpStatus.OK, data: updatedUser };
   }
 }

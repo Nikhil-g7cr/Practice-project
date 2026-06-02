@@ -7,7 +7,6 @@ import {
 } from 'class-validator';
 
 export class CreateUserDto {
-
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -29,4 +28,9 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   role?: string;
+
+  // Added phone field so it can be accepted by the controller
+  @IsOptional()
+  @IsString()
+  phone?: string; 
 }

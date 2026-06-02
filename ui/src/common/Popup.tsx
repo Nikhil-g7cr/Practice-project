@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 export type PopupType = "success" | "error" | "info" | "warning";
 
-interface PopupConfig {
+export interface PopupConfig {
   isOpen: boolean;
   type: PopupType;
   title: string;
