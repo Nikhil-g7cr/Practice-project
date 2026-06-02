@@ -3,12 +3,10 @@ import { useNavigate } from "react-router-dom";
 import "../Auth.css";
 import { useAppDispatch } from "../../../../redux/hooks/reduxHooks";
 import { login } from "../../../../redux/features/auth/AuthenticationSlice";
-import {
-  PublicClientApplication,
-  type AuthenticationResult,
-} from "@azure/msal-browser";
 import { environment } from "../../../../environment/environment";
 import ErrorDisplay from "../../../errors/errorDisplay";
+import { loginRequest } from "../../../../config/ms.config";
+import { useMsal } from "@azure/msal-react";
 // import MicrosoftLoginButton from "./msLoginButton";
 
 interface LoginFormData {
@@ -42,7 +40,6 @@ interface AuthPayload {
   accessToken?: string;
 }
 
-
 const Login = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -58,6 +55,8 @@ const Login = () => {
   const [fieldErrors, setFieldErrors] = useState<LoginErrors>({});
   const [error, setError] = useState<LoginError | null>(null);
 
+  const { instance } = useMsal();
+
   useEffect(() => {
     console.info("[Login] Login component rendered");
   }, []);
@@ -66,7 +65,7 @@ const Login = () => {
     token: string,
     fallbackUser: AuthUser,
   ) => {
-    const response = await fetch(`${environment.APP_API_URL}/api/auth/profile`, {
+    const response = await fetch(`${environment.APP_API_URL}/auth/profile`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -214,10 +213,16 @@ const Login = () => {
         throw new Error(data.message || "Login failed");
       }
 
-      const data = await response.json();
+      const data: AuthPayload = await response.json();
 
       setFieldErrors({});
-      await completeLogin(data.user, data.accessToken);
+      const apiAccessToken = data.accessToken || data.token;
+
+      if (!apiAccessToken) {
+        throw new Error("Login response did not include an access token");
+      }
+
+      await completeLogin(data.user, apiAccessToken);
     } catch (err) {
       setError({
         message:
@@ -234,14 +239,80 @@ const Login = () => {
     setError({ message: "Google sign-in is not configured yet." });
   };
 
+  // ================= MICROSOFT SSO =================
+
   const handleMicrosoftLogin = async () => {
     console.info("[Microsoft SSO] Microsoft button clicked");
     setDebugStatus("Microsoft sign-in started. Check the popup window.");
     setError(null);
     setLoading(true);
 
-    console.log("[Microsoft SSO] Initializing MSAL client");
+    try {
+      console.log("[Microsoft SSO] Opening Microsoft popup");
+      
+      // 1. Trigger the Microsoft login popup using your ms.config.ts settings
+      const result = await instance.loginPopup(loginRequest);
+
+      console.log("ACCESS TOKEN:", result.accessToken);
+
+      if (!result.accessToken) {
+        throw new Error("No access token received from Microsoft");
+      }
+
+      setDebugStatus("Authenticating with server...");
+
+      // 2. Send the token to your NestJS backend
+      const response = await fetch(`${environment.APP_API_URL}/auth/microsoft`, {
+        method: "POST",
+        credentials: "include", // CRITICAL: This allows your backend to set the HttpOnly refresh cookie!
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accessToken: result.accessToken,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Microsoft login failed on server");
+      }
+
+      const data: AuthPayload = await response.json();
+      const apiAccessToken = data.accessToken || data.token;
+
+      if (!apiAccessToken) {
+        throw new Error(
+          "Microsoft login response did not include an access token",
+        );
+      }
+
+      // 3. Complete the login process using your existing helper
+      setFieldErrors({});
+      setDebugStatus("Login successful! Redirecting...");
+
+      // We pass data.user and data.accessToken to the completeLogin function you already wrote
+      await completeLogin(data.user, apiAccessToken);
+    } catch (err: any) {
+      console.error("[Microsoft SSO] Error:", err);
+
+      // If the user manually closes the popup window, MSAL throws a "user_cancelled" error.
+      // We catch it so it displays a nice message instead of a scary red error.
+      const errorMessage =
+        err instanceof Error && err.message.includes("user_cancelled")
+          ? "Microsoft sign-in was cancelled."
+          : err instanceof Error
+            ? err.message
+            : "Microsoft authentication failed.";
+
+      setError({ message: errorMessage });
+      setDebugStatus("");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // =================================================
 
   const handleAppleLogin = () => {
     setError({ message: "Apple sign-in is not configured yet." });

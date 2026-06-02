@@ -14,7 +14,6 @@ import { SessionService } from '../../database/mongoose/dao/session.dao';
 
 @Injectable()
 export class AuthService {
-
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
@@ -67,7 +66,107 @@ export class AuthService {
     return this.createAuthSession(user, userAgent, ipAddress);
   }
 
- 
+  // ================= MICROSOFT LOGIN =================
+  async microsoftLogin(
+    accessToken: string,
+    userAgent: string,
+    ipAddress: string,
+  ) {
+    try {
+      if (!accessToken) {
+        throw new UnauthorizedException('Microsoft access token is required');
+      }
+
+      // 1. Get detailed profile information using $select to grab exactly what we need
+      const graphResponse = await fetch(
+        'https://graph.microsoft.com/v1.0/me?$select=id,displayName,givenName,surname,mail,userPrincipalName,jobTitle,mobilePhone',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (!graphResponse.ok) {
+        throw new UnauthorizedException('Invalid Microsoft token');
+      }
+
+      const msUser = await graphResponse.json();
+
+      // Microsoft safely maps email to either 'mail' or 'userPrincipalName'
+      const email = msUser.mail || msUser.userPrincipalName;
+      const name = msUser.displayName;
+      const tokenClaims = this.decodeJwtPayload(accessToken);
+      const microsoftOid = msUser.id || tokenClaims?.oid || tokenClaims?.sub;
+      const microsoftTenantId = tokenClaims?.tid || 'common';
+
+      if (!email) {
+        throw new BadRequestException('Email not provided by Microsoft');
+      }
+
+      if (!microsoftOid) {
+        throw new UnauthorizedException('Microsoft user id not provided');
+      }
+
+      // 2. Make a SECOND request to grab the user's Microsoft Profile Picture
+      let imageUrl = '';
+      try {
+        const photoResponse = await fetch(
+          'https://graph.microsoft.com/v1.0/me/photo/$value',
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          },
+        );
+
+        // If they have a picture, convert it to a base64 string so you can save/display it
+        if (photoResponse.ok) {
+          const buffer = await photoResponse.arrayBuffer();
+          const base64 = Buffer.from(buffer).toString('base64');
+          imageUrl = `data:image/jpeg;base64,${base64}`;
+        }
+      } catch (e) {
+        console.log('[Microsoft SSO] User has no profile picture configured');
+      }
+
+      // 3. Find, link, or create the user in your database
+      let user = await this.userService.findByMicrosoftIdentity(
+        microsoftOid,
+        microsoftTenantId,
+      );
+
+      if (!user) {
+        const existingUser = await this.userService.findbyEmail(email);
+
+        if (existingUser) {
+          user = await this.userService.linkMicrosoftIdentity(
+            existingUser._id.toString(),
+            {
+              name,
+              microsoftOid,
+              microsoftTenantId,
+              imageUrl,
+            },
+          );
+        } else {
+          user = await this.userService.createMicrosoftUser({
+            email,
+            name,
+            microsoftOid,
+            microsoftTenantId,
+            imageUrl,
+          });
+        }
+      }
+
+      // 4. Create standard app session
+      return this.createAuthSession(user, userAgent, ipAddress);
+    } catch (error: any) {
+      console.error('[Microsoft SSO Error]:', error);
+      throw new UnauthorizedException(error.message || 'Microsoft login failed');
+    }
+  }
+
+  // ================= TOKEN REFRESH =================
 
   async refreshAccessToken(
     refreshToken: string,
@@ -269,6 +368,19 @@ export class AuthService {
         return new Date(now.getTime() + num * 1000);
       default:
         return new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+    }
+  }
+
+  private decodeJwtPayload(token: string): any | null {
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) {
+        return null;
+      }
+
+      return JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    } catch {
+      return null;
     }
   }
 }
