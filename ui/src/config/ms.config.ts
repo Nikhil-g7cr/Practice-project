@@ -3,10 +3,14 @@ import { environment } from "../environment/environment";
 export const msalConfig = {
   auth: {
     clientId: environment.CLIENT_ID,
-
     authority: environment.AUTHORITY,
+    redirectUri: "http://localhost:5000",
+    navigateToLoginRequestUrl: false,
+  },
 
-    redirectUri: environment.REDIRECT_URL
+  cache: {
+    cacheLocation: "sessionStorage",
+    storeAuthStateInCookie: false,
   },
 };
 

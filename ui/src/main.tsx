@@ -10,6 +10,8 @@ import { PublicClientApplication } from "@azure/msal-browser";
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
+await msalInstance.initialize();
+
 createRoot(document.getElementById("root")!).render(
   <Provider store={store}>
     <BrowserRouter>

@@ -56,6 +56,48 @@ const Login = () => {
   const [error, setError] = useState<LoginError | null>(null);
 
   const { instance } = useMsal();
+  useEffect(() => {
+    const processMicrosoftLogin = async () => {
+      try {
+        const response = await instance.handleRedirectPromise();
+
+        if (!response) return;
+
+        const tokenResponse = await instance.acquireTokenSilent({
+          ...loginRequest,
+          account: response.account,
+        });
+
+        const backendResponse = await fetch(
+          `${environment.APP_API_URL}/auth/microsoft`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              accessToken: tokenResponse.accessToken,
+            }),
+          },
+        );
+
+        if (!backendResponse.ok) {
+          throw new Error("Backend Microsoft login failed");
+        }
+
+        const data = await backendResponse.json();
+
+        const apiAccessToken = data.accessToken || data.token;
+
+        await completeLogin(data.user, apiAccessToken);
+      } catch (error) {
+        console.error("Microsoft redirect login error", error);
+      }
+    };
+
+    processMicrosoftLogin();
+  }, [instance]);
 
   useEffect(() => {
     console.info("[Login] Login component rendered");
@@ -242,71 +284,20 @@ const Login = () => {
   // ================= MICROSOFT SSO =================
 
   const handleMicrosoftLogin = async () => {
-    console.info("[Microsoft SSO] Microsoft button clicked");
-    setDebugStatus("Microsoft sign-in started. Check the popup window.");
-    setError(null);
-    setLoading(true);
-
     try {
-      console.log("[Microsoft SSO] Opening Microsoft popup");
-      
-      // 1. Trigger the Microsoft login popup using your ms.config.ts settings
-      const result = await instance.loginPopup(loginRequest);
+      setLoading(true);
+      setError(null);
 
-      console.log("ACCESS TOKEN:", result.accessToken);
+      await instance.loginRedirect(loginRequest);
+    } catch (err) {
+      console.error(err);
 
-      if (!result.accessToken) {
-        throw new Error("No access token received from Microsoft");
-      }
-
-      setDebugStatus("Authenticating with server...");
-
-      // 2. Send the token to your NestJS backend
-      const response = await fetch(`${environment.APP_API_URL}/auth/microsoft`, {
-        method: "POST",
-        credentials: "include", // CRITICAL: This allows your backend to set the HttpOnly refresh cookie!
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          accessToken: result.accessToken,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Microsoft login failed on server");
-      }
-
-      const data: AuthPayload = await response.json();
-      const apiAccessToken = data.accessToken || data.token;
-
-      if (!apiAccessToken) {
-        throw new Error(
-          "Microsoft login response did not include an access token",
-        );
-      }
-
-      // 3. Complete the login process using your existing helper
-      setFieldErrors({});
-      setDebugStatus("Login successful! Redirecting...");
-
-      // We pass data.user and data.accessToken to the completeLogin function you already wrote
-      await completeLogin(data.user, apiAccessToken);
-    } catch (err: any) {
-      console.error("[Microsoft SSO] Error:", err);
-
-      // If the user manually closes the popup window, MSAL throws a "user_cancelled" error.
-      // We catch it so it displays a nice message instead of a scary red error.
-      const errorMessage =
-        err instanceof Error && err.message.includes("user_cancelled")
-          ? "Microsoft sign-in was cancelled."
-          : err instanceof Error
+      setError({
+        message:
+          err instanceof Error
             ? err.message
-            : "Microsoft authentication failed.";
-
-      setError({ message: errorMessage });
-      setDebugStatus("");
+            : "Microsoft authentication failed",
+      });
     } finally {
       setLoading(false);
     }
@@ -392,7 +383,6 @@ const Login = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-
               {/* Email */}
               <div>
                 <label className="block text-sm text-slate-700 mb-2">
