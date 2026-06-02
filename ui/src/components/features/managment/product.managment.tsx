@@ -5,6 +5,7 @@ import API from "../../../config/axios.config";
 import { usePopup } from "../../../hooks/usePopup";
 import type { Laptop } from "../../../redux/features/laptops/LaptopTypes";
 import type { Phone } from "../../../redux/features/phones/PhoneTypes";
+import { Roles } from "../../../routes/Roles";
 
 type ProductType = "phone" | "laptop";
 
@@ -81,6 +82,8 @@ const ProductManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | ProductType>("all");
   const [savingId, setSavingId] = useState<string | null>(null);
+
+  const user = JSON.parse(sessionStorage.getItem("user") || "null");
 
   // --- NEW: Pagination state ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -359,6 +362,13 @@ const ProductManagement = () => {
                       </span>
                     </Link>
                   )}
+                  {
+                    user!.role !== Roles.DEVELOPER && (
+        // <button onClick={() => handleDelete(product)} className="bg-red-500 text-white">
+        //   Delete Product
+        // </button>
+      
+                  
                   <button
                     type="button"
                     disabled={savingId === product.id}
@@ -369,7 +379,8 @@ const ProductManagement = () => {
                     <span className="material-symbols-outlined text-[20px]">
                       delete
                     </span>
-                  </button>
+                  </button>)
+}
                 </div>
               </div>
             ))
