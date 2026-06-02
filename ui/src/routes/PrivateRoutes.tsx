@@ -47,7 +47,6 @@ const AccessDenied = () => (
 );
 
 const PrivateRoute = ({ children, allowedRoles }: PrivateRouteProps) => {
-  // Assuming your auth state holds { user: { role: string }, isAuthenticated: boolean }
   const user = JSON.parse(sessionStorage.getItem("user") || "null");
 
   const { isAuthenticated } = useAppSelector((state) => state.auth);

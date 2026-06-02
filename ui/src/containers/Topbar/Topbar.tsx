@@ -12,7 +12,14 @@ const Topbar = () => {
   const dispatch = useAppDispatch();
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  
+  // Define role checks
   const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
+  const isManager = isAuthenticated && user?.role === Roles.MANAGER;
+  const isDeveloper = isAuthenticated && user?.role === Roles.DEVELOPER;
+  
+  // Check if user has access to the management panel
+  const hasPanelAccess = isAdmin || isManager || isDeveloper;
 
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
@@ -146,7 +153,7 @@ const Topbar = () => {
                     </div>
                   </div>
 
-                  {/* Profile */}
+                  {/* Profile (Available to everyone) */}
                   <button
                     onClick={handleProfileClick}
                     className="relative z-10 w-full text-left px-5 py-3 text-sm text-slate-700 hover:bg-white/15 hover:backdrop-blur-xl hover:pl-6 transition-all duration-300"
@@ -154,14 +161,16 @@ const Topbar = () => {
                     View Profile
                   </button>
 
-                  {/* Admin */}
-                  {isAdmin && (
+                  {/* Dynamic Role-Based Management Panel */}
+                  {hasPanelAccess && (
                     <Link
                       to="/admin"
                       onClick={() => setShowProfileMenu(false)}
                       className="relative z-10 block w-full px-5 py-3 text-left text-sm text-slate-700 hover:bg-white/15 hover:backdrop-blur-xl hover:pl-6 transition-all duration-300"
                     >
-                      Admin Panel
+                      {isAdmin && "Admin Panel"}
+                      {isManager && "Manager Profile"}
+                      {isDeveloper && "Developer Panel"}
                     </Link>
                   )}
 
@@ -202,8 +211,6 @@ const Topbar = () => {
               </button>
             </div>
           )}
-
-          {/* Cart */}
         </div>
       </div>
     </nav>
