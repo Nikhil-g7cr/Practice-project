@@ -90,7 +90,8 @@ const UserManagement = () => {
     initialCreateUserForm,
   );
 
-  const { popupState, showSuccess, showError, showWarning, closePopup } = usePopup();
+  const { popupState, showSuccess, showError, showWarning, closePopup } =
+    usePopup();
 
   const isOwnAccount = (user: AdminUser) =>
     user._id === currentUser?.id || user.email === currentUser?.email;
@@ -252,15 +253,17 @@ const UserManagement = () => {
         }
       },
       "Delete",
-      true,       // NEW: requireInput
-      "delete"    // NEW: expectedInputText
+      true, // NEW: requireInput
+      "delete", // NEW: expectedInputText
     );
   };
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-8 text-left text-slate-900 sm:px-6 lg:px-8">
       <Popup config={popupState} onClose={closePopup} />
+
       <section className="mx-auto max-w-6xl">
+        {/* Back Button */}
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -272,8 +275,9 @@ const UserManagement = () => {
           Back
         </button>
 
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
+        {/* Header Section */}
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">
               People
             </p>
@@ -285,11 +289,12 @@ const UserManagement = () => {
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-3 md:max-w-xl md:flex-row">
-            <label className="relative block flex-1">
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:min-w-[420px]">
+            <label className="relative flex-1 min-w-0">
               <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-slate-400">
                 search
               </span>
+
               <input
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
@@ -297,10 +302,11 @@ const UserManagement = () => {
                 className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
               />
             </label>
+
             <button
               type="button"
               onClick={() => setIsCreateModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
             >
               <span className="material-symbols-outlined text-[20px]">add</span>
               Add user
@@ -308,6 +314,7 @@ const UserManagement = () => {
           </div>
         </div>
 
+        {/* User Table / List */}
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
           <div className="grid grid-cols-2 gap-3 border-b border-slate-200 bg-slate-100 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500 md:grid-cols-[1.4fr_1.6fr_0.8fr_0.5fr]">
             <span>Name</span>
@@ -351,7 +358,7 @@ const UserManagement = () => {
                           {user.name}
                         </p>
                         {ownAccount && (
-                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-700">
+                          <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-indigo-700 shrink-0">
                             You
                           </span>
                         )}
@@ -410,15 +417,18 @@ const UserManagement = () => {
         </div>
       </section>
 
+      {/* FIXED CREATE USER MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-2xl">
-            <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 px-4 py-6 backdrop-blur-sm transition-opacity">
+          {/* Modal Container with max-height and scrolling */}
+          <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl max-h-full">
+            {/* Modal Header (Fixed at top) */}
+            <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
               <div>
-                <h2 className="text-2xl font-bold text-slate-950">
+                <h2 className="text-xl font-bold text-slate-950">
                   Add new user
                 </h2>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-slate-500">
                   Create an account and assign the correct role.
                 </p>
               </div>
@@ -426,8 +436,7 @@ const UserManagement = () => {
                 type="button"
                 onClick={closeCreateModal}
                 disabled={isCreating}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 disabled:opacity-50"
-                aria-label="Close add user form"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[20px]">
                   close
@@ -435,96 +444,105 @@ const UserManagement = () => {
               </button>
             </div>
 
-            <form onSubmit={handleCreateUser} className="space-y-4">
-              <label className="block">
-                <span className="mb-1 block text-sm font-semibold text-slate-700">
-                  Name
-                </span>
-                <input
-                  name="name"
-                  value={createForm.name}
-                  onChange={handleCreateInputChange}
-                  required
-                  placeholder="Enter full name"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-1 block text-sm font-semibold text-slate-700">
-                  Email
-                </span>
-                <input
-                  name="email"
-                  type="email"
-                  value={createForm.email}
-                  onChange={handleCreateInputChange}
-                  required
-                  placeholder="name@example.com"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                />
-              </label>
-
-              <div className="grid gap-4 sm:grid-cols-2">
+            {/* Modal Body (Scrollable) */}
+            <div className="overflow-y-auto px-6 py-6">
+              <form
+                id="create-user-form"
+                onSubmit={handleCreateUser}
+                className="space-y-5"
+              >
                 <label className="block">
-                  <span className="mb-1 block text-sm font-semibold text-slate-700">
-                    Password
+                  <span className="mb-1.5 block text-sm font-semibold text-slate-700">
+                    Full Name
                   </span>
                   <input
-                    name="password"
-                    type="password"
-                    value={createForm.password}
+                    name="name"
+                    value={createForm.name}
                     onChange={handleCreateInputChange}
                     required
-                    minLength={8}
-                    placeholder="Strong password"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    placeholder="Enter full name"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
                   />
-                  <p className="mt-1 text-xs text-slate-500">
-                    Use uppercase, lowercase, number, and symbol.
-                  </p>
                 </label>
 
                 <label className="block">
-                  <span className="mb-1 block text-sm font-semibold text-slate-700">
-                    Role
+                  <span className="mb-1.5 block text-sm font-semibold text-slate-700">
+                    Email Address
                   </span>
-                  <select
-                    name="role"
-                    value={createForm.role}
+                  <input
+                    name="email"
+                    type="email"
+                    value={createForm.email}
                     onChange={handleCreateInputChange}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm capitalize text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                  >
-                    {roleOptions.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
+                    required
+                    placeholder="name@example.com"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                  />
                 </label>
-              </div>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={closeCreateModal}
-                  disabled={isCreating}
-                  className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isCreating}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50"
-                >
-                  <span className="material-symbols-outlined text-[20px]">
-                    person_add
-                  </span>
-                  {isCreating ? "Creating..." : "Create user"}
-                </button>
-              </div>
-            </form>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-semibold text-slate-700">
+                      Password
+                    </span>
+                    <input
+                      name="password"
+                      type="password"
+                      value={createForm.password}
+                      onChange={handleCreateInputChange}
+                      required
+                      minLength={8}
+                      placeholder="Strong password"
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    />
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      Minimum 8 characters required.
+                    </p>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-semibold text-slate-700">
+                      Role
+                    </span>
+                    <select
+                      name="role"
+                      value={createForm.role}
+                      onChange={handleCreateInputChange}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm capitalize text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                    >
+                      {roleOptions.map((role) => (
+                        <option key={role} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </form>
+            </div>
+
+            {/* Modal Footer (Fixed at bottom) */}
+            <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
+              <button
+                type="button"
+                onClick={closeCreateModal}
+                disabled={isCreating}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="create-user-form"
+                disabled={isCreating}
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined text-[18px]">
+                  person_add
+                </span>
+                {isCreating ? "Creating..." : "Create user"}
+              </button>
+            </div>
           </div>
         </div>
       )}
