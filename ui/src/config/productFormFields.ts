@@ -25,19 +25,55 @@ export const laptopFields: FormField[] = [
 ];
 
 export const phoneFields: FormField[] = [
-  // Basic Info
-  { name: "name", label: "Phone Name", type: "text", required: true, placeholder: "e.g., iPhone 15 Pro" },
+  { 
+    name: "name", 
+    label: "Phone Name", 
+    type: "text", 
+    required: true, 
+    placeholder: "e.g., iPhone 15 Pro",
+    minLength: 3,
+    maxLength: 50 // Requirement 1: Name length limit
+  },
   { name: "slug", label: "Slug", type: "text", required: true, placeholder: "e.g., iphone-15-pro" },
   { name: "brand", label: "Brand", type: "text", required: true, placeholder: "e.g., Apple" },
-  { name: "basePrice", label: "Base Price ($)", type: "number", required: true },
-  { name: "thumbnail", label: "Thumbnail URL or Filename", type: "file", required: true, accept: "image/*"},
-  { name: "description", label: "Description", type: "textarea", required: true },
+  { name: "basePrice", label: "Base Price ($)", type: "number", required: true, min: 1 },
   
-  // Specifications (Using spec_ prefix to map them later)
-  { name: "spec_processor", label: "Processor", type: "text", required: true },
-  { name: "spec_display", label: "Display", type: "text", required: true },
-  { name: "spec_battery", label: "Battery", type: "text", required: true },
-  { name: "spec_camera", label: "Camera", type: "text", required: true },
-  { name: "spec_ram", label: "RAM", type: "text", required: true },
-  { name: "spec_os", label: "Operating System", type: "text", required: true },
+  // Requirement 2: Strict Image uploading limits
+  { 
+    name: "thumbnail", 
+    label: "Thumbnail Image", 
+    type: "file", 
+    required: true, 
+    accept: "image/*",
+    allowedFileTypes: ["image/jpeg", "image/png", "image/webp"], 
+    maxFileSizeMB: 5
+  },
+  
+  // Requirement 4: PDF Upload Feature
+  {
+    name: "manualPdf",
+    label: "User Manual (PDF)",
+    type: "file",
+    required: false,
+    accept: ".pdf",
+    allowedFileTypes: ["application/pdf"], // ONLY allows PDF
+    maxFileSizeMB: 10
+  },
+
+  // Requirement 3: Description length limit
+  { 
+    name: "description", 
+    label: "Description", 
+    type: "textarea", 
+    required: true,
+    minLength: 10,
+    maxLength: 1000 
+  },
+  
+  { name: "spec_processor", label: "Processor", type: "text", required: true ,minLength: 10, maxLength: 50 },
+  { name: "spec_display", label: "Display", type: "text", required: true,minLength: 10, maxLength: 50  },
+  { name: "spec_battery", label: "Battery", type: "text", required: true,minLength: 10, maxLength: 50  },
+  { name: "spec_camera", label: "Camera", type: "text", required: true,minLength: 10, maxLength: 50  },
+  { name: "spec_ram", label: "RAM", type: "text", required: true,minLength: 10, maxLength: 50  },
+  { name: "spec_os", label: "Operating System", type: "text", required: true,minLength: 10, maxLength: 50  },
 ];

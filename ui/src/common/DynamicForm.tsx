@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 export type FieldType = "text" | "number" | "email" | "password" | "textarea" | "select" | "checkbox" | "file";
 
+// --- UPGRADED: Added validation properties ---
 export interface FormField {
   name: string;
   label: string;
@@ -10,6 +11,12 @@ export interface FormField {
   required?: boolean;
   accept?: string;
   options?: { label: string; value: string | number }[];
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  allowedFileTypes?: string[]; // e.g., ["image/jpeg", "image/png", "application/pdf"]
+  maxFileSizeMB?: number;
 }
 
 export interface DynamicFormProps {
@@ -26,6 +33,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   submitButtonText = "Submit",
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({}); // NEW: Error state
 
   useEffect(() => {
     const initialState: Record<string, any> = {};
@@ -35,19 +43,54 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
           ? initialValues[field.name]
           : field.type === "checkbox"
           ? false
-          : field.type === "file" // File inputs should start as null
+          : field.type === "file"
           ? null
           : "";
     });
     setFormData(initialState);
   }, [fields, initialValues]);
 
+  // --- NEW: Universal Validation Engine ---
+  const validateField = (field: FormField, value: any): string | null => {
+    if (field.required && (value === null || value === undefined || value === "")) {
+      return `${field.label} is required`;
+    }
+
+    if (typeof value === "string") {
+      if (field.minLength && value.trim().length < field.minLength) {
+        return `${field.label} must be at least ${field.minLength} characters.`;
+      }
+      if (field.maxLength && value.trim().length > field.maxLength) {
+        return `${field.label} cannot exceed ${field.maxLength} characters.`;
+      }
+    }
+
+    if (field.type === "number" && value !== "") {
+      const numValue = Number(value);
+      if (field.min !== undefined && numValue < field.min) {
+        return `${field.label} must be at least ${field.min}.`;
+      }
+      if (field.max !== undefined && numValue > field.max) {
+        return `${field.label} cannot exceed ${field.max}.`;
+      }
+    }
+
+    if (field.type === "file" && value instanceof File) {
+      if (field.allowedFileTypes && !field.allowedFileTypes.includes(value.type)) {
+        return `Invalid file format. Allowed types: ${field.allowedFileTypes.join(", ")}`;
+      }
+      if (field.maxFileSizeMB && value.size > field.maxFileSizeMB * 1024 * 1024) {
+        return `File is too large. Maximum size is ${field.maxFileSizeMB}MB.`;
+      }
+    }
+    return null;
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
     
-    // FIX: Check if the input is a file. If it is, grab the actual File object.
     let finalValue: any = value;
     if (type === "checkbox") {
       finalValue = (e.target as HTMLInputElement).checked;
@@ -56,15 +99,36 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
       finalValue = files && files.length > 0 ? files[0] : null;
     }
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: finalValue,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: finalValue }));
+
+    // Real-time error clearing
+    const fieldConfig = fields.find((f) => f.name === name);
+    if (fieldConfig) {
+      const error = validateField(fieldConfig, finalValue);
+      setErrors((prev) => ({ ...prev, [name]: error || "" }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    // Validate ALL fields before submitting
+    const newErrors: Record<string, string> = {};
+    let isValid = true;
+
+    fields.forEach((field) => {
+      const error = validateField(field, formData[field.name]);
+      if (error) {
+        newErrors[field.name] = error;
+        isValid = false;
+      }
+    });
+
+    setErrors(newErrors);
+
+    if (isValid) {
+      onSubmit(formData);
+    }
   };
 
   return (
@@ -83,8 +147,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 name={field.name}
                 value={formData[field.name] || ""}
                 onChange={handleChange}
-                required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors[field.name] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+                }`}
               >
                 <option value="" disabled>Select {field.label}</option>
                 {field.options?.map((opt) => (
@@ -100,9 +165,10 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 value={formData[field.name] || ""}
                 onChange={handleChange}
                 placeholder={field.placeholder}
-                required={field.required}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors[field.name] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+                }`}
               />
             ) : field.type === "checkbox" ? (
               <div className="flex items-center mt-2">
@@ -112,20 +178,17 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                   name={field.name}
                   checked={!!formData[field.name]}
                   onChange={handleChange}
-                  required={field.required}
                   className="h-4 w-4 text-blue-600 border-gray-300 rounded"
                 />
                 <span className="ml-2 text-sm text-gray-600">Yes</span>
               </div>
             ) : field.type === "file" ? (
-              // FIX: File inputs cannot have a `value` prop in React, so we render it separately
               <input
                 type="file"
                 id={field.name}
                 name={field.name}
                 accept={field.accept}
                 onChange={handleChange}
-                required={field.required}
                 className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md p-1"
               />
             ) : (
@@ -136,9 +199,15 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 value={formData[field.name] || ""}
                 onChange={handleChange}
                 placeholder={field.placeholder}
-                required={field.required}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  errors[field.name] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
+                }`}
               />
+            )}
+            
+            {/* Display Field Error */}
+            {errors[field.name] && (
+              <p className="mt-1 text-xs text-red-500">{errors[field.name]}</p>
             )}
           </div>
         ))}

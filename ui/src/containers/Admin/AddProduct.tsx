@@ -20,34 +20,30 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
   const apiEndpoint = productType === "phone" ? "/phones" : "/laptops";
   const redirectRoute = productType === "phone" ? "/phones" : "/laptops";
 
+  // Reusable upload helper
+  const uploadFileToAzure = async (file: File): Promise<string> => {
+    const uploadData = new FormData();
+    uploadData.append("file", file);
+    const uploadResponse = await API.post("/upload", uploadData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return uploadResponse.data.fileName;
+  };
+
   const handleFormSubmit = async (rawFormData: Record<string, any>) => {
     setIsSubmitting(true);
     setError(null);
 
-    let finalThumbnailName = "";
-
     try {
-      // 1. --- IMAGE UPLOAD LOGIC ---
-      // Check if the thumbnail field contains an actual File object
+      // 1. --- DYNAMIC UPLOAD LOGIC ---
+      let finalThumbnailName = rawFormData.thumbnail;
       if (rawFormData.thumbnail instanceof File) {
-        const uploadData = new FormData();
-        uploadData.append("file", rawFormData.thumbnail);
+        finalThumbnailName = await uploadFileToAzure(rawFormData.thumbnail);
+      }
 
-        // Upload the file to your NestJS backend using your configured API instance
-        // Assuming API has baseURL: 'http://localhost:3000/api'
-        const uploadResponse = await API.post("/upload", uploadData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            // If your API instance doesn't automatically attach the token, do it here:
-            // "Authorization": `Bearer ${sessionStorage.getItem('token')}`
-          },
-        });
-
-        // Save the generated azure filename (e.g., 170...phone.jpg)
-        finalThumbnailName = uploadResponse.data.fileName;
-      } else {
-        // Fallback just in case it was a string URL
-        finalThumbnailName = rawFormData.thumbnail;
+      let finalManualPdfName = rawFormData.manualPdf;
+      if (rawFormData.manualPdf instanceof File) {
+        finalManualPdfName = await uploadFileToAzure(rawFormData.manualPdf);
       }
 
       // 2. --- REFORMAT PRODUCT DATA ---
@@ -61,9 +57,9 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
           description: rawFormData.description,
           basePrice: Number(rawFormData.basePrice),
           
-          // Use the newly uploaded Azure filename here!
           thumbnail: finalThumbnailName,
           images: [finalThumbnailName], 
+          manualPdf: finalManualPdfName || null, // Ensure PDF name is sent to backend
           
           specifications: {
             processor: rawFormData.spec_processor,
@@ -102,7 +98,6 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
       }
     } catch (err: any) {
       console.error(`Failed to add ${productType}:`, err);
-      
       const errorMsg = err.response?.data?.message;
       if (Array.isArray(errorMsg)) {
         setError(errorMsg.join(", ")); 
@@ -123,9 +118,7 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
           onClick={() => navigate(-1)}
           className="mb-6 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
         >
-          <span className="material-symbols-outlined text-[20px]">
-            arrow_back
-          </span>
+          <span className="material-symbols-outlined text-[20px]">arrow_back</span>
           Back
         </button>
 
@@ -137,7 +130,7 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
 
         {error && (
           <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-            <span className="font-bold block mb-1">Validation Errors:</span>
+            <span className="font-bold block mb-1">Server Errors:</span>
             {error}
           </div>
         )}
@@ -146,7 +139,7 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
           <DynamicForm
             fields={fields}
             onSubmit={handleFormSubmit}
-            submitButtonText={isSubmitting ? "Saving..." : `Save ${productType}`}
+            submitButtonText={isSubmitting ? "Uploading & Saving..." : `Save ${productType}`}
           />
         </div>
       </div>

@@ -5,12 +5,6 @@ import { login } from "../../../../redux/features/auth/AuthenticationSlice";
 
 const BRAND_NAME = "Stuff SYSTEM";
 
-// const ErrorDisplay = ({ ErrorMessage }: { ErrorMessage: string }) => (
-//   <div className="bg-red-500/10 border border-red-500/50 text-red-700 text-sm p-3 rounded-xl backdrop-blur-md">
-//     {ErrorMessage}
-//   </div>
-// );
-
 interface SignupFormData {
   name: string;
   email: string;
@@ -66,6 +60,11 @@ export default function Signup() {
         errors.name = "Name is required";
       } else if (!/^[a-zA-Z\s]*$/.test(value)) {
         errors.name = "Name can only contain letters and spaces";
+      } else if (value.length < 2) {
+        errors.name = "Name must be at least 2 characters long";
+      } else if (value.length > 50) {
+        // --- NEW: Custom error message for max length ---
+        errors.name = "Name length is too long"; 
       } else {
         delete errors.name;
       }
@@ -106,6 +105,11 @@ export default function Signup() {
       errors.name = "Name is required";
     } else if (!/^[a-zA-Z\s]*$/.test(formData.name)) {
       errors.name = "Name can only contain letters and spaces";
+    } else if (formData.name.length < 2) {
+      errors.name = "Name must be at least 2 characters long";
+    } else if (formData.name.length > 50) {
+      // --- NEW: Custom error message for max length ---
+      errors.name = "Name length is too long";
     }
 
     // Validate email
@@ -141,7 +145,6 @@ export default function Signup() {
     return true;
   };
 
-
   const dispatch = useAppDispatch();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -175,21 +178,19 @@ export default function Signup() {
       const data = await response.json();
 
       if (data.accessToken && data.user) {
-        // 1. Save to sessionStorage (matching your slice's logic)
         sessionStorage.setItem("accessToken", data.accessToken);
         sessionStorage.setItem("user", JSON.stringify(data.user));
 
-        // 2. Dispatch your Redux action to instantly log them in
-        dispatch(login({
-          user: data.user,
-          token: data.accessToken
-        }));
+        dispatch(
+          login({
+            user: data.user,
+            token: data.accessToken,
+          }),
+        );
 
-        // 3. Clear errors and redirect
         setFieldErrors({});
-        navigate("/"); // or "/" or wherever your logged-in users go
+        navigate("/");
       }
-
     } catch (err) {
       setError({
         message:
@@ -200,10 +201,6 @@ export default function Signup() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLoginClick = () => {
-    navigate("/login");
   };
 
   return (
@@ -283,7 +280,7 @@ export default function Signup() {
       "
       />
 
-      {/* Main Canvas - Kept top padding as requested, reduced bottom padding */}
+      {/* Main Canvas */}
       <main
         className="
         relative
@@ -311,16 +308,10 @@ export default function Signup() {
           md:grid-cols-2
           overflow-hidden
           rounded-[2.5rem]
-
-          /* Liquid Glass */
           bg-white/10
           backdrop-blur-[35px]
-
-          /* Refraction Border */
           border
           border-white/25
-
-          /* Light Bending */
           before:absolute
           before:inset-0
           before:rounded-[2.5rem]
@@ -330,15 +321,12 @@ export default function Signup() {
           before:via-white/10
           before:to-cyan-200/30
           before:pointer-events-none
-
-          /* Inner Diffusion */
           after:absolute
           after:inset-[1px]
           after:rounded-[2.4rem]
           after:bg-white/[0.03]
           after:backdrop-blur-[45px]
           after:pointer-events-none
-
           shadow-[0_20px_80px_rgba(255,255,255,0.08)]
         "
         >
@@ -412,7 +400,6 @@ export default function Signup() {
                 md:text-3xl
                 font-bold
                 mb-2
-
                 bg-gradient-to-r
                 from-slate-900
                 via-slate-700
@@ -435,9 +422,6 @@ export default function Signup() {
                 electronics.
               </p>
             </div>
-
-            {/* Error */}
-            {/* Errors are now displayed at the field level and below the submit button */}
 
             {/* FORM */}
             <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
@@ -520,10 +504,12 @@ export default function Signup() {
                     placeholder="Jane Doe"
                     required
                     type="text"
+                    // --- CHANGED: Removed maxLength so the error can actually trigger ---
                     value={formData.name}
                     onChange={handleChange}
                   />
                 </div>
+                {/* Error specifically for Name displays here */}
                 {fieldErrors.name && (
                   <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
                     <span className="material-symbols-outlined text-xs">
