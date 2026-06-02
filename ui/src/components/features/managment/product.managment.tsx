@@ -68,6 +68,9 @@ const mapLaptop = (laptop: Laptop): CatalogProduct => ({
   isAvailable: laptop.isAvailable,
 });
 
+// --- NEW: Constant for pagination ---
+const ITEMS_PER_PAGE = 10;
+
 const ProductManagement = () => {
   const navigate = useNavigate();
   const { popupState, showError, showSuccess, showWarning, closePopup } =
@@ -78,6 +81,9 @@ const ProductManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | ProductType>("all");
   const [savingId, setSavingId] = useState<string | null>(null);
+
+  // --- NEW: Pagination state ---
+  const [currentPage, setCurrentPage] = useState(1);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -104,6 +110,11 @@ const ProductManagement = () => {
     void fetchProducts();
   }, []);
 
+  // --- NEW: Reset to page 1 whenever filters or search change ---
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter]);
+
   const filteredProducts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
 
@@ -118,6 +129,13 @@ const ProductManagement = () => {
       return matchesType && matchesQuery;
     });
   }, [products, searchTerm, typeFilter]);
+
+  // --- NEW: Calculate pagination data ---
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
 
   const handleAvailabilityChange = async (product: CatalogProduct) => {
     const previousProducts = products;
@@ -160,6 +178,11 @@ const ProductManagement = () => {
     try {
       await API.delete(`${endpoint}/${product.id}`);
       showSuccess("Product deleted", `${product.name} was removed.`, "Deleted");
+      
+      // Handle edge case: deleting last item on the current page
+      if (paginatedProducts.length === 1 && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
     } catch (deleteError) {
       setProducts(previousProducts);
       const message = getErrorMessage(deleteError);
@@ -170,15 +193,14 @@ const ProductManagement = () => {
     }
   };
 
-  // Inside product.managment.tsx
   const handleDelete = (product: CatalogProduct) => {
     showWarning(
       "Delete product",
       `Are you sure you want to delete ${product.name}? This action cannot be undone.`,
       () => void deleteProduct(product),
       "Confirm delete",
-      true,     // NEW: requireInput
-      "delete"  // NEW: expectedInputText
+      true,     
+      "delete"  
     );
   };
 
@@ -270,12 +292,12 @@ const ProductManagement = () => {
             <div className="p-6 text-center text-sm text-slate-500">
               Loading products...
             </div>
-          ) : filteredProducts.length === 0 ? (
+          ) : paginatedProducts.length === 0 ? (
             <div className="p-6 text-center text-sm text-slate-500">
               No products found.
             </div>
           ) : (
-            filteredProducts.map((product) => (
+            paginatedProducts.map((product) => (
               <div
                 key={`${product.type}-${product.id}`}
                 className="grid gap-4 border-b border-slate-100 p-4 last:border-b-0 lg:grid-cols-[1.5fr_0.7fr_0.6fr_0.7fr_0.5fr] lg:items-center"
@@ -353,6 +375,88 @@ const ProductManagement = () => {
             ))
           )}
         </div>
+
+        {/* --- NEW: Pagination Controls UI --- */}
+        {!loading && totalPages > 1 && (
+          <div className="mt-6 flex items-center justify-between rounded-lg border border-slate-200 bg-white px-4 py-3 sm:px-6 shadow-sm">
+            <div className="flex flex-1 justify-between sm:hidden">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="relative ml-3 inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+            
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-slate-700">
+                  Showing{" "}
+                  <span className="font-medium">
+                    {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+                  </span>{" "}
+                  to{" "}
+                  <span className="font-medium">
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}
+                  </span>{" "}
+                  of <span className="font-medium">{filteredProducts.length}</span>{" "}
+                  results
+                </p>
+              </div>
+              <div>
+                <nav
+                  className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                  aria-label="Pagination"
+                >
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                  >
+                    <span className="sr-only">Previous</span>
+                    <span className="material-symbols-outlined text-[20px]">chevron_left</span>
+                  </button>
+                  
+                  {Array.from({ length: totalPages }).map((_, index) => {
+                    const pageNumber = index + 1;
+                    const isCurrent = currentPage === pageNumber;
+                    return (
+                      <button
+                        key={pageNumber}
+                        onClick={() => setCurrentPage(pageNumber)}
+                        aria-current={isCurrent ? "page" : undefined}
+                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-300 focus:z-20 focus:outline-offset-0 ${
+                          isCurrent
+                            ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                            : "text-slate-900 hover:bg-slate-50"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-300 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
+                  >
+                    <span className="sr-only">Next</span>
+                    <span className="material-symbols-outlined text-[20px]">chevron_right</span>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </main>
   );
