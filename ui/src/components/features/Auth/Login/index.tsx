@@ -42,48 +42,6 @@ interface AuthPayload {
   accessToken?: string;
 }
 
-const msalInstance = new PublicClientApplication({
-  auth: {
-    clientId: environment.CLIENT_ID,
-    authority: environment.AUTHORITY,
-    redirectUri: `${window.location.origin}/auth/callback.html`,
-  },
-  cache: {
-    cacheLocation: "sessionStorage",
-  },
-});
-
-const msalInitializePromise = msalInstance.initialize();
-
-const microsoftLoginRequest = {
-  scopes: ["openid", "profile", "email", "User.Read"],
-};
-
-console.info("[Login] Login component module loaded", {
-  apiUrl: environment.APP_API_URL,
-  microsoftRedirectUrl: `${window.location.origin}/auth/callback.html`,
-});
-
-const clearStaleMicrosoftInteraction = () => {
-  const interactionStatus = sessionStorage.getItem("msal.interaction.status");
-
-  if (!interactionStatus) {
-    return;
-  }
-
-  const msalAccountKeys = Object.keys(sessionStorage).filter(
-    (key) =>
-      key.includes("login.windows.net") ||
-      key.includes("login.microsoftonline.com"),
-  );
-
-  if (msalAccountKeys.length === 0) {
-    console.warn("[Microsoft SSO] Clearing stale MSAL interaction status", {
-      interactionStatus,
-    });
-    sessionStorage.removeItem("msal.interaction.status");
-  }
-};
 
 const Login = () => {
   const dispatch = useAppDispatch();
@@ -282,87 +240,7 @@ const Login = () => {
     setError(null);
     setLoading(true);
 
-    try {
-      console.log("[Microsoft SSO] Initializing MSAL");
-      await msalInitializePromise;
-      clearStaleMicrosoftInteraction();
-      // try {
-      //   await msalInstance.handleRedirectPromise();
-      // } catch (redirectError) {
-      //   console.warn("[Microsoft SSO] Redirect cleanup failed", redirectError);
-      // }
-      clearStaleMicrosoftInteraction();
-
-      console.log("[Microsoft SSO] Opening Microsoft login popup", {
-        scopes: microsoftLoginRequest.scopes,
-      });
-      setDebugStatus("Microsoft popup opened. Complete sign-in there.");
-
-      const msalResponse: AuthenticationResult = await msalInstance.loginPopup(
-        microsoftLoginRequest,
-      );
-
-      console.log("[Microsoft SSO] Microsoft login completed", {
-        accountUsername: msalResponse.account?.username,
-        hasIdToken: !!msalResponse.idToken,
-        hasAccessToken: !!msalResponse.accessToken,
-      });
-      msalInstance.setActiveAccount(msalResponse.account);
-
-      if (!msalResponse.idToken) {
-        throw new Error("Microsoft did not return an ID token.");
-      }
-
-      console.log("[Microsoft SSO] Exchanging Microsoft token with API");
-      setDebugStatus("Microsoft token received. Exchanging with API...");
-
-      const response = await fetch(
-        `${environment.APP_API_URL}/auth/microsoft`,
-        {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idToken: msalResponse.idToken,
-            accessToken: msalResponse.accessToken,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || "Microsoft login failed");
-      }
-
-      const data: AuthPayload = await response.json();
-      const apiAccessToken = data.accessToken || data.token;
-
-      if (!apiAccessToken) {
-        throw new Error("API did not return an access token.");
-      }
-
-      console.log("[Microsoft SSO] API exchange completed", {
-        userEmail: data.user?.email,
-        hasApiAccessToken: !!apiAccessToken,
-      });
-      setDebugStatus("API login completed. Storing session...");
-
-      setFieldErrors({});
-      await completeLogin(data.user, apiAccessToken);
-    } catch (err) {
-      console.error("[Microsoft SSO] Login failed", err);
-      setError({
-        message:
-          err instanceof Error
-            ? err.message
-            : "Microsoft sign-in failed. Please try again.",
-      });
-      setDebugStatus("Microsoft sign-in failed. See browser console.");
-    } finally {
-      setLoading(false);
-    }
+    console.log("[Microsoft SSO] Initializing MSAL client");
   };
 
   const handleAppleLogin = () => {
@@ -443,41 +321,6 @@ const Login = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Name */}
-              {/* <div>
-                <label className="block text-sm text-slate-700 mb-2">
-                  Full Name
-                </label>
-
-                <div
-                  className={`flex items-center gap-3 bg-white/18 border rounded-2xl px-4 py-3 backdrop-blur-2xl transition-all duration-300 ${
-                    fieldErrors.name
-                      ? "border-red-400/60 bg-red-50/10"
-                      : "border-white/30 focus-within:border-cyan-300/60 focus-within:bg-white/25"
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-slate-500 text-[20px]">
-                    person
-                  </span>
-
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="bg-transparent w-full text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
-                  />
-                </div>
-                {fieldErrors.name && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">
-                      error
-                    </span>
-                    {fieldErrors.name}
-                  </p>
-                )}
-              </div> */}
 
               {/* Email */}
               <div>
