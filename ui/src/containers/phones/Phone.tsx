@@ -14,12 +14,23 @@ const SmartphoneProduct = () => {
     (state) => state.phones,
   );
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
 
   // First try the paginated list, then the separately fetched phone if it
   // matches the current route id.
   const phone =
     phones?.find((p) => p._id === id) ||
     (currentPhone?._id === id ? currentPhone : null);
+
+  // ==============================================
+  // --- NEW: THE FETCH LOGIC ---
+  // ==============================================
+  useEffect(() => {
+    if (!phone && id) {
+      dispatch(getPhoneById(id));
+    }
+  }, [dispatch, id, phone]);
+  // ==============================================
 
   const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
 
@@ -29,7 +40,6 @@ const SmartphoneProduct = () => {
   const [isAdded, setIsAdded] = useState(false);
   const sectionRefs = useRef<(HTMLElement | HTMLDivElement | null)[]>([]);
 
-  const dispatch = useAppDispatch();
 
   // Fetch phone by ID if not found in paginated list
   useEffect(() => {

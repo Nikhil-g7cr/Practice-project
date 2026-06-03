@@ -14,21 +14,18 @@ import { usePopup } from "../../../hooks/usePopup";
 import Popup from "../../../common/Popup";
 
 const Cart: React.FC = () => {
-  // 1. Read the correct state variables from CartSlice
   const { items, summary, loading } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  // 2. Fetch the cart when the component mounts
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
 
-  // 3. Helper function to handle Add, Subtract, and Remove
   const handleQuantityChange = (item: any, newQuantity: number) => {
     dispatch(
       syncCartItem({
-        productId: item.productId._id, // Extract the ID from the populated object
+        productId: item.productId._id,
         productModel: item.productModel,
         quantity: newQuantity,
         originalPrice: item.originalPrice,
@@ -37,24 +34,31 @@ const Cart: React.FC = () => {
     );
   };
 
-  const {popupState,showWarning, closePopup} = usePopup();
+  const { popupState, showWarning, closePopup } = usePopup();
   const confirmRemoveItem = (item: any) => {
+    // Find the available stock
+
     showWarning(
       "Remove Product",
       `Are you sure you want to remove ${item.productId.name} from your cart?`,
       () => {
-        // This runs ONLY if the user clicks "Confirm/Remove" in the popup
         handleQuantityChange(item, 0);
       },
-      "Remove" // Action button text
+      "Remove",
     );
   };
 
+  // --- THE FIX IS HERE ---
+  // Only show the full-screen loader on the VERY FIRST load
+  // (when loading is true AND we have no items in the UI yet)
+  const isInitialLoad = loading && (!items || items.length === 0);
 
-
-  if (loading) {
+  if (isInitialLoad) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen text-slate-500 font-medium">
+        <span className="material-symbols-outlined animate-spin text-3xl mr-2">
+          progress_activity
+        </span>
         Loading Cart...
       </div>
     );
@@ -68,11 +72,15 @@ const Cart: React.FC = () => {
           <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">
             shopping_cart
           </span>
-          <h2>Your Cart is Empty</h2>
-          <p>Browse our top products and find something you love!</p>
+          <h2 className="text-2xl font-bold text-slate-800">
+            Your Cart is Empty
+          </h2>
+          <p className="text-slate-500 mt-2">
+            Browse our top products and find something you love!
+          </p>
           <button
             onClick={() => navigate("/")}
-            className="mt-4 px-8 py-3 bg-cyan-600 text-white font-semibold rounded-xl"
+            className="mt-6 px-8 py-3 bg-cyan-600 hover:bg-cyan-700 transition-colors text-white font-semibold rounded-xl shadow-sm"
           >
             Continue Shopping
           </button>
@@ -83,23 +91,37 @@ const Cart: React.FC = () => {
 
   // Populated Cart View
   return (
-    <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
-            <Popup config={popupState} onClose={closePopup} />
-      <div className="mt-10 flex flex-col gap-2">
-        <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
-          Shopping Cart
-        </h1>
+    // --- ADDED VISUAL FEEDBACK ---
+    // If it's loading (syncing in the background), we dim the screen slightly and disable clicks
+    <div
+      className={`max-w-6xl mx-auto px-4 py-12 md:py-16 transition-opacity duration-200 ${loading ? "opacity-60 pointer-events-none" : "opacity-100"}`}
+    >
+      <Popup config={popupState} onClose={closePopup} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 ">
+      <div className="mt-10 flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
+            Shopping Cart
+          </h1>
+          {/* Optional: Show a small spinner next to the title when syncing */}
+          {loading && (
+            <span className="material-symbols-outlined animate-spin text-cyan-600">
+              sync
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => {
-              // Because of NestJS .populate(), item.productId contains the actual product details
+
               const product = item.productId;
+              const maxStock = product.storageVariants?.[0]?.stock || 0;
 
               return (
                 <div
                   key={product._id}
-                  className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative group"
+                  className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md"
                 >
                   <div className="w-full sm:w-28 h-28 bg-slate-50 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
                     {product.imageUrl ? (
@@ -130,8 +152,8 @@ const Cart: React.FC = () => {
                         onClick={() =>
                           handleQuantityChange(item, item.quantity - 1)
                         }
-                        disabled={item.quantity <= 1}
-                        className="text-slate-500 hover:text-cyan-600 w-8 h-8 disabled:opacity-50"
+                        disabled={item.quantity <= 1 || loading}
+                        className="text-slate-500 hover:text-cyan-600 w-8 h-8 disabled:opacity-50 flex items-center justify-center transition-colors"
                       >
                         <span className="material-symbols-outlined text-sm">
                           remove
@@ -144,7 +166,13 @@ const Cart: React.FC = () => {
                         onClick={() =>
                           handleQuantityChange(item, item.quantity + 1)
                         }
-                        className="text-slate-500 hover:text-cyan-600 w-8 h-8"
+                        disabled={loading || item.quantity >= maxStock}
+                        title={
+                          item.quantity >= maxStock
+                            ? "Max stock reached"
+                            : "Increase quantity"
+                        }
+                        className="text-slate-500 hover:text-cyan-600 w-8 h-8 flex items-center justify-center transition-colors disabled:opacity-50"
                       >
                         <span className="material-symbols-outlined text-sm">
                           add
@@ -152,10 +180,10 @@ const Cart: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Removing an item is just updating its quantity to 0 */}
                     <button
                       onClick={() => confirmRemoveItem(item)}
-                      className="text-red-400 hover:text-red-600 text-sm font-medium flex items-center gap-1"
+                      disabled={loading}
+                      className="text-red-400 hover:text-red-600 text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50"
                     >
                       <span className="material-symbols-outlined text-[16px]">
                         delete
@@ -167,7 +195,10 @@ const Cart: React.FC = () => {
               );
             })}
           </div>
-          <CartSummary />
+
+          <div className="lg:col-span-1">
+            <CartSummary />
+          </div>
         </div>
       </div>
     </div>

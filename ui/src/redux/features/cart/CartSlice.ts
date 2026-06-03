@@ -1,10 +1,14 @@
-import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
-import API from '../../../config/axios.config';
+import {
+  createSlice,
+  createAsyncThunk,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
+import API from "../../../config/axios.config";
 
 // --- TYPES ---
 export interface CartItemPayload {
   productId: string;
-  productModel: 'Phone' | 'Laptop';
+  productModel: "Phone" | "Laptop";
   quantity: number;
   originalPrice: number;
   discountPrice: number;
@@ -29,26 +33,33 @@ interface CartState {
 
 // --- ASYNC THUNKS (Calls to NestJS) ---
 
-export const fetchCart = createAsyncThunk('cart/fetchCart', async (_, { rejectWithValue }) => {
-  try {
-    const response = await API.get('/cart');
-    return response.data;
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to fetch cart');
-  }
-});
+export const fetchCart = createAsyncThunk(
+  "cart/fetchCart",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await API.get("/cart");
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch cart",
+      );
+    }
+  },
+);
 
 // This single endpoint handles Add, Update Quantity, and Remove (if quantity is 0)
 export const syncCartItem = createAsyncThunk(
-  'cart/syncCartItem',
+  "cart/syncCartItem",
   async (itemData: CartItemPayload, { rejectWithValue }) => {
     try {
-      const response = await API.post('/cart/sync', itemData);
+      const response = await API.post("/cart/sync", itemData);
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to sync cart');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to sync cart",
+      );
     }
-  }
+  },
 );
 
 // --- INITIAL STATE ---
@@ -70,8 +81,26 @@ const initialState: CartState = {
 
 // --- SLICE ---
 
+// Add this new AsyncThunk to CartSlice.ts
+export const checkoutCart = createAsyncThunk(
+  "cart/checkout",
+  async (_, { rejectWithValue }) => {
+    try {
+      // Calls the backend checkout endpoint
+      const response = await API.post("/cart/checkout");
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Checkout failed. Please try again.",
+      );
+    }
+  },
+);
+
+// Then, inside your CartSlice `extraReducers`, add the cases:
+
 const cartSlice = createSlice({
-  name: 'cart',
+  name: "cart",
   initialState,
   reducers: {
     // Only use this when a user logs out to empty the UI
@@ -79,7 +108,7 @@ const cartSlice = createSlice({
       state.items = [];
       state.summary = initialState.summary;
       state.error = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     // Reusable success handler for both fetching and syncing
@@ -93,8 +122,8 @@ const cartSlice = createSlice({
 
     builder
       // --- Fetch Cart Handlers ---
-      .addCase(fetchCart.pending, (state) => { 
-        state.loading = true; 
+      .addCase(fetchCart.pending, (state) => {
+        state.loading = true;
         state.error = null;
       })
       .addCase(fetchCart.fulfilled, handleSuccess)
@@ -102,14 +131,36 @@ const cartSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
+
       // --- Sync Cart Handlers ---
-      .addCase(syncCartItem.pending, (state) => { 
-        state.loading = true; 
+      .addCase(syncCartItem.pending, (state) => {
+        state.loading = true;
         state.error = null;
       })
       .addCase(syncCartItem.fulfilled, handleSuccess)
       .addCase(syncCartItem.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(checkoutCart.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkoutCart.fulfilled, (state) => {
+        state.loading = false;
+        // Clear the cart in Redux because the backend successfully processed the order
+        state.items = [];
+        state.summary = {
+          subtotal: 0,
+          totalDiscount: 0,
+          gstAmount: 0,
+          deliveryCharge: 0,
+          platformFee: 0,
+          couponDiscount: 0,
+          finalAmount: 0,
+        };
+      })
+      .addCase(checkoutCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

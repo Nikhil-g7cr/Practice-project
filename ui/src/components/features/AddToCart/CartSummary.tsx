@@ -1,13 +1,47 @@
-import { useAppSelector } from '../../../redux/hooks/reduxHooks';
+import React, { useState } from "react";
+import {
+  useAppSelector,
+  useAppDispatch,
+} from "../../../redux/hooks/reduxHooks";
+import { checkoutCart } from "../../../redux/features/cart/CartSlice";
+import { usePopup } from "../../../hooks/usePopup";
+import { useNavigate } from "react-router-dom";
 
-const CartSummary = () => {
+const CartSummary: React.FC = () => {
   const { summary, items } = useAppSelector((state) => state.cart);
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { showSuccess, showError } = usePopup();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  if (items.length === 0) return null;
+  const handlePayment = async () => {
+    if (items.length === 0) return;
+
+    setIsCheckingOut(true);
+    try {
+      // Trigger the checkout process
+      await dispatch(checkoutCart()).unwrap();
+
+      showSuccess(
+        "Payment Successful",
+        "Your order has been placed and inventory has been updated!",
+      );
+
+      // Redirect to a success page or home
+      navigate("/");
+    } catch (error: any) {
+      showError("Payment Failed", error);
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   // Formatting helper for Indian Rupees
-  const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(val);
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+    }).format(val);
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
@@ -16,27 +50,37 @@ const CartSummary = () => {
       <div className="space-y-4 text-sm text-slate-600">
         <div className="flex justify-between">
           <span>Price ({items.length} items)</span>
-          <span className="font-medium">{formatCurrency(summary.subtotal + summary.totalDiscount)}</span>
+          <span className="font-medium">
+            {formatCurrency(summary.subtotal + summary.totalDiscount)}
+          </span>
         </div>
 
         <div className="flex justify-between text-emerald-600">
           <span>Discount</span>
-          <span className="font-medium">- {formatCurrency(summary.totalDiscount)}</span>
+          <span className="font-medium">
+            - {formatCurrency(summary.totalDiscount)}
+          </span>
         </div>
 
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span className="font-medium">{formatCurrency(summary.subtotal)}</span>
+          <span className="font-medium">
+            {formatCurrency(summary.subtotal)}
+          </span>
         </div>
 
         <div className="flex justify-between">
           <span>GST (18%)</span>
-          <span className="font-medium">{formatCurrency(summary.gstAmount)}</span>
+          <span className="font-medium">
+            {formatCurrency(summary.gstAmount)}
+          </span>
         </div>
 
         <div className="flex justify-between">
           <span>Platform Fee</span>
-          <span className="font-medium">{formatCurrency(summary.platformFee)}</span>
+          <span className="font-medium">
+            {formatCurrency(summary.platformFee)}
+          </span>
         </div>
 
         <div className="flex justify-between">
@@ -44,7 +88,9 @@ const CartSummary = () => {
           {summary.deliveryCharge === 0 ? (
             <span className="font-medium text-emerald-600">Free Delivery</span>
           ) : (
-            <span className="font-medium">{formatCurrency(summary.deliveryCharge)}</span>
+            <span className="font-medium">
+              {formatCurrency(summary.deliveryCharge)}
+            </span>
           )}
         </div>
       </div>

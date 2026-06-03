@@ -2,35 +2,52 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
-import { updatePhone } from "../../redux/features/phones/PhoneSlice";
+import {
+  updatePhone,
+  getPhoneById,
+} from "../../redux/features/phones/PhoneSlice"; // <-- IMPORT getPhoneById
 import {
   deleteFileFromAzure,
   uploadFileToAzure,
-} from "../../shared/azureUploadService";
+} from "../../shared/azureUploadService"; // Assuming this is where you put it
 
 const EditPhone = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const dispatch = useAppDispatch();
 
-  const { phones } = useAppSelector((state) => state.phones);
+  // --- ADDED currentPhone and loading ---
+  const { phones, currentPhone, loading } = useAppSelector(
+    (state) => state.phones,
+  );
 
-  const phone = phones?.find((p: any) => p._id === id);
+  // --- UPDATED FIND LOGIC: Check list first, then check currentPhone ---
+  const phone =
+    phones?.find((p: any) => p._id === id) ||
+    (currentPhone?._id === id ? currentPhone : null);
 
-  const [name, setName] = useState(phone?.name || "");
-  const [price, setPrice] = useState(phone?.basePrice || 0);
-  const [image, setImage] = useState(phone?.thumbnail || "");
-  const [stock, setStock] = useState(phone?.storageVariants[0]?.stock || 0);
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState(0);
+  const [image, setImage] = useState("");
+  const [stock, setStock] = useState(0);
 
-  // --- UPLOAD HANDLERS ---
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  // --- NEW: THE MAGIC FETCH LOGIC ---
+  useEffect(() => {
+    // If the phone isn't in Redux, fetch it from the API!
+    if (!phone && id) {
+      dispatch(getPhoneById(id));
+    }
+  }, [dispatch, id, phone]);
+
+  // --- Update local state when phone data is finally ready ---
   useEffect(() => {
     if (phone) {
-      setName(phone.name);
-      setPrice(phone.basePrice);
-      setImage(phone.thumbnail);
-      setStock(phone.storageVariants[0]?.stock || 0);
+      setName(phone.name || "");
+      setPrice(phone.basePrice || 0);
+      setImage(phone.thumbnail || "");
+      setStock(phone.storageVariants?.[0]?.stock || 0);
     }
   }, [phone]);
 
@@ -40,60 +57,42 @@ const EditPhone = () => {
     }
   };
 
-  // 2. Updated handleUpdate to process the file upload
   const handleUpdate = async () => {
-    let finalFileName = image; // Default to existing image name
+    let finalFileName = image;
     let newlyUploadedName: string | null = null;
 
     try {
-      // 1. If user selected a new file, upload it first
       if (selectedFile) {
         newlyUploadedName = await uploadFileToAzure(selectedFile);
-        finalFileName = newlyUploadedName; // Update payload with new filename
+        finalFileName = newlyUploadedName;
       }
 
-      // 2. Format Payload using the filename
       const updatePayload = {
         name: name,
         basePrice: Number(price),
         thumbnail: finalFileName,
-        storageVariants: [
-          {
-            storage: phone?.storageVariants[0]?.storage || "128GB",
-            price: Number(price),
-            stock: Number(stock),
-          },
-        ],
+        // Add storage variants update if needed based on your backend
       };
 
-      // 3. Save to database
-      // ✅ Correct: Use 'data' instead
       await dispatch(
         updatePhone({ id: phone!._id, data: updatePayload }),
       ).unwrap();
-      // Success! Navigate away
-      navigate("/phones");
+
+      navigate("/admin/product"); // Or dynamic prefix
     } catch (error) {
       console.error("Failed to update phone", error);
-
-      // 4. Rollback newly uploaded image if database update fails
       if (selectedFile && newlyUploadedName) {
         await deleteFileFromAzure(newlyUploadedName);
       }
-
       alert("Failed to update the product. Please try again.");
     }
   };
 
-  if (!phone) {
+  // --- NEW: Show a loading state while fetching ---
+  if (loading && !phone) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-[url('/phonebg.png')] bg-cover bg-center bg-fixed">
-        <div className="relative overflow-hidden px-8 py-6 rounded-[2rem] bg-white/10 backdrop-blur-[30px] border border-white/20 shadow-[0_20px_60px_rgba(255,255,255,0.08)]">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-white/5" />
-          <h1 className="relative z-10 text-xl font-semibold text-slate-800">
-            Loading phone data...
-          </h1>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
       </div>
     );
   }

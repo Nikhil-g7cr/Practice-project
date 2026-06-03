@@ -1,11 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cart } from '../../database/mongoose/schemas/cart.schema';
 
 @Injectable()
 export class CartService {
-  constructor(@InjectModel(Cart.name) private cartModel: Model<Cart>) {}
+  constructor(
+    @InjectModel(Cart.name) private cartModel: Model<Cart>,
+    @InjectModel('Phone') private phoneModel: Model<any>,
+    @InjectModel('Laptop') private laptopModel: Model<any>,
+  ) {}
 
   // --- CORE CALCULATION LOGIC ---
   calculateCartSummary(items: any[], couponDiscount = 0) {
@@ -74,5 +78,53 @@ export class CartService {
 
     await cart.save();
     return this.getCart(userId); // Return updated cart + new summary
+  }
+
+  // =========== CHECKOUT LOGIC ============
+  async checkoutCart(userId: string) {
+    // 1. Find the user's cart
+    const cart = await this.cartModel.findOne({ userId });
+
+    if (!cart || cart.items.length === 0) {
+      throw new BadRequestException('Your cart is empty.');
+    }
+
+    // 2. Process Inventory Deduction
+    // We loop through the items array you defined in your schema
+    for (const item of cart.items) {
+      
+      // Select the correct database model based on your schema's enum
+      const targetModel = item.productModel === 'Phone' ? this.phoneModel : this.laptopModel;
+      
+      // Find the specific product
+      const product = await targetModel.findById(item.productId);
+      
+      if (!product) {
+        throw new NotFoundException(`A product in your cart no longer exists.`);
+      }
+
+      // Check if enough stock exists (assuming stock is in storageVariants[0])
+      const currentStock = product.storageVariants[0].stock;
+      
+      if (currentStock < item.quantity) {
+        throw new BadRequestException(
+          `Not enough stock for ${product.name}. Only ${currentStock} remaining.`
+        );
+      }
+
+      // Deduct the stock and save the product
+      product.storageVariants[0].stock -= item.quantity;
+      await product.save();
+    }
+
+    // 3. Clear the user's cart
+    // Since you don't have a summary field in the schema, we just clear the items array
+    cart.items = [];
+    await cart.save();
+
+    return { 
+      status: 'Success', 
+      message: 'Payment processed successfully. Inventory updated and cart cleared.' 
+    };
   }
 }

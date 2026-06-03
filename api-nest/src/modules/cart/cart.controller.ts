@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Request, Req } from '@nestjs/common';
 import { CartService } from './cart.service';
 import { JwtAuthGuard } from '../../core/guards/auth/auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @UseGuards(JwtAuthGuard)
 @Controller('api/cart')
@@ -17,4 +18,13 @@ export class CartController {
     // itemData should look like: { productId, productModel: "Phone", quantity, originalPrice, discountPrice }
     return this.cartService.syncCartItem(req.user.id, itemData);
   }
+
+  // ============
+  @Post('checkout')
+  @UseGuards(AuthGuard)
+  async processCheckout(@Req() req: any) {
+    const userId = req.user.id || req.user._id; 
+    return await this.cartService.checkoutCart(userId);
+  }
+// ==================
 }

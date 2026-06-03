@@ -189,12 +189,12 @@ const Topbar = () => {
                 </div>
               )}
               {/* Cart */}
-              <button
+              <div
                 aria-label="Cart"
                 className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
               >
                 <CartIcon />
-              </button>
+              </div>
             </div>
           ) : (
             <div className="flex gap-4">
