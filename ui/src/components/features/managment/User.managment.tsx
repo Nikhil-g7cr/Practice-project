@@ -1,35 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Popup from "../../../common/Popup";
 import API from "../../../config/axios.config";
 import { usePopup } from "../../../hooks/usePopup";
 import { useAppSelector } from "../../../redux/hooks/reduxHooks";
+import type { FormField } from "../../../common/DynamicForm";
+import DynamicForm from "../../../common/DynamicForm";
 
 type UserRole = "admin" | "user" | "developer" | "tester" | "manager" | "guest";
-
-interface AdminUser {
-  _id: string;
-  name: string;
-  email: string;
-  role: UserRole | string;
-  image_url?: string;
-}
-
-interface CreateUserForm {
-  name: string;
-  email: string;
-  password: string;
-  role: UserRole;
-}
-
-interface UsersApiResponse {
-  data: AdminUser[] | { users?: AdminUser[] };
-}
-
-interface CreateUserApiResponse {
-  data: AdminUser;
-}
 
 const roleOptions: UserRole[] = [
   "admin",
@@ -40,12 +18,55 @@ const roleOptions: UserRole[] = [
   "guest",
 ];
 
-const initialCreateUserForm: CreateUserForm = {
-  name: "",
-  email: "",
-  password: "",
-  role: "user",
-};
+const createUserFields: FormField[] = [
+  {
+    name: "name",
+    label: "Full Name",
+    type: "text",
+    required: true,
+    placeholder: "Enter full name",
+  },
+  {
+    name: "email",
+    label: "Email Address",
+    type: "email",
+    required: true,
+    placeholder: "name@example.com",
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    required: true,
+    minLength: 8,
+    placeholder: "Strong password",
+  },
+  {
+    name: "role",
+    label: "Role",
+    type: "select",
+    options: roleOptions.map((role) => ({
+      label: role.charAt(0).toUpperCase() + role.slice(1),
+      value: role,
+    })),
+  },
+];
+
+interface AdminUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole | string;
+  image_url?: string;
+}
+
+interface UsersApiResponse {
+  data: AdminUser[] | { users?: AdminUser[] };
+}
+
+interface CreateUserApiResponse {
+  data: AdminUser;
+}
 
 const getErrorMessage = (error: unknown) => {
   if (typeof error === "object" && error !== null && "response" in error) {
@@ -86,9 +107,6 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [createForm, setCreateForm] = useState<CreateUserForm>(
-    initialCreateUserForm,
-  );
 
   const { popupState, showSuccess, showError, showWarning, closePopup } =
     usePopup();
@@ -129,30 +147,18 @@ const UserManagement = () => {
 
   const closeCreateModal = () => {
     setIsCreateModalOpen(false);
-    setCreateForm(initialCreateUserForm);
   };
 
-  const handleCreateInputChange = (
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = event.target;
-
-    setCreateForm((current) => ({
-      ...current,
-      [name]: value,
-    }));
-  };
-
-  const handleCreateUser = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  // --- REWRITTEN: Now accepts formData directly from DynamicForm ---
+  const handleCreateUserSubmit = async (formData: Record<string, any>) => {
     setIsCreating(true);
 
     try {
       const response = await API.post<CreateUserApiResponse>("/user", {
-        name: createForm.name.trim(),
-        email: createForm.email.trim(),
-        password: createForm.password,
-        role: createForm.role,
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        role: formData.role,
       });
 
       const newUser = response.data.data;
@@ -211,7 +217,6 @@ const UserManagement = () => {
     }
   };
 
-  // Inside User.managment.tsx
   const handleDelete = (userId: string, userName: string) => {
     const targetUser = users.find((user) => user._id === userId);
 
@@ -253,8 +258,8 @@ const UserManagement = () => {
         }
       },
       "Delete",
-      true, // NEW: requireInput
-      "delete", // NEW: expectedInputText
+      true, 
+      "delete", 
     );
   };
 
@@ -420,9 +425,8 @@ const UserManagement = () => {
       {/* FIXED CREATE USER MODAL */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 px-4 py-6 backdrop-blur-sm transition-opacity">
-          {/* Modal Container with max-height and scrolling */}
           <div className="flex w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl max-h-full">
-            {/* Modal Header (Fixed at top) */}
+            {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-slate-100 px-6 py-5">
               <div>
                 <h2 className="text-xl font-bold text-slate-950">
@@ -444,84 +448,16 @@ const UserManagement = () => {
               </button>
             </div>
 
-            {/* Modal Body (Scrollable) */}
+            {/* Modal Body with Dynamic Form */}
             <div className="overflow-y-auto px-6 py-6">
-              <form
-                id="create-user-form"
-                onSubmit={handleCreateUser}
-                className="space-y-5"
-              >
-                <label className="block">
-                  <span className="mb-1.5 block text-sm font-semibold text-slate-700">
-                    Full Name
-                  </span>
-                  <input
-                    name="name"
-                    value={createForm.name}
-                    onChange={handleCreateInputChange}
-                    required
-                    placeholder="Enter full name"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="mb-1.5 block text-sm font-semibold text-slate-700">
-                    Email Address
-                  </span>
-                  <input
-                    name="email"
-                    type="email"
-                    value={createForm.email}
-                    onChange={handleCreateInputChange}
-                    required
-                    placeholder="name@example.com"
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                  />
-                </label>
-
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-semibold text-slate-700">
-                      Password
-                    </span>
-                    <input
-                      name="password"
-                      type="password"
-                      value={createForm.password}
-                      onChange={handleCreateInputChange}
-                      required
-                      minLength={8}
-                      placeholder="Strong password"
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                    />
-                    <p className="mt-1.5 text-xs text-slate-500">
-                      Minimum 8 characters required.
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="mb-1.5 block text-sm font-semibold text-slate-700">
-                      Role
-                    </span>
-                    <select
-                      name="role"
-                      value={createForm.role}
-                      onChange={handleCreateInputChange}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm capitalize text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
-                    >
-                      {roleOptions.map((role) => (
-                        <option key={role} value={role}>
-                          {role}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </form>
+              <DynamicForm
+                fields={createUserFields}
+                onSubmit={handleCreateUserSubmit}
+                submitButtonText={isCreating ? "Creating..." : "Create User"}
+              />
             </div>
 
-            {/* Modal Footer (Fixed at bottom) */}
+            {/* Modal Footer (Cleaned up, just Cancel button left) */}
             <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-slate-50 px-6 py-4">
               <button
                 type="button"
@@ -531,17 +467,7 @@ const UserManagement = () => {
               >
                 Cancel
               </button>
-              <button
-                type="submit"
-                form="create-user-form"
-                disabled={isCreating}
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
-              >
-                <span className="material-symbols-outlined text-[18px]">
-                  person_add
-                </span>
-                {isCreating ? "Creating..." : "Create user"}
-              </button>
+              {/* DynamicForm handles the submit button inside its own block now! */}
             </div>
           </div>
         </div>

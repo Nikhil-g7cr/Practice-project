@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 
-export type FieldType = "text" | "number" | "email" | "password" | "textarea" | "select" | "checkbox" | "file";
+export type FieldType =
+  | "text"
+  | "number"
+  | "email"
+  | "password"
+  | "textarea"
+  | "select"
+  | "checkbox"
+  | "file";
 
 // --- UPGRADED: Added validation properties ---
 export interface FormField {
@@ -34,6 +42,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({}); // NEW: Error state
+  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>(
+    {},
+  ); // NEW: Track visibility for multiple password fields
 
   useEffect(() => {
     const initialState: Record<string, any> = {};
@@ -42,17 +53,20 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
         initialValues?.[field.name] !== undefined
           ? initialValues[field.name]
           : field.type === "checkbox"
-          ? false
-          : field.type === "file"
-          ? null
-          : "";
+            ? false
+            : field.type === "file"
+              ? null
+              : "";
     });
     setFormData(initialState);
   }, [fields, initialValues]);
 
   // --- NEW: Universal Validation Engine ---
   const validateField = (field: FormField, value: any): string | null => {
-    if (field.required && (value === null || value === undefined || value === "")) {
+    if (
+      field.required &&
+      (value === null || value === undefined || value === "")
+    ) {
       return `${field.label} is required`;
     }
 
@@ -76,10 +90,16 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     }
 
     if (field.type === "file" && value instanceof File) {
-      if (field.allowedFileTypes && !field.allowedFileTypes.includes(value.type)) {
+      if (
+        field.allowedFileTypes &&
+        !field.allowedFileTypes.includes(value.type)
+      ) {
         return `Invalid file format. Allowed types: ${field.allowedFileTypes.join(", ")}`;
       }
-      if (field.maxFileSizeMB && value.size > field.maxFileSizeMB * 1024 * 1024) {
+      if (
+        field.maxFileSizeMB &&
+        value.size > field.maxFileSizeMB * 1024 * 1024
+      ) {
         return `File is too large. Maximum size is ${field.maxFileSizeMB}MB.`;
       }
     }
@@ -87,10 +107,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     const { name, value, type } = e.target;
-    
+
     let finalValue: any = value;
     if (type === "checkbox") {
       finalValue = (e.target as HTMLInputElement).checked;
@@ -131,14 +153,49 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
     }
   };
 
+  // NEW: Toggle visibility for a specific password field
+  const togglePasswordVisibility = (fieldName: string) => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [fieldName]: !prev[fieldName],
+    }));
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto bg-white p-6 rounded-lg shadow-md">
-      <div className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="
+      relative
+      w-full
+      max-w-lg
+      mx-auto
+      p-8
+      rounded-[32px]
+      border
+      text-black
+      border-white/20
+      bg-white/10
+      backdrop-blur-2xl
+      shadow-[0_8px_32px_rgba(31,38,135,0.25)]
+      overflow-hidden
+    "
+    >
+      {/* Liquid Glass Background Effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full blur-3xl" />
+        <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
+      </div>
+
+      <div className="relative z-10 space-y-5">
         {fields.map((field) => (
           <div key={field.name} className="flex flex-col">
-            <label htmlFor={field.name} className="mb-1 text-sm font-medium text-gray-700 flex items-center">
+            <label
+              htmlFor={field.name}
+              className="mb-2 flex items-center text-sm font-medium text-black"
+            >
               {field.label}
-              {field.required && <span className="text-red-500 ml-1">*</span>}
+              {field.required && <span className="ml-1 text-red-400">*</span>}
             </label>
 
             {field.type === "select" ? (
@@ -147,13 +204,36 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 name={field.name}
                 value={formData[field.name] || ""}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                  errors[field.name] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
-                }`}
+                className={`
+                w-full
+                rounded-2xl
+                border
+                px-4
+                py-3
+                bg-white/10
+                backdrop-blur-xl
+                text-black
+                transition-all
+                duration-300
+                focus:outline-none
+                focus:ring-4
+                ${
+                  errors[field.name]
+                    ? "border-red-400 focus:ring-red-400/20"
+                    : "border-white/20 "
+                }
+              `}
               >
-                <option value="" disabled>Select {field.label}</option>
+                <option value="" disabled className="text-black">
+                  Select {field.label}
+                </option>
+
                 {field.options?.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
+                  <option
+                    key={opt.value}
+                    value={opt.value}
+                    className="text-black"
+                  >
                     {opt.label}
                   </option>
                 ))}
@@ -166,21 +246,45 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 onChange={handleChange}
                 placeholder={field.placeholder}
                 rows={4}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                  errors[field.name] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
-                }`}
+                className={`
+                w-full
+                rounded-2xl
+                border
+                px-4
+                py-3
+                bg-white/10
+                backdrop-blur-xl
+                text-black
+                placeholder:text-black/50
+                transition-all
+                duration-300
+                focus:outline-none
+                focus:ring-4
+                ${
+                  errors[field.name]
+                    ? "border-red-400 focus:ring-red-400/20"
+                    : "border-white/20 "
+                }
+              `}
               />
             ) : field.type === "checkbox" ? (
-              <div className="flex items-center mt-2">
+              <div className="mt-2 flex items-center">
                 <input
                   type="checkbox"
                   id={field.name}
                   name={field.name}
                   checked={!!formData[field.name]}
                   onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  className="
+                  h-5
+                  w-5
+                  rounded
+                  border-white/30
+                  bg-white/10
+                  
+                "
                 />
-                <span className="ml-2 text-sm text-gray-600">Yes</span>
+                <span className="ml-2 text-sm text-black/80">Yes</span>
               </div>
             ) : field.type === "file" ? (
               <input
@@ -189,8 +293,78 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 name={field.name}
                 accept={field.accept}
                 onChange={handleChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-md p-1"
+                className="
+                block
+                w-full
+                rounded-2xl
+                border
+                border-white/20
+                bg-white/10
+                backdrop-blur-xl
+                p-3
+                text-black
+                file:mr-4
+                file:rounded-xl
+                file:border-0
+                file:bg-white/20
+                file:px-4
+                file:py-2
+                file:text-black
+                hover:file:bg-white/30
+              "
               />
+            ) : field.type === "password" ? (
+              <div className="relative">
+                <input
+                  type={showPasswords[field.name] ? "text" : "password"}
+                  id={field.name}
+                  name={field.name}
+                  value={formData[field.name] || ""}
+                  onChange={handleChange}
+                  placeholder={field.placeholder || "••••••••"}
+                  className={`
+                  w-full
+                  rounded-2xl
+                  border
+                  px-4
+                  py-3
+                  pr-12
+                  bg-white/10
+                  backdrop-blur-xl
+                  text-black
+                  placeholder:text-black/50
+                  transition-all
+                  duration-300
+                  focus:outline-none
+                  focus:ring-4
+                  ${
+                    errors[field.name]
+                      ? "border-red-400 focus:ring-red-400/20"
+                      : "border-white/20 "
+                  }
+                `}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility(field.name)}
+                  className="
+                  absolute
+                  right-4
+                  top-1/2
+                  -translate-y-1/2
+                  text-black/60
+                  hover:text-black
+                  transition-colors
+                "
+                >
+                  <span className="material-symbols-outlined">
+                    {showPasswords[field.name]
+                      ? "visibility"
+                      : "visibility_off"}
+                  </span>
+                </button>
+              </div>
             ) : (
               <input
                 type={field.type}
@@ -199,15 +373,34 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
                 value={formData[field.name] || ""}
                 onChange={handleChange}
                 placeholder={field.placeholder}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
-                  errors[field.name] ? "border-red-500 focus:ring-red-500" : "border-gray-300 focus:ring-blue-500"
-                }`}
+                className={`
+                w-full
+                rounded-2xl
+                border
+                px-4
+                py-3
+                bg-white/10
+                backdrop-blur-xl
+                text-black
+                placeholder:text-black/50
+                transition-all
+                duration-300
+                focus:outline-none
+                focus:ring-4
+                ${
+                  errors[field.name]
+                    ? "border-red-400 focus:ring-red-400/20"
+                    : "border-white/20 "
+                }
+              `}
               />
             )}
-            
-            {/* Display Field Error */}
+
             {errors[field.name] && (
-              <p className="mt-1 text-xs text-red-500">{errors[field.name]}</p>
+              <p className="mt-2 flex items-center gap-1 text-xs text-red-300">
+                <span className="material-symbols-outlined text-xs">error</span>
+                {errors[field.name]}
+              </p>
             )}
           </div>
         ))}
@@ -215,7 +408,26 @@ const DynamicForm: React.FC<DynamicFormProps> = ({
 
       <button
         type="submit"
-        className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition-colors"
+        className="
+        relative
+        z-10
+        mt-8
+        w-full
+        rounded-2xl
+        border
+        border-white/20
+        bg-white/20
+        px-4
+        py-3
+        font-semibold
+        text-black
+        backdrop-blur-xl
+        transition-all
+        duration-300
+        hover:bg-white/30
+        hover:scale-[1.02]
+        active:scale-[0.98]
+      "
       >
         {submitButtonText}
       </button>

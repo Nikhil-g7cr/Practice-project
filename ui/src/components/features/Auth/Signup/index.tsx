@@ -2,21 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../../../redux/hooks/reduxHooks";
 import { login } from "../../../../redux/features/auth/AuthenticationSlice";
+import DynamicForm, { type FormField } from "../../../../common/DynamicForm";
 
 const BRAND_NAME = "Stuff SYSTEM";
-
-interface SignupFormData {
-  name: string;
-  email: string;
-  password: string;
-  terms: boolean;
-}
-
-interface SignupErrors {
-  name?: string;
-  email?: string;
-  password?: string;
-}
 
 interface SignupError {
   field?: string;
@@ -25,133 +13,54 @@ interface SignupError {
 
 export default function Signup() {
   const navigate = useNavigate();
-
-  // State for form inputs
-  const [formData, setFormData] = useState<SignupFormData>({
-    name: "",
-    email: "",
-    password: "",
-    terms: false,
-  });
+  const dispatch = useAppDispatch();
 
   const [loading, setLoading] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<SignupErrors>({});
   const [error, setError] = useState<SignupError | null>(null);
 
-  // Handle input changes
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  // --- NEW: Define the fields for the DynamicForm ---
+  const signupFields: FormField[] = [
+    {
+      name: "name",
+      label: "Full Name",
+      type: "text",
+      required: true,
+      minLength: 2,
+      maxLength: 50,
+      placeholder: "Jane Doe",
+    },
+    {
+      name: "email",
+      label: "Email Address",
+      type: "email",
+      required: true,
+      placeholder: "jane@example.com",
+    },
+    {
+      name: "password",
+      label: "Password",
+      type: "password",
+      required: true,
+      minLength: 8,
+      placeholder: "••••••••",
+    },
+    {
+      name: "terms",
+      label: "Accept Terms of Service & Privacy Policy",
+      type: "checkbox",
+      required: true,
+    },
+  ];
 
-    const newValue = type === "checkbox" ? checked : value;
-
-    setFormData((prevState) => ({
-      ...prevState,
-      [name]: newValue,
-    }));
-
-    // Clear form submission error when user starts typing
+  // --- NEW: Handle the validated data payload directly ---
+  const handleFormSubmit = async (formData: Record<string, any>) => {
     setError(null);
 
-    // Real-time validation
-    const errors: SignupErrors = { ...fieldErrors };
-
-    if (name === "name") {
-      if (!value.trim()) {
-        errors.name = "Name is required";
-      } else if (!/^[a-zA-Z\s]*$/.test(value)) {
-        errors.name = "Name can only contain letters and spaces";
-      } else if (value.length < 2) {
-        errors.name = "Name must be at least 2 characters long";
-      } else if (value.length > 50) {
-        // --- NEW: Custom error message for max length ---
-        errors.name = "Name length is too long"; 
-      } else {
-        delete errors.name;
-      }
-    }
-
-    if (name === "email") {
-      if (!value.trim()) {
-        errors.email = "Email is required";
-      } else {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) {
-          errors.email = "Please enter a valid email address";
-        } else {
-          delete errors.email;
-        }
-      }
-    }
-
-    if (name === "password") {
-      if (!value.trim()) {
-        errors.password = "Password is required";
-      } else if (value.length < 8) {
-        errors.password = "Password must be at least 8 characters";
-      } else {
-        delete errors.password;
-      }
-    }
-
-    setFieldErrors(errors);
-  };
-
-  // Validate form
-  const validateForm = (): boolean => {
-    const errors: SignupErrors = {};
-
-    // Validate name
-    if (!formData.name.trim()) {
-      errors.name = "Name is required";
-    } else if (!/^[a-zA-Z\s]*$/.test(formData.name)) {
-      errors.name = "Name can only contain letters and spaces";
-    } else if (formData.name.length < 2) {
-      errors.name = "Name must be at least 2 characters long";
-    } else if (formData.name.length > 50) {
-      // --- NEW: Custom error message for max length ---
-      errors.name = "Name length is too long";
-    }
-
-    // Validate email
-    if (!formData.email.trim()) {
-      errors.email = "Email is required";
-    } else {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        errors.email = "Please enter a valid email address";
-      }
-    }
-
-    // Validate password
-    if (!formData.password.trim()) {
-      errors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      errors.password = "Password must be at least 8 characters";
-    }
-
-    setFieldErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
-      return false;
-    }
-
+    // Manual check for terms checkbox since it's a boolean value
     if (!formData.terms) {
       setError({
         message: "You must agree to the Terms of Service and Privacy Policy",
       });
-      return false;
-    }
-
-    return true;
-  };
-
-  const dispatch = useAppDispatch();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (!validateForm()) {
       return;
     }
 
@@ -188,7 +97,6 @@ export default function Signup() {
           }),
         );
 
-        setFieldErrors({});
         navigate("/");
       }
     } catch (err) {
@@ -221,64 +129,15 @@ export default function Signup() {
     "
     >
       {/* Dark Overlay */}
-      <div
-        className="
-        absolute
-        inset-0
-        bg-black/10
-      "
-      />
+      <div className="absolute inset-0 bg-black/10" />
 
       {/* Playful Liquid Background */}
-      <div
-        className="
-        absolute
-        top-[-150px]
-        left-[-100px]
-        w-[420px]
-        h-[420px]
-        bg-cyan-300/25
-        rounded-full
-        blur-3xl
-        animate-pulse
-      "
-      />
-
-      <div
-        className="
-        absolute
-        bottom-[-120px]
-        right-[-100px]
-        w-[420px]
-        h-[420px]
-        bg-purple-300/25
-        rounded-full
-        blur-3xl
-        animate-pulse
-      "
-      />
-
-      <div
-        className="
-        absolute
-        top-[45%]
-        left-[50%]
-        w-[300px]
-        h-[300px]
-        bg-pink-200/20
-        rounded-full
-        blur-3xl
-      "
-      />
+      <div className="absolute top-[-150px] left-[-100px] w-[420px] h-[420px] bg-cyan-300/25 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-[-120px] right-[-100px] w-[420px] h-[420px] bg-purple-300/25 rounded-full blur-3xl animate-pulse" />
+      <div className="absolute top-[45%] left-[50%] w-[300px] h-[300px] bg-pink-200/20 rounded-full blur-3xl" />
 
       {/* Global Blur */}
-      <div
-        className="
-        absolute
-        inset-0
-        backdrop-blur-[12px]
-      "
-      />
+      <div className="absolute inset-0 backdrop-blur-[12px]" />
 
       {/* Main Canvas */}
       <main
@@ -331,605 +190,75 @@ export default function Signup() {
         "
         >
           {/* Reflection Layer */}
-          <div
-            className="
-            absolute
-            inset-0
-            bg-gradient-to-br
-            from-white/30
-            via-transparent
-            to-white/5
-            pointer-events-none
-          "
-          />
+          <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-white/5 pointer-events-none" />
 
           {/* Top Reflection */}
-          <div
-            className="
-            absolute
-            top-0
-            left-0
-            w-full
-            h-[35%]
-            bg-gradient-to-b
-            from-white/20
-            via-white/5
-            to-transparent
-            pointer-events-none
-          "
-          />
+          <div className="absolute top-0 left-0 w-full h-[35%] bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none" />
 
           {/* Animated Shine */}
-          <div
-            className="
-            absolute
-            top-0
-            left-[-140%]
-            w-[70%]
-            h-full
-            bg-gradient-to-r
-            from-transparent
-            via-white/25
-            to-transparent
-            skew-x-[-20deg]
-            transition-all
-            duration-[1400ms]
-            group-hover:left-[140%]
-            pointer-events-none
-          "
-          />
+          <div className="absolute top-0 left-[-140%] w-[70%] h-full bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg] transition-all duration-[1400ms] group-hover:left-[140%] pointer-events-none" />
 
           {/* LEFT SIDE (Form) */}
-          <div
-            className="
-            relative
-            z-10
-            p-6
-            md:p-10
-            flex
-            flex-col
-            justify-center
-          "
-          >
+          <div className="relative z-10 p-6 md:p-10 flex flex-col justify-center">
             {/* Header */}
             <div className="mb-6">
-              <h1
-                className="
-                font-headline
-                text-2xl
-                md:text-3xl
-                font-bold
-                mb-2
-                bg-gradient-to-r
-                from-slate-900
-                via-slate-700
-                to-slate-400
-                bg-clip-text
-                text-transparent
-              "
-              >
+              <h1 className="font-headline text-2xl md:text-3xl font-bold mb-2 bg-gradient-to-r from-slate-900 via-slate-700 to-slate-400 bg-clip-text text-transparent">
                 Create Account
               </h1>
 
-              <p
-                className="
-                text-sm
-                md:text-base
-                text-slate-600
-              "
-              >
-                Join {BRAND_NAME} to access exclusive professional-grade
-                electronics.
+              <p className="text-sm md:text-base text-slate-600">
+                Join {BRAND_NAME} to access exclusive professional-grade electronics.
               </p>
             </div>
 
-            {/* FORM */}
-            <form className="space-y-4 mt-4" onSubmit={handleSubmit}>
-              {/* Full Name */}
-              <div>
-                <label
-                  className="
-                  block
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  font-semibold
-                  text-slate-600
-                  mb-1.5
-                "
-                  htmlFor="name"
-                >
-                  Full Name
-                </label>
+            {/* --- REPLACED: DynamicForm takes over inputs & validation --- */}
+            <div className="mt-4">
+              <DynamicForm
+                fields={signupFields}
+                onSubmit={handleFormSubmit}
+                submitButtonText={loading ? "Creating Account..." : "Create Account"}
+              />
+            </div>
 
-                <div
-                  className={`
-                  relative
-                  overflow-hidden
-                  rounded-xl
-                  bg-white/15
-                  backdrop-blur-2xl
-                  border
-                  transition-all
-                  duration-300
-                  ${
-                    fieldErrors.name
-                      ? "border-red-400/60 bg-red-50/10"
-                      : "border-white/25 focus-within:border-cyan-300/60 focus-within:bg-white/20"
-                  }
-                `}
-                >
-                  {/* Reflection */}
-                  <div
-                    className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-br
-                    from-white/30
-                    via-transparent
-                    to-white/5
-                    pointer-events-none
-                  "
-                  />
-
-                  <span
-                    className="
-                    material-symbols-outlined
-                    absolute
-                    left-3.5
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-500
-                    text-[20px]
-                  "
-                  >
-                    person
-                  </span>
-
-                  <input
-                    className="
-                    relative
-                    z-10
-                    w-full
-                    pl-11
-                    pr-4
-                    py-3
-                    bg-transparent
-                    text-slate-800
-                    placeholder:text-slate-400
-                    focus:outline-none
-                  "
-                    id="name"
-                    name="name"
-                    placeholder="Jane Doe"
-                    required
-                    type="text"
-                    // --- CHANGED: Removed maxLength so the error can actually trigger ---
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                </div>
-                {/* Error specifically for Name displays here */}
-                {fieldErrors.name && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">
-                      error
-                    </span>
-                    {fieldErrors.name}
-                  </p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label
-                  className="
-                  block
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  font-semibold
-                  text-slate-600
-                  mb-1.5
-                "
-                  htmlFor="email"
-                >
-                  Email Address
-                </label>
-
-                <div
-                  className={`
-                  relative
-                  overflow-hidden
-                  rounded-xl
-                  bg-white/15
-                  backdrop-blur-2xl
-                  border
-                  transition-all
-                  duration-300
-                  ${
-                    fieldErrors.email
-                      ? "border-red-400/60 bg-red-50/10"
-                      : "border-white/25 focus-within:border-cyan-300/60"
-                  }
-                `}
-                >
-                  <div
-                    className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-br
-                    from-white/30
-                    via-transparent
-                    to-white/5
-                  "
-                  />
-
-                  <span
-                    className="
-                    material-symbols-outlined
-                    absolute
-                    left-3.5
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-500
-                    text-[20px]
-                  "
-                  >
-                    mail
-                  </span>
-
-                  <input
-                    className="
-                    relative
-                    z-10
-                    w-full
-                    pl-11
-                    pr-4
-                    py-3
-                    bg-transparent
-                    text-slate-800
-                    placeholder:text-slate-400
-                    focus:outline-none
-                  "
-                    id="email"
-                    name="email"
-                    placeholder="jane@example.com"
-                    required
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
-                {fieldErrors.email && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">
-                      error
-                    </span>
-                    {fieldErrors.email}
-                  </p>
-                )}
-              </div>
-
-              {/* Password */}
-              <div>
-                <label
-                  className="
-                  block
-                  text-xs
-                  uppercase
-                  tracking-wider
-                  font-semibold
-                  text-slate-600
-                  mb-1.5
-                "
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-
-                <div
-                  className={`
-                  relative
-                  overflow-hidden
-                  rounded-xl
-                  bg-white/15
-                  backdrop-blur-2xl
-                  border
-                  transition-all
-                  duration-300
-                  ${
-                    fieldErrors.password
-                      ? "border-red-400/60 bg-red-50/10"
-                      : "border-white/25 focus-within:border-cyan-300/60"
-                  }
-                `}
-                >
-                  <div
-                    className="
-                    absolute
-                    inset-0
-                    bg-gradient-to-br
-                    from-white/30
-                    via-transparent
-                    to-white/5
-                  "
-                  />
-
-                  <span
-                    className="
-                    material-symbols-outlined
-                    absolute
-                    left-3.5
-                    top-1/2
-                    -translate-y-1/2
-                    text-slate-500
-                    text-[20px]
-                  "
-                  >
-                    lock
-                  </span>
-
-                  <input
-                    className="
-                    relative
-                    z-10
-                    w-full
-                    pl-11
-                    pr-4
-                    py-3
-                    bg-transparent
-                    text-slate-800
-                    placeholder:text-slate-400
-                    focus:outline-none
-                  "
-                    id="password"
-                    name="password"
-                    placeholder="••••••••"
-                    required
-                    type="password"
-                    minLength={8}
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                </div>
-                {fieldErrors.password && (
-                  <p className="mt-1 text-xs text-red-500 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-xs">
-                      error
-                    </span>
-                    {fieldErrors.password}
-                  </p>
-                )}
-                {!fieldErrors.password && (
-                  <p
-                    className="
-                    text-xs
-                    text-slate-500
-                    mt-1.5
-                  "
-                  >
-                    Must be at least 8 characters long.
-                  </p>
-                )}
-              </div>
-
-              {/* Terms */}
-              <div className="flex items-start mt-3">
-                <div className="flex items-center h-5">
-                  <input
-                    className="
-                    w-4
-                    h-4
-                    rounded
-                    accent-cyan-500
-                    bg-white/20
-                  "
-                    id="terms"
-                    name="terms"
-                    required
-                    type="checkbox"
-                    checked={formData.terms}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="ml-2.5">
-                  <label
-                    className="
-                    text-xs
-                    text-slate-600
-                  "
-                    htmlFor="terms"
-                  >
-                    I agree to the{" "}
-                    <a
-                      className="
-                      text-cyan-700
-                      font-semibold
-                      hover:underline
-                    "
-                      href="#terms"
-                    >
-                      Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a
-                      className="
-                      text-cyan-700
-                      font-semibold
-                      hover:underline
-                    "
-                      href="#privacy"
-                    >
-                      Privacy Policy
-                    </a>
-                    .
-                  </label>
-                </div>
-              </div>
-
-              {/* Liquid Button */}
-              <button
-                className="
-                group
-                relative
-                overflow-hidden
-                w-full
-                py-3
-                mt-6
-                rounded-xl
-                bg-white/18
-                backdrop-blur-2xl
-                border
-                border-white/30
-                text-slate-800
-                font-semibold
-                text-base
-                shadow-[0_8px_30px_rgba(255,255,255,0.12)]
-                transition-all
-                duration-300
-                hover:scale-[1.02]
-                hover:bg-white/25
-                active:scale-[0.98]
-              "
-                type="submit"
-                disabled={loading}
-              >
-                {/* Reflection */}
-                <div
-                  className="
-                  absolute
-                  inset-0
-                  bg-gradient-to-br
-                  from-white/40
-                  via-transparent
-                  to-white/10
-                "
-                />
-
-                {/* Shine */}
-                <div
-                  className="
-                  absolute
-                  top-0
-                  left-[-130%]
-                  w-[70%]
-                  h-full
-                  bg-gradient-to-r
-                  from-transparent
-                  via-white/30
-                  to-transparent
-                  skew-x-[-20deg]
-                  transition-all
-                  duration-[1000ms]
-                  group-hover:left-[130%]
-                "
-                />
-
-                <span className="relative z-10">
-                  {loading ? "Creating Account..." : "Create Account"}
+            {/* Signup Error Display */}
+            {error && error.message && (
+              <div className="mt-6 rounded-xl border border-red-400/50 bg-red-50/20 px-4 py-3 flex items-start gap-3">
+                <span className="material-symbols-outlined text-red-500 text-[20px] flex-shrink-0 mt-0.5">
+                  error
                 </span>
-              </button>
-
-              {/* Signup Error Display */}
-              {error && error.message && (
-                <div className="mt-4 rounded-xl border border-red-400/50 bg-red-50/20 px-4 py-3 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-red-500 text-[20px] flex-shrink-0 mt-0.5">
-                    error
-                  </span>
-                  <div className="flex-1">
-                    <p className="text-sm text-red-600 font-medium">
-                      {error.message}
-                    </p>
-                    <p className="text-xs text-red-500 mt-1">
-                      Please check your information and try again.
-                    </p>
-                  </div>
+                <div className="flex-1">
+                  <p className="text-sm text-red-600 font-medium">
+                    {error.message}
+                  </p>
+                  <p className="text-xs text-red-500 mt-1">
+                    Please check your information and try again.
+                  </p>
                 </div>
-              )}
-            </form>
+              </div>
+            )}
           </div>
 
           {/* RIGHT SIDE (Info) */}
-          <div
-            className="
-            hidden
-            md:flex
-            flex-col
-            relative
-            overflow-hidden
-          "
-          >
+          <div className="hidden md:flex flex-col relative overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
               <img
                 alt="Abstract technology background"
-                className="
-                w-full
-                h-full
-                object-cover
-                opacity-40
-              "
+                className="w-full h-full object-cover opacity-40"
                 src="/login.png"
               />
-
               {/* Blur Overlay */}
-              <div
-                className="
-                absolute
-                inset-0
-                bg-white/10
-                backdrop-blur-[4px]
-              "
-              />
+              <div className="absolute inset-0 bg-white/10 backdrop-blur-[4px]" />
             </div>
 
             {/* Content */}
-            <div
-              className="
-              relative
-              z-10
-              flex
-              flex-col
-              h-full
-              justify-between
-              p-8
-              lg:p-10
-            "
-            >
-              <div
-                className="
-                relative
-                overflow-hidden
-                rounded-2xl
-                bg-white/10
-                backdrop-blur-2xl
-                border
-                border-white/20
-                p-6
-              "
-              >
+            <div className="relative z-10 flex flex-col h-full justify-between p-8 lg:p-10">
+              <div className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-2xl border border-white/20 p-6">
                 {/* Reflection */}
-                <div
-                  className="
-                  absolute
-                  inset-0
-                  bg-gradient-to-br
-                  from-white/25
-                  via-transparent
-                  to-white/5
-                "
-                />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-white/5" />
 
                 <div className="relative z-10">
-                  <h2
-                    className="
-                    text-2xl
-                    font-bold
-                    text-slate-800
-                  "
-                  >
+                  <h2 className="text-2xl font-bold text-slate-800">
                     Precision Engineered for Professionals
                   </h2>
 
@@ -951,53 +280,18 @@ export default function Signup() {
                         text: "Direct access to our engineering support team.",
                       },
                     ].map((item, index) => (
-                      <li
-                        key={index}
-                        className="
-                        flex
-                        items-start
-                        gap-3
-                      "
-                      >
-                        <div
-                          className="
-                          bg-white/20
-                          border
-                          border-white/20
-                          p-2
-                          rounded-xl
-                          backdrop-blur-xl
-                        "
-                        >
-                          <span
-                            className="
-                            material-symbols-outlined
-                            text-cyan-700
-                            text-[20px]
-                          "
-                          >
+                      <li key={index} className="flex items-start gap-3">
+                        <div className="bg-white/20 border border-white/20 p-2 rounded-xl backdrop-blur-xl">
+                          <span className="material-symbols-outlined text-cyan-700 text-[20px]">
                             {item.icon}
                           </span>
                         </div>
 
                         <div>
-                          <h3
-                            className="
-                            text-base
-                            text-slate-800
-                            font-semibold
-                          "
-                          >
+                          <h3 className="text-base text-slate-800 font-semibold">
                             {item.title}
                           </h3>
-
-                          <p
-                            className="
-                            text-xs
-                            text-slate-600
-                            mt-0.5
-                          "
-                          >
+                          <p className="text-xs text-slate-600 mt-0.5">
                             {item.text}
                           </p>
                         </div>
@@ -1010,25 +304,10 @@ export default function Signup() {
               {/* Footer */}
               <div className="mt-auto pt-6">
                 <div className="flex items-center gap-2">
-                  <span
-                    className="
-                    material-symbols-outlined
-                    text-cyan-700
-                    text-[18px]
-                  "
-                  >
+                  <span className="material-symbols-outlined text-cyan-700 text-[18px]">
                     eco
                   </span>
-
-                  <span
-                    className="
-                    text-[10px]
-                    uppercase
-                    tracking-wider
-                    font-semibold
-                    text-slate-600
-                  "
-                  >
+                  <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-600">
                     Stuff SYSTEM v2.4 ONLINE
                   </span>
                 </div>
