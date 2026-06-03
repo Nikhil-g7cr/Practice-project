@@ -24,18 +24,25 @@ import { Roles } from "./Roles";
 // Create Reusable Role Arrays for cleaner code
 const ADMIN_DEV = [Roles.ADMIN, Roles.DEVELOPER];
 const PRODUCT_MANAGERS = [Roles.ADMIN, Roles.DEVELOPER, Roles.MANAGER];
-const ALL_LOGGED_IN = [Roles.ADMIN, Roles.DEVELOPER, Roles.MANAGER, Roles.TESTER, Roles.USER];
 
 const Approutes = () => {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith("/admin");
+  
+  // --- UPDATED: Hide Topbar for ALL dashboard role prefixes ---
+  const isDashboardRoute = 
+    location.pathname.startsWith("/admin") || 
+    location.pathname.startsWith("/dev") || 
+    location.pathname.startsWith("/manager");
+
   const isAuthRoute =
     location.pathname.startsWith("/login") ||
     location.pathname.startsWith("/signup");
 
   return (
     <div>
-      {!isAdminRoute && <Topbar />}
+      {/* Hide Topbar on dashboard routes */}
+      {!isDashboardRoute && <Topbar />}
+      
       <Routes>
         {/* PUBLIC ROUTES */}
         <Route path="/" element={<Home />} />
@@ -45,60 +52,64 @@ const Approutes = () => {
         <Route path="/laptops" element={<LaptopDisplayScreen />} />
         <Route path="/tablets" element={<h1>tablets</h1>} />
         <Route path="/phone/:id" element={<Phone />} />
+        
+        {/* --- RESTORED: Image Gallery (Public) --- */}
+        <Route path="/phone/:id/gallery" element={<ImageGallery />} />
 
-        {/* LOGGED IN USER ROUTES (Cart, Profile, Gallery) */}
-        <Route path="/user/cart" element={
-          <PrivateRoute allowedRoles={ALL_LOGGED_IN}>
-            <Cart />
-          </PrivateRoute>
-        } />
+        {/* --- RESTORED: Profile & Cart (Any Logged-in User) --- */}
         <Route path="/profile" element={
-          <PrivateRoute allowedRoles={ALL_LOGGED_IN}>
+          <PrivateRoute>
             <Profile />
           </PrivateRoute>
         } />
-        <Route path="/gallery" element={
-          <PrivateRoute allowedRoles={ALL_LOGGED_IN}>
-            <ImageGallery />
+        <Route path="/user/cart" element={
+          <PrivateRoute>
+            <Cart />
           </PrivateRoute>
         } />
 
-        {/* ADMIN/MANAGER - PRODUCT MANAGEMENT ROUTES */}
-        <Route path="/admin" element={
+        {/* --- DYNAMIC ROLE-BASED DASHBOARD ROUTES --- */}
+        <Route path="/:rolePrefix" element={
           <PrivateRoute allowedRoles={PRODUCT_MANAGERS}>
             <AdminPanel />
           </PrivateRoute>
         } />
-        <Route path="/admin/product" element={
+        
+        <Route path="/:rolePrefix/product" element={
           <PrivateRoute allowedRoles={PRODUCT_MANAGERS}>
             <ProductManagement />
           </PrivateRoute>
         } />
-        <Route path="/admin/add-phone" element={
+        
+        <Route path="/:rolePrefix/add-phone" element={
           <PrivateRoute allowedRoles={PRODUCT_MANAGERS}>
             <AddProduct productType="phone" />
           </PrivateRoute>
         } />
-        <Route path="/admin/add-laptop" element={
+        
+        <Route path="/:rolePrefix/add-laptop" element={
           <PrivateRoute allowedRoles={PRODUCT_MANAGERS}>
             <AddProduct productType="laptop" />
           </PrivateRoute>
         } />
-        <Route path="/phones/update/:id" element={
-          <PrivateRoute allowedRoles={PRODUCT_MANAGERS}>
-            <EditPhone />
-          </PrivateRoute>
-        } />
-        <Route path="/admin/order" element={
+        
+        <Route path="/:rolePrefix/order" element={
           <PrivateRoute allowedRoles={PRODUCT_MANAGERS}>
             <OrderManagement />
           </PrivateRoute>
         } />
 
         {/* STRICT ADMIN/DEV - USER MANAGEMENT ROUTES */}
-        <Route path="/admin/user" element={
+        <Route path="/:rolePrefix/user" element={
           <PrivateRoute allowedRoles={ADMIN_DEV}>
             <UserManagement />
+          </PrivateRoute>
+        } />
+
+        {/* Edit Phone */}
+        <Route path="/phones/update/:id" element={
+          <PrivateRoute allowedRoles={PRODUCT_MANAGERS}>
+            <EditPhone />
           </PrivateRoute>
         } />
 

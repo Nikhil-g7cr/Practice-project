@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../redux/hooks/reduxHooks";
-import { logout, performLogout } from "../../redux/features/auth/AuthenticationSlice";
+import {
+  logout,
+  performLogout,
+} from "../../redux/features/auth/AuthenticationSlice";
 import { Roles } from "../../routes/Roles";
 import SearchBar from "../../components/layout/SearchBar";
 import { BRAND_NAME } from "../../shared/shared-variables";
@@ -12,12 +15,12 @@ const Topbar = () => {
   const dispatch = useAppDispatch();
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
-  
+
   // Define role checks
   const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
   const isManager = isAuthenticated && user?.role === Roles.MANAGER;
   const isDeveloper = isAuthenticated && user?.role === Roles.DEVELOPER;
-  
+
   // Check if user has access to the management panel
   const hasPanelAccess = isAdmin || isManager || isDeveloper;
 
@@ -53,6 +56,8 @@ const Topbar = () => {
     setShowProfileMenu(false);
     navigate("/profile");
   };
+
+  const rolePrefix = user ? Roles.getRolePrefix(user.role) : "user";
 
   return (
     <nav className="absolute left-0 right-0 mt-4 z-50">
@@ -164,12 +169,12 @@ const Topbar = () => {
                   {/* Dynamic Role-Based Management Panel */}
                   {hasPanelAccess && (
                     <Link
-                      to="/admin"
+                      to={`/${rolePrefix}`}
                       onClick={() => setShowProfileMenu(false)}
                       className="relative z-10 block w-full px-5 py-3 text-left text-sm text-slate-700 hover:bg-white/15 hover:backdrop-blur-xl hover:pl-6 transition-all duration-300"
                     >
                       {isAdmin && "Admin Panel"}
-                      {isManager && "Manager Profile"}
+                      {isManager && "Manager Panel"}
                       {isDeveloper && "Developer Panel"}
                     </Link>
                   )}
@@ -188,7 +193,7 @@ const Topbar = () => {
                 aria-label="Cart"
                 className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
               >
-                <CartIcon/>
+                <CartIcon />
               </button>
             </div>
           ) : (
@@ -205,9 +210,7 @@ const Topbar = () => {
                 onClick={() => navigate("/Signup")}
                 className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
               >
-                <span className="text-[20px]">
-                 signup
-                </span>
+                <span className="text-[20px]">signup</span>
               </button>
             </div>
           )}

@@ -1,6 +1,7 @@
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import type { ReactNode } from "react";
-import { useAppSelector } from "../redux/hooks/reduxHooks"; // Adjust path if needed
+import { useAppSelector } from "../redux/hooks/reduxHooks"; 
+import { Roles } from "./Roles"; // Make sure to import Roles
 
 interface PrivateRouteProps {
   children: ReactNode;
@@ -51,21 +52,32 @@ const PrivateRoute = ({ children, allowedRoles }: PrivateRouteProps) => {
 
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const location = useLocation();
+  const { rolePrefix } = useParams(); // NEW: Grab the dynamic URL parameter
 
   // 1. If no user is logged in, redirect to login page
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 2. If route requires specific roles, check if the user has access
-  if (allowedRoles && allowedRoles.length > 0) {
-    const hasRequiredRole = allowedRoles.includes(user.role);
-    if (!hasRequiredRole) {
-      return <AccessDenied />;
+  // --- NEW LOGIC: Dynamic URL Rewriting based on Role ---
+  if (rolePrefix) {
+    const expectedPrefix = Roles.getRolePrefix(user.role);
+    
+    // If the URL says /admin/product but the user is a developer (expected 'dev')
+    // Automatically redirect them to /dev/product
+    if (expectedPrefix && expectedPrefix !== 'user' && rolePrefix !== expectedPrefix) {
+      const newPath = location.pathname.replace(`/${rolePrefix}`, `/${expectedPrefix}`);
+      return <Navigate to={newPath} replace />;
     }
   }
+  // ------------------------------------------------------
 
-  // 3. If authenticated and authorized, render the component
+  // 2. If roles are required, check if user has permission
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <AccessDenied />;
+  }
+
+  // 3. User is authenticated and authorized
   return <>{children}</>;
 };
 

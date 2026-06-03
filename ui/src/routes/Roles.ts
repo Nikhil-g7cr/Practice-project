@@ -5,4 +5,14 @@ export class Roles {
     static TESTER = 'tester';
     static MANAGER = 'manager';
     static GUEST = 'guest';
+
+    // Add this helper method to map roles to URL prefixes
+    static getRolePrefix(role: string): string {
+        switch (role) {
+            case this.DEVELOPER: return 'dev';
+            case this.MANAGER: return 'manager';
+            case this.ADMIN: return 'admin';
+            default: return 'user';
+        }
+    }
 }
