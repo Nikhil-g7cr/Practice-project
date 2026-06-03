@@ -93,6 +93,9 @@ export class CreatePhoneDto {
   @IsString({ each: true })
   images: string[];
 
+  @IsString()
+  manualPdf: string
+
   // ================= COLORS =================
 
   @IsArray()

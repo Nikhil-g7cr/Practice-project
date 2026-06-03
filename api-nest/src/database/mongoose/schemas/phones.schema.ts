@@ -33,6 +33,12 @@ export class Phone {
   @Prop({ type: [String], default: [] })
   images: string[];
 
+  // @Prop({ required: true })
+  // stock: number;
+
+  @Prop({ required: true })
+  manualPdf: string;
+
   @Prop({
     type: [
       {

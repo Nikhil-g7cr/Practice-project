@@ -70,10 +70,11 @@ export const phoneFields: FormField[] = [
     maxLength: 1000 
   },
   
-  { name: "spec_processor", label: "Processor", type: "text", required: true ,minLength: 10, maxLength: 50 },
-  { name: "spec_display", label: "Display", type: "text", required: true,minLength: 10, maxLength: 50  },
-  { name: "spec_battery", label: "Battery", type: "text", required: true,minLength: 10, maxLength: 50  },
-  { name: "spec_camera", label: "Camera", type: "text", required: true,minLength: 10, maxLength: 50  },
-  { name: "spec_ram", label: "RAM", type: "text", required: true,minLength: 10, maxLength: 50  },
-  { name: "spec_os", label: "Operating System", type: "text", required: true,minLength: 10, maxLength: 50  },
+  { name: "spec_processor", label: "Processor", type: "text", required: true ,minLength: 2, maxLength: 50 },
+  { name: "spec_display", label: "Display", type: "text", required: true,minLength: 2, maxLength: 50  },
+  { name: "spec_battery", label: "Battery", type: "text", required: true,minLength: 2, maxLength: 50  },
+  { name: "spec_camera", label: "Camera", type: "text", required: true,minLength: 2, maxLength: 50  },
+  { name: "spec_ram", label: "RAM", type: "text", required: true,minLength: 2, maxLength: 50  },
+  { name: "spec_os", label: "Operating System", type: "text", required: true,minLength: 2, maxLength: 50  },
+  { name: "spec_stock", label: "Stock", type: "number", required: true,min:0  },
 ];

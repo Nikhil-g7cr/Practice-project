@@ -74,7 +74,7 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
             {
               storage: "128GB",
               price: Number(rawFormData.basePrice),
-              stock: 10,
+              stock: Number(rawFormData.stock) || 0,
             },
           ],
           isAvailable: true,

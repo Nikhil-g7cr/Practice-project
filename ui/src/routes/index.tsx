@@ -32,6 +32,7 @@ const Approutes = () => {
   const isDashboardRoute = 
     location.pathname.startsWith("/admin") || 
     location.pathname.startsWith("/dev") || 
+    location.pathname.includes("/gallery")||
     location.pathname.startsWith("/manager");
 
   const isAuthRoute =
@@ -54,7 +55,12 @@ const Approutes = () => {
         <Route path="/phone/:id" element={<Phone />} />
         
         {/* --- RESTORED: Image Gallery (Public) --- */}
-        <Route path="/phone/:id/gallery" element={<ImageGallery />} />
+        <Route path="/gallery" element={
+          
+          <PrivateRoute allowedRoles={ADMIN_DEV} >
+            <ImageGallery />
+          </PrivateRoute>
+          } />
 
         {/* --- RESTORED: Profile & Cart (Any Logged-in User) --- */}
         <Route path="/profile" element={
