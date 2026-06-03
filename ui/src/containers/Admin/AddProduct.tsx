@@ -6,6 +6,7 @@ import { phoneFields, laptopFields } from "../../config/productFormFields";
 import API from "../../config/axios.config";
 import { usePopup } from "../../hooks/usePopup";
 import { deleteImageFromAzureApi } from "../../redux/features/phones/PhoneApi";
+import { uploadFileToAzure } from "../../shared/azureUploadService";
 
 interface AddProductProps {
   productType: "phone" | "laptop";
@@ -22,14 +23,14 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
   const redirectRoute = productType === "phone" ? "/phones" : "/laptops";
 
   // Reusable upload helper
-  const uploadFileToAzure = async (file: File): Promise<string> => {
-    const uploadData = new FormData();
-    uploadData.append("file", file);
-    const uploadResponse = await API.post("/upload", uploadData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return uploadResponse.data.fileName;
-  };
+  // const uploadFileToAzure = async (file: File): Promise<string> => {
+  //   const uploadData = new FormData();
+  //   uploadData.append("file", file);
+  //   const uploadResponse = await API.post("/upload", uploadData, {
+  //     headers: { "Content-Type": "multipart/form-data" },
+  //   });
+  //   return uploadResponse.data.fileName;
+  // };
 
   const handleFormSubmit = async (rawFormData: Record<string, any>) => {
     setIsSubmitting(true);

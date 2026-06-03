@@ -52,7 +52,7 @@ export const getAllUploadedFilesApi = async () => {
 };
 
 
-export const updatePhoneApi = async (id: string, data: Partial<Phone>) => {
+export const updatePhoneApi = async (id: string |undefined, data: Partial<Phone>) => {
   const response = await API.patch<PhoneResponse>(`/phones/${id}`, data);
 
   return response.data;

@@ -37,7 +37,7 @@ export const getPhoneById = createAsyncThunk( "phones/getPhoneById",
 
 export const updatePhone = createAsyncThunk(
   "phones/updatePhone",
-  async ({ id, data }: { id: string; data: Partial<Phone> }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string|undefined; data: Partial<Phone> }, { rejectWithValue }) => {
     try {
       return await updatePhoneApi(id, data);
     } catch (error: unknown) {
