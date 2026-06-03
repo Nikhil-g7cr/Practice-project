@@ -5,6 +5,7 @@ import Popup from "../../common/Popup";
 import { phoneFields, laptopFields } from "../../config/productFormFields";
 import API from "../../config/axios.config";
 import { usePopup } from "../../hooks/usePopup";
+import { deleteImageFromAzureApi } from "../../redux/features/phones/PhoneApi";
 
 interface AddProductProps {
   productType: "phone" | "laptop";
@@ -34,16 +35,23 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
     setIsSubmitting(true);
     setError(null);
 
+    // --- MOVE THESE OUTSIDE THE TRY BLOCK ---
+    // This allows the catch block to know which files to delete if it fails
+    let uploadedThumbnailName: string | null = null;
+    let uploadedPdfName: string | null = null;
+
     try {
       // 1. --- DYNAMIC UPLOAD LOGIC ---
-      let finalThumbnailName = rawFormData.thumbnail;
       if (rawFormData.thumbnail instanceof File) {
-        finalThumbnailName = await uploadFileToAzure(rawFormData.thumbnail);
+        uploadedThumbnailName = await uploadFileToAzure(rawFormData.thumbnail);
+      } else {
+        uploadedThumbnailName = rawFormData.thumbnail || null;
       }
 
-      let finalManualPdfName = rawFormData.manualPdf;
       if (rawFormData.manualPdf instanceof File) {
-        finalManualPdfName = await uploadFileToAzure(rawFormData.manualPdf);
+        uploadedPdfName = await uploadFileToAzure(rawFormData.manualPdf);
+      } else {
+        uploadedPdfName = rawFormData.manualPdf;
       }
 
       // 2. --- REFORMAT PRODUCT DATA ---
@@ -57,9 +65,9 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
           description: rawFormData.description,
           basePrice: Number(rawFormData.basePrice),
           
-          thumbnail: finalThumbnailName,
-          images: [finalThumbnailName], 
-          manualPdf: finalManualPdfName || null, // Ensure PDF name is sent to backend
+          thumbnail: uploadedThumbnailName,
+          images: uploadedThumbnailName ? [uploadedThumbnailName] : [], 
+          manualPdf: uploadedPdfName, 
           
           specifications: {
             processor: rawFormData.spec_processor,
@@ -98,6 +106,24 @@ const AddProduct: React.FC<AddProductProps> = ({ productType }) => {
       }
     } catch (err: any) {
       console.error(`Failed to add ${productType}:`, err);
+      
+      // 4. --- THE ROLLBACK CATCH ---
+      // If MongoDB failed, delete the newly uploaded files from Azure
+      try {
+        console.log("Attempting to roll back Azure uploads if necessary...");
+        if (rawFormData.thumbnail instanceof File && uploadedThumbnailName) {
+          console.log("Rolling back thumbnail upload...");
+          await deleteImageFromAzureApi(uploadedThumbnailName);
+        }
+        if (rawFormData.manualPdf instanceof File && uploadedPdfName) {
+          console.log("Rolling back PDF upload...");
+          await deleteImageFromAzureApi(uploadedPdfName);
+        }
+      } catch (rollbackErr) {
+        console.error("Failed to clean up Azure files after DB error:", rollbackErr);
+      }
+
+      // Display the error to the user
       const errorMsg = err.response?.data?.message;
       if (Array.isArray(errorMsg)) {
         setError(errorMsg.join(", ")); 

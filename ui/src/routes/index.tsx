@@ -55,7 +55,7 @@ const Approutes = () => {
         <Route path="/phone/:id" element={<Phone />} />
         
         {/* --- RESTORED: Image Gallery (Public) --- */}
-        <Route path="/gallery" element={
+        <Route path="/:rolePrefix/gallery" element={
           
           <PrivateRoute allowedRoles={ADMIN_DEV} >
             <ImageGallery />

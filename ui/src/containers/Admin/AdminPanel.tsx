@@ -110,13 +110,13 @@ const AdminPanel = () => {
             </h2>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
-                to="/laptops"
+                to={`/${rolePrefix}/laptops`}
                 className="rounded-lg bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100"
               >
                 Review catalog
               </Link>
               <Link
-                to={`/phone/1/gallery`}
+                to={`/${rolePrefix}/gallery`}
                 className="rounded-lg bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-200"
               >
                 Open media gallery
