@@ -27,13 +27,6 @@ const PRODUCT_MANAGERS = [Roles.ADMIN, Roles.DEVELOPER, Roles.MANAGER];
 
 const Approutes = () => {
   const location = useLocation();
-  
-  // --- UPDATED: Hide Topbar for ALL dashboard role prefixes ---
-  const isDashboardRoute = 
-    location.pathname.startsWith("/admin") || 
-    location.pathname.startsWith("/dev") || 
-    location.pathname.includes("/gallery")||
-    location.pathname.startsWith("/manager");
 
   const isAuthRoute =
     location.pathname.startsWith("/login") ||
@@ -41,8 +34,8 @@ const Approutes = () => {
 
   return (
     <div>
-      {/* Hide Topbar on dashboard routes */}
-      {!isDashboardRoute && <Topbar />}
+      {/* Topbar is now visible on all pages so you can always access the Cart */}
+      <Topbar />
       
       <Routes>
         {/* PUBLIC ROUTES */}
@@ -56,11 +49,10 @@ const Approutes = () => {
         
         {/* --- RESTORED: Image Gallery (Public) --- */}
         <Route path="/:rolePrefix/gallery" element={
-          
           <PrivateRoute allowedRoles={ADMIN_DEV} >
             <ImageGallery />
           </PrivateRoute>
-          } />
+        } />
 
         {/* --- RESTORED: Profile & Cart (Any Logged-in User) --- */}
         <Route path="/profile" element={
