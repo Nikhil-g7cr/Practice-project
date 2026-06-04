@@ -1,14 +1,20 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cart } from '../../database/mongoose/schemas/cart.schema';
+import { Phone } from '../../database/mongoose/schemas/phones.schema';
+import { Laptop } from '../../database/mongoose/schemas/laptops.schema';
 
 @Injectable()
 export class CartService {
   constructor(
     @InjectModel(Cart.name) private cartModel: Model<Cart>,
-    @InjectModel('Phone') private phoneModel: Model<any>,
-    @InjectModel('Laptop') private laptopModel: Model<any>,
+    @InjectModel('Phone') private phoneModel: Model<Phone>,
+    @InjectModel('Laptop') private laptopModel: Model<Laptop>,
   ) {}
 
   // --- CORE CALCULATION LOGIC ---
@@ -18,14 +24,16 @@ export class CartService {
 
     items.forEach((item) => {
       subtotal += item.discountPrice * item.quantity;
-      totalDiscount += (item.originalPrice - item.discountPrice) * item.quantity;
+      totalDiscount +=
+        (item.originalPrice - item.discountPrice) * item.quantity;
     });
 
     const gstAmount = subtotal * 0.18; // 18% GST
     const deliveryCharge = subtotal > 999 ? 0 : 49;
     const platformFee = 9;
 
-    const finalAmount = subtotal + gstAmount + deliveryCharge + platformFee - couponDiscount;
+    const finalAmount =
+      subtotal + gstAmount + deliveryCharge + platformFee - couponDiscount;
 
     return {
       subtotal,
@@ -40,27 +48,31 @@ export class CartService {
 
   // --- GET CART ---
   async getCart(userId: string) {
-    let cart = await this.cartModel.findOne({ userId }).populate('items.productId').lean().exec();
-    
+    let cart = await this.cartModel
+      .findOne({ userId })
+      .populate('items.productId')
+      .lean()
+      .exec();
+
     if (!cart) {
       cart = await this.cartModel.create({ userId, items: [] });
     }
 
     const summary = this.calculateCartSummary(cart.items);
-    
+
     return { cart, summary };
   }
 
   // --- ADD OR UPDATE ITEM ---
   async syncCartItem(userId: string, itemData: any) {
     let cart = await this.cartModel.findOne({ userId });
-    
+
     if (!cart) {
       cart = new this.cartModel({ userId, items: [] });
     }
 
     const itemIndex = cart.items.findIndex(
-      (item) => item.productId.toString() === itemData.productId
+      (item) => item.productId.toString() === itemData.productId,
     );
 
     if (itemIndex > -1) {
@@ -91,24 +103,27 @@ export class CartService {
 
     // 2. Process Inventory Deduction
     // We loop through the items array you defined in your schema
+    // 2. Process Inventory Deduction
     for (const item of cart.items) {
-      
-      // Select the correct database model based on your schema's enum
-      const targetModel = item.productModel === 'Phone' ? this.phoneModel : this.laptopModel;
-      
-      // Find the specific product
-      const product = await targetModel.findById(item.productId);
-      
+      let product;
+
+      // Execute the query safely on the specific model
+      if (item.productModel === 'Phone') {
+        product = await this.phoneModel.findById(item.productId);
+      } else {
+        product = await this.laptopModel.findById(item.productId);
+      }
+
       if (!product) {
         throw new NotFoundException(`A product in your cart no longer exists.`);
       }
 
       // Check if enough stock exists (assuming stock is in storageVariants[0])
       const currentStock = product.storageVariants[0].stock;
-      
+
       if (currentStock < item.quantity) {
         throw new BadRequestException(
-          `Not enough stock for ${product.name}. Only ${currentStock} remaining.`
+          `Not enough stock for ${product.name}. Only ${currentStock} remaining.`,
         );
       }
 
@@ -122,9 +137,10 @@ export class CartService {
     cart.items = [];
     await cart.save();
 
-    return { 
-      status: 'Success', 
-      message: 'Payment processed successfully. Inventory updated and cart cleared.' 
+    return {
+      status: 'Success',
+      message:
+        'Payment processed successfully. Inventory updated and cart cleared.',
     };
   }
 }

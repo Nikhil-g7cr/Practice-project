@@ -20,7 +20,6 @@ export class CartController {
 
   // =============== CHECKOUT ENDPOINT ===============
   @Post('checkout')
-  @UseGuards(AuthGuard)
   async processCheckout(@Req() req: any) {
     const userId = req.user.id || req.user._id; 
     return await this.cartService.checkoutCart(userId);
