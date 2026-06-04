@@ -1,118 +1,202 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import {
   useAppSelector,
   useAppDispatch,
 } from "../../../redux/hooks/reduxHooks";
-import { checkoutCart } from "../../../redux/features/cart/CartSlice";
-import { usePopup } from "../../../hooks/usePopup";
+import {
+  syncCartItem,
+  fetchCart,
+} from "../../../redux/features/cart/CartSlice";
 import { useNavigate } from "react-router-dom";
+import CartSummary from "./CartSummary";
+import { usePopup } from "../../../hooks/usePopup";
+import Popup from "../../../common/Popup";
 
-const CartSummary: React.FC = () => {
-  const { summary, items } = useAppSelector((state) => state.cart);
+const Cart: React.FC = () => {
+  // Removed `summary` from the destructured state since CartSummary handles it directly now
+  const { items, loading } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { showSuccess, showError } = usePopup();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
-  const handlePayment = async () => {
-    if (items.length === 0) return;
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
 
-    setIsCheckingOut(true);
-    try {
-      // Trigger the checkout process
-      await dispatch(checkoutCart()).unwrap();
-
-      showSuccess(
-        "Payment Successful",
-        "Your order has been placed and inventory has been updated!",
-      );
-
-      // Redirect to a success page or home
-      navigate("/");
-    } catch (error: any) {
-      showError("Payment Failed", error);
-    } finally {
-      setIsCheckingOut(false);
-    }
+  const handleQuantityChange = (item: any, newQuantity: number) => {
+    dispatch(
+      syncCartItem({
+        productId: item.productId._id,
+        productModel: item.productModel,
+        quantity: newQuantity,
+        originalPrice: item.originalPrice,
+        discountPrice: item.discountPrice,
+      }),
+    );
   };
 
-  // Formatting helper for Indian Rupees
-  const formatCurrency = (val: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "INR",
-    }).format(val);
+  const { popupState, showWarning, closePopup } = usePopup();
+  const confirmRemoveItem = (item: any) => {
+    showWarning(
+      "Remove Product",
+      `Are you sure you want to remove ${item.productId.name} from your cart?`,
+      () => {
+        handleQuantityChange(item, 0);
+      },
+      "Remove",
+    );
+  };
 
+  const isInitialLoad = loading && (!items || items.length === 0);
+
+  if (isInitialLoad) {
+    return (
+      <div className="flex justify-center items-center h-screen text-slate-500 font-medium">
+        <span className="material-symbols-outlined animate-spin text-3xl mr-2">
+          progress_activity
+        </span>
+        Loading Cart...
+      </div>
+    );
+  }
+
+  // Empty Cart View
+  if (!items || items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen w-full">
+        <div className="flex flex-col items-center justify-center text-center">
+          <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">
+            shopping_cart
+          </span>
+          <h2 className="text-2xl font-bold text-slate-800">
+            Your Cart is Empty
+          </h2>
+          <p className="text-slate-500 mt-2">
+            Browse our top products and find something you love!
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="mt-6 px-8 py-3 bg-cyan-600 hover:bg-cyan-700 transition-colors text-white font-semibold rounded-xl shadow-sm"
+          >
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Populated Cart View
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-      <h2 className="text-xl font-bold text-slate-800 mb-6">Order Summary</h2>
+    <div
+      className={`max-w-6xl mx-auto px-4 py-12 md:py-16 transition-opacity duration-200 ${
+        loading ? "opacity-60 pointer-events-none" : "opacity-100"
+      }`}
+    >
+      <Popup config={popupState} onClose={closePopup} />
 
-      <div className="space-y-4 text-sm text-slate-600">
-        <div className="flex justify-between">
-          <span>Price ({items.length} items)</span>
-          <span className="font-medium">
-            {formatCurrency(summary.subtotal + summary.totalDiscount)}
-          </span>
-        </div>
-
-        <div className="flex justify-between text-emerald-600">
-          <span>Discount</span>
-          <span className="font-medium">
-            - {formatCurrency(summary.totalDiscount)}
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span>Subtotal</span>
-          <span className="font-medium">
-            {formatCurrency(summary.subtotal)}
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span>GST (18%)</span>
-          <span className="font-medium">
-            {formatCurrency(summary.gstAmount)}
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span>Platform Fee</span>
-          <span className="font-medium">
-            {formatCurrency(summary.platformFee)}
-          </span>
-        </div>
-
-        <div className="flex justify-between">
-          <span>Delivery Charges</span>
-          {summary.deliveryCharge === 0 ? (
-            <span className="font-medium text-emerald-600">Free Delivery</span>
-          ) : (
-            <span className="font-medium">
-              {formatCurrency(summary.deliveryCharge)}
+      <div className="mt-10 flex flex-col gap-2">
+        <div className="flex items-center gap-3">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
+            Shopping Cart
+          </h1>
+          {loading && (
+            <span className="material-symbols-outlined animate-spin text-cyan-600">
+              sync
             </span>
           )}
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
+          <div className="lg:col-span-2 space-y-4">
+            {items.map((item) => {
+              const product = item.productId;
+              const maxStock = product.storageVariants?.[0]?.stock || 0;
+
+              return (
+                <div
+                  key={product._id}
+                  className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative group transition-all hover:shadow-md"
+                >
+                  <div className="w-full sm:w-28 h-28 bg-slate-50 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {product.imageUrl ? (
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="object-contain w-full h-full p-2"
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined text-4xl text-slate-300">
+                        image
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex-grow text-center sm:text-left">
+                    <h3 className="font-semibold text-lg text-slate-800 line-clamp-1">
+                      {product.name}
+                    </h3>
+                    <p className="text-cyan-600 font-bold text-lg mt-1">
+                      ${item.discountPrice.toFixed(2)}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-center sm:items-end gap-4 w-full sm:w-auto mt-4 sm:mt-0">
+                    <div className="flex items-center gap-3 bg-slate-50 px-2 py-1.5 rounded-xl border border-slate-200">
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(item, item.quantity - 1)
+                        }
+                        disabled={item.quantity <= 1 || loading}
+                        className="text-slate-500 hover:text-cyan-600 w-8 h-8 disabled:opacity-50 flex items-center justify-center transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          remove
+                        </span>
+                      </button>
+                      <span className="font-bold text-slate-700 w-6 text-center">
+                        {item.quantity}
+                      </span>
+                      <button
+                        onClick={() =>
+                          handleQuantityChange(item, item.quantity + 1)
+                        }
+                        disabled={loading || item.quantity >= maxStock}
+                        title={
+                          item.quantity >= maxStock
+                            ? "Max stock reached"
+                            : "Increase quantity"
+                        }
+                        className="text-slate-500 hover:text-cyan-600 w-8 h-8 flex items-center justify-center transition-colors disabled:opacity-50"
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          add
+                        </span>
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => confirmRemoveItem(item)}
+                      disabled={loading}
+                      className="text-red-400 hover:text-red-600 text-sm font-medium flex items-center gap-1 transition-colors disabled:opacity-50"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">
+                        delete
+                      </span>
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="lg:col-span-1">
+            {/* The CartSummary component now manages its own Redux state directly */}
+            <CartSummary />
+          </div>
+        </div>
       </div>
-
-      <div className="border-t border-dashed border-slate-300 my-4"></div>
-
-      <div className="flex justify-between items-center mb-6">
-        <span className="text-lg font-bold text-slate-800">Total Amount</span>
-        <span className="text-xl font-black text-slate-900">
-          {formatCurrency(summary.finalAmount)}
-        </span>
-      </div>
-
-      <div className="bg-emerald-50 text-emerald-700 px-4 py-3 rounded-lg text-sm font-semibold mb-6 border border-emerald-100">
-        You will save {formatCurrency(summary.totalDiscount)} on this order!
-      </div>
-
-      <button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98]">
-        Proceed to Checkout
-      </button>
     </div>
   );
 };
 
-export default CartSummary;
+export default Cart;

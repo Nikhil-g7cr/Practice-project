@@ -17,9 +17,9 @@ const Topbar = () => {
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   // Define role checks
-  const isAdmin = isAuthenticated && user?.role === Roles.ADMIN;
-  const isManager = isAuthenticated && user?.role === Roles.MANAGER;
-  const isDeveloper = isAuthenticated && user?.role === Roles.DEVELOPER;
+  const isAdmin = isAuthenticated && user!.role === Roles.ADMIN;
+  const isManager = isAuthenticated && user!.role === Roles.MANAGER;
+  const isDeveloper = isAuthenticated && user!.role === Roles.DEVELOPER;
 
   // Check if user has access to the management panel
   const hasPanelAccess = isAdmin || isManager || isDeveloper;
@@ -67,7 +67,12 @@ const Topbar = () => {
           to="/"
           className="font-display text-3xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-800 via-slate-600 to-slate-900 bg-clip-text text-transparent hover:scale-105 transition-all duration-300"
         >
-          {BRAND_NAME}
+          {/* {BRAND_NAME} */}
+          <img
+            src="/logo1.png"
+            alt="Logo"
+            className="h-40 w-auto object-contain"
+          />
         </Link>
 
         {/* Right Actions */}
@@ -200,17 +205,19 @@ const Topbar = () => {
             <div className="flex gap-4">
               <button
                 onClick={() => navigate("/login")}
-                className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
+                className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black  transition-all duration-300"
               >
-                <span className="material-symbols-outlined text-[24px]">
-                  Login
-                </span>
+                {/* <span className="material-symbols-outlined flex items-center justify-center gap-1"> */}
+                  <img src="/login2.png" alt="Login Icon" className="h-5 w-10 object-contain" />
+                {/* </span> */}
               </button>
               <button
                 onClick={() => navigate("/Signup")}
-                className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black hover:bg-white/20 transition-all duration-300"
+                className="glass smooth-hover p-3 rounded-2xl text-slate-700 hover:text-black  transition-all duration-300"
               >
-                <span className="text-[20px]">signup</span>
+                {/* <span className="text-[20px]"> */}
+                  <img src="/signup.png" alt="Signup Icon" className="h-5 w-10 object-contain" />
+                {/* </span> */}
               </button>
             </div>
           )}

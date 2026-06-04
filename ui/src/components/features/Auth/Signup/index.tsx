@@ -69,6 +69,7 @@ export default function Signup() {
     try {
       const response = await fetch("http://localhost:3000/api/auth/signup", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
@@ -86,14 +87,14 @@ export default function Signup() {
 
       const data = await response.json();
 
-      if (data.accessToken && data.user) {
+      if (data.accessToken) {
         sessionStorage.setItem("accessToken", data.accessToken);
-        sessionStorage.setItem("user", JSON.stringify(data.user));
+        // sessionStorage.setItem("user", JSON.stringify(data.user));
 
         dispatch(
           login({
-            user: data.user,
-            token: data.accessToken,
+            accessToken: data.accessToken,
+            refreshToken: data.refreshToken, // Passing the refresh token to the slice too!
           }),
         );
 

@@ -5,7 +5,6 @@ import {
 } from "../../../redux/hooks/reduxHooks";
 import {
   syncCartItem,
-  clearLocalCart,
   fetchCart,
 } from "../../../redux/features/cart/CartSlice";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +13,8 @@ import { usePopup } from "../../../hooks/usePopup";
 import Popup from "../../../common/Popup";
 
 const Cart: React.FC = () => {
-  const { items, summary, loading } = useAppSelector((state) => state.cart);
+  // Removed `summary` from the destructured state since CartSummary handles it directly now
+  const { items, loading } = useAppSelector((state) => state.cart);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -36,8 +36,6 @@ const Cart: React.FC = () => {
 
   const { popupState, showWarning, closePopup } = usePopup();
   const confirmRemoveItem = (item: any) => {
-    // Find the available stock
-
     showWarning(
       "Remove Product",
       `Are you sure you want to remove ${item.productId.name} from your cart?`,
@@ -48,9 +46,6 @@ const Cart: React.FC = () => {
     );
   };
 
-  // --- THE FIX IS HERE ---
-  // Only show the full-screen loader on the VERY FIRST load
-  // (when loading is true AND we have no items in the UI yet)
   const isInitialLoad = loading && (!items || items.length === 0);
 
   if (isInitialLoad) {
@@ -91,10 +86,10 @@ const Cart: React.FC = () => {
 
   // Populated Cart View
   return (
-    // --- ADDED VISUAL FEEDBACK ---
-    // If it's loading (syncing in the background), we dim the screen slightly and disable clicks
     <div
-      className={`max-w-6xl mx-auto px-4 py-12 md:py-16 transition-opacity duration-200 ${loading ? "opacity-60 pointer-events-none" : "opacity-100"}`}
+      className={`max-w-6xl mx-auto px-4 py-12 md:py-16 transition-opacity duration-200 ${
+        loading ? "opacity-60 pointer-events-none" : "opacity-100"
+      }`}
     >
       <Popup config={popupState} onClose={closePopup} />
 
@@ -103,7 +98,6 @@ const Cart: React.FC = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-slate-800">
             Shopping Cart
           </h1>
-          {/* Optional: Show a small spinner next to the title when syncing */}
           {loading && (
             <span className="material-symbols-outlined animate-spin text-cyan-600">
               sync
@@ -114,7 +108,6 @@ const Cart: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
           <div className="lg:col-span-2 space-y-4">
             {items.map((item) => {
-
               const product = item.productId;
               const maxStock = product.storageVariants?.[0]?.stock || 0;
 
@@ -197,6 +190,7 @@ const Cart: React.FC = () => {
           </div>
 
           <div className="lg:col-span-1">
+            {/* The CartSummary component now manages its own Redux state directly */}
             <CartSummary />
           </div>
         </div>

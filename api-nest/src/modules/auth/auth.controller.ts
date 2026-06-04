@@ -31,8 +31,32 @@ export class AuthController {
   @ApiOperation({ summary: 'User signup' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @Post('signup')
-  signUp(@Body() signupDto: SignUpDto) {
-    return this.authService.signup(signupDto);
+  async signUp(
+    @Body() signupDto: SignUpDto,
+    @Headers('user-agent') userAgent: string,
+    @Request() req,
+    @Response({ passthrough: true }) res,
+  ) {
+    const ipAddress = req.ip || req.connection.remoteAddress;
+
+    const result = await this.authService.signup(
+      signupDto,
+      userAgent,
+      ipAddress,
+    );
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: this.parseTimeToMs(result.refreshTokenExpiresIn),
+      path: '/',
+    });
+
+    return {
+      accessToken: result.accessToken,
+      user: result.user,
+    };
   }
 
   // ================= LOGIN =================
@@ -50,21 +74,11 @@ export class AuthController {
 
     const result = await this.authService.login(loginDto, userAgent, ipAddress);
 
-    // Refresh Token Cookie
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-
-      // FALSE for localhost
-      // TRUE only in production HTTPS
       secure: process.env.NODE_ENV === 'production',
-
-      // Best for localhost + frontend/backend different ports
       sameSite: 'lax',
-
-      // 7 days
       maxAge: this.parseTimeToMs(result.refreshTokenExpiresIn),
-
-      // Important
       path: '/',
     });
 
@@ -150,21 +164,39 @@ export class AuthController {
 
   // ================= LOGOUT =================
 
+  // @ApiOperation({ summary: 'User logout' })
+  // @ApiResponse({ status: 200, description: 'Logout successful' })
+  // @UseGuards(JwtAuthGuard)
+  // @Post('logout')
+  // async logout(@Request() req, @Response({ passthrough: true }) res) {
+  //   const token = req.headers.authorization?.split(' ')[1];
+
+  //   await this.authService.logout(token);
+
+  //   // Clear cookie
+  //   res.clearCookie('refreshToken', {
+  //     httpOnly: true,
+  //     secure: process.env.NODE_ENV === 'production',
+  //     sameSite: 'lax',
+  //     path: '/',
+  //   });
+
+  //   return {
+  //     message: 'Logged out successfully',
+  //   };
+  // }
+
   @ApiOperation({ summary: 'User logout' })
   @ApiResponse({ status: 200, description: 'Logout successful' })
-  @UseGuards(JwtAuthGuard)
   @Post('logout')
-  async logout(@Request() req, @Response({ passthrough: true }) res) {
-    const token = req.headers.authorization?.split(' ')[1];
-
-    await this.authService.logout(token);
-
-    // Clear cookie
+  async logout(@Response({ passthrough: true }) res) {
+    // Clear the HTTP-only cookie if you are using one
     res.clearCookie('refreshToken', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
+      path: '/api/auth',
+    });
+
+    res.clearCookie('refreshToken', {
+      path: '/api/auth/microsoft',
     });
 
     return {
@@ -204,7 +236,7 @@ export class AuthController {
     });
 
     res.clearCookie('refreshToken', {
-      path:'/api/auth/microsoft'
+      path: '/api/auth/microsoft',
     });
 
     return {

@@ -21,62 +21,105 @@ export class AuthService {
     private sessionService: SessionService,
   ) {}
 
-  // async signup(signupDto: SignUpDto) {
-  //   try {
-  //     const existingUser = await this.userService.findbyEmail(signupDto.email);
+  // private generateAuthResponse(user: any) {
+  //   // We make sure the user's ID and role are baked into the token
+  //   const payload = {
+  //     id: user._id || user.id,
+  //     name: user.name,
+  //     email: user.email,
+  //     role: user.role || 'user',
+  //     image_url: user.image_url,
+  //     phone: user.phone,
+  //   };
 
-  //     if (existingUser) {
-  //       throw new ConflictException('Email already exists');
-  //     }
+  //   const accessToken = this.jwtService.sign(payload, {
+  //     secret: this.configService.get('JWT_SECRET'),
+  //     expiresIn: this.configService.get('JWT_EXPIRES') || '3d',
+  //   });
 
-  //     const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+  //   const refreshToken = this.jwtService.sign(payload, {
+  //     secret: this.configService.get('JWT_REFRESH_SECRET'),
+  //     expiresIn: this.configService.get('JWT_REFRESH_EXPIRES') || '7d',
+  //   });
 
-  //     const user = await this.userService.create({
-  //       ...signupDto,
-  //       password: hashedPassword,
-  //     });
-
-  //     return user;
-  //   } catch (error: any) {
-  //     throw new ConflictException(error.message);
-  //   }
+  //   return {
+  //     accessToken,
+  //     refreshToken,
+  //     refreshTokenExpiresIn:
+  //       this.configService.get('JWT_REFRESH_EXPIRES') || '7d',
+  //     user: payload,
+  //   };
   // }
 
-  async signup(dto: SignUpDto) {
-  const user = await this.userService.create(dto);
+  private generateAuthResponse(user: any) {
+    // Embed user details directly inside the token payload
+    const payload = {
+      id: user._id || user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role || 'user',
+      image_url: user.image_url, // Profile image
+    };
 
-  const payload = {
-    email: user?.email,
-  };
+    // Sign Access Token: Expires in 1 minute
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_SECRET'),
+      expiresIn: '1m',
+    });
 
-  return {
-    accessToken: this.jwtService.sign(payload),
-    user,
-  };
-}
+    // Sign Refresh Token: Expires in 1 hour
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get('JWT_REFRESH_SECRET'),
+      expiresIn: '1h',
+    });
 
-  async login(loginDto: LoginDto, userAgent: string, ipAddress: string) {
-    const { email, password } = loginDto;
+    // ONLY return the access token and refresh token
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
 
-    const user = await this.userService.findbyEmail(email);
+  async signup(dto: SignUpDto, userAgent: string, ipAddress: string) {
+    try {
+      const existingUser = await this.userService.findbyEmail(dto.email);
+
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+      const user = await this.userService.create({
+        ...dto,
+        password: hashedPassword,
+      });
+
+      // Create a proper login session
+      return await this.createAuthSession(user, userAgent, ipAddress);
+    } catch (error: any) {
+      throw new ConflictException(error.message);
+    }
+  }
+
+  async login(dto: LoginDto, userAgent: string, ipAddress: string) {
+    const user = await this.userService.findbyEmail(dto.email);
 
     if (!user) {
-      throw new UnauthorizedException('User Not Found');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     if (!user.password) {
-      throw new UnauthorizedException(
-        'This account uses Microsoft sign-in. Please continue with Microsoft.',
-      );
+      throw new UnauthorizedException('This account uses Microsoft Sign-In');
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
-    if (!passwordMatch) {
-      throw new UnauthorizedException('invalid email or password');
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    return this.createAuthSession(user, userAgent, ipAddress);
+    return await this.createAuthSession(user, userAgent, ipAddress);
   }
 
   // ================= MICROSOFT LOGIN =================
@@ -175,7 +218,9 @@ export class AuthService {
       return this.createAuthSession(user, userAgent, ipAddress);
     } catch (error: any) {
       console.error('[Microsoft SSO Error]:', error);
-      throw new UnauthorizedException(error.message || 'Microsoft login failed');
+      throw new UnauthorizedException(
+        error.message || 'Microsoft login failed',
+      );
     }
   }
 

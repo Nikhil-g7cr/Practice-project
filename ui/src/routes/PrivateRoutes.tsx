@@ -48,7 +48,8 @@ const AccessDenied = () => (
 );
 
 const PrivateRoute = ({ children, allowedRoles }: PrivateRouteProps) => {
-  const user = JSON.parse(sessionStorage.getItem("user") || "null");
+  
+  const user = useAppSelector((state) => state.auth.user);
 
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   const location = useLocation();
@@ -61,7 +62,7 @@ const PrivateRoute = ({ children, allowedRoles }: PrivateRouteProps) => {
 
   // --- NEW LOGIC: Dynamic URL Rewriting based on Role ---
   if (rolePrefix) {
-    const expectedPrefix = Roles.getRolePrefix(user.role);
+    const expectedPrefix = Roles.getRolePrefix(user?.role);
     
     // If the URL says /admin/product but the user is a developer (expected 'dev')
     // Automatically redirect them to /dev/product
@@ -73,7 +74,7 @@ const PrivateRoute = ({ children, allowedRoles }: PrivateRouteProps) => {
   // ------------------------------------------------------
 
   // 2. If roles are required, check if user has permission
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
+  if (allowedRoles && !allowedRoles.includes(user?.role)) {
     return <AccessDenied />;
   }
 

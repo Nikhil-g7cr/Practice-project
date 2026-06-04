@@ -7,7 +7,7 @@ export class Roles {
     static GUEST = 'guest';
 
     // Add this helper method to map roles to URL prefixes
-    static getRolePrefix(role: string): string {
+    static getRolePrefix(role: string|undefined): string {
         switch (role) {
             case this.DEVELOPER: return 'dev';
             case this.MANAGER: return 'manager';
